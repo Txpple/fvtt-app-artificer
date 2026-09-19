@@ -5,14 +5,16 @@ import { SpendMeter } from './spend.js';
 
 function build() {
   const gemini = new Gemini({ apiKey: '', timeoutMs: 1 });
-  return buildToolRegistry({ gemini, spend: new SpendMeter(), outputDir: 'x' });
+  const cutout = () => Promise.reject(new Error('not in this test'));
+  return buildToolRegistry({ gemini, spend: new SpendMeter(), outputDir: 'x', cutout });
 }
 
 describe('tool registry', () => {
-  it('advertises exactly the three-tool surface, one definition per handler', () => {
+  it('advertises exactly the four-tool surface, one definition per handler', () => {
     const { tools, handlers } = build();
     expect(tools.map(t => t.name).sort()).toEqual([
       'artificer-status',
+      'cutout-image',
       'edit-image',
       'generate-image',
     ]);

@@ -43,6 +43,7 @@ export class StatusTool {
       models,
       ...(error ? { error } : {}),
       outputDir: this.deps.outputDir,
+      cutoutScript: 'scripts/token_cutout.py (chroma; rembg fallback when installed)',
       spend: this.deps.spend.summary(),
     };
   }

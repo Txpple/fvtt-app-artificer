@@ -14,18 +14,12 @@ export interface Preset {
   aspect: Aspect;
   size: ImageSize;
   post: Post;
-  /** Appended to every prompt of this kind. Framing is correctness, so it lives here. */
+  /**
+   * Appended to every prompt of this kind. Framing is correctness, so it lives here. Tokens get
+   * the chroma plate sentence appended separately, with the key chosen per subject (chroma.ts).
+   */
   suffix: string;
 }
-
-/**
- * The exact chroma sentence proven in the M0 spike. Vaguer wording ("plain green background")
- * made Flash paint a green token DISC on white. Keep this verbatim.
- */
-export const TOKEN_CHROMA_SUFFIX =
-  'The ENTIRE image background, edge to edge and corner to corner, is one flat uniform ' +
-  'chroma-key green (#00FF00) with no circle, no disc, no ring, no border, no ground, no shadow; ' +
-  'only the figure and the flat green.';
 
 export const TOKEN_FRAMING =
   'Virtual tabletop token: the full body of a single figure seen from a high three-quarter ' +
@@ -37,13 +31,7 @@ export const ICON_FRAMING =
 
 export const PRESETS: Record<Kind, Preset> = {
   icon: { tier: 'flash', aspect: '1:1', size: '1K', post: 'icon', suffix: ICON_FRAMING },
-  token: {
-    tier: 'flash',
-    aspect: '1:1',
-    size: '1K',
-    post: 'token',
-    suffix: `${TOKEN_FRAMING} ${TOKEN_CHROMA_SUFFIX}`,
-  },
+  token: { tier: 'flash', aspect: '1:1', size: '1K', post: 'token', suffix: TOKEN_FRAMING },
   portrait: { tier: 'pro', aspect: '3:4', size: '2K', post: 'portrait', suffix: '' },
   illustration: { tier: 'pro', aspect: '16:9', size: '4K', post: 'illustration', suffix: '' },
 };
@@ -51,6 +39,7 @@ export const PRESETS: Record<Kind, Preset> = {
 /** Finished pixel sizes the post-processors guarantee. */
 export const OUTPUT = {
   icon: { width: 512, height: 512 },
+  token: { width: 512, height: 512 },
   illustration: { width: 2560, height: 1600 },
 } as const;
 

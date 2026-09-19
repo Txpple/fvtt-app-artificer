@@ -26,6 +26,8 @@ export const config = {
   geminiApiKey: process.env.GEMINI_API_KEY ?? '',
   /** Where finished renders land before curation and staging. Outside any git repo. */
   outputDir: process.env.ARTIFICER_OUTPUT_DIR ?? 'D:\\Workbench\\LOCAL\\artificer-output',
+  /** Python interpreter for the cutout script (needs Pillow + numpy; rembg optional). */
+  pythonBin: process.env.ARTIFICER_PYTHON ?? 'python',
   /** Max wait for a single API call. */
   timeoutMs: Number(process.env.ARTIFICER_TIMEOUT_MS ?? 120_000),
 };

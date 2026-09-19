@@ -8,6 +8,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
 import { config } from './config.js';
+import { makeCutout } from './cutout.js';
 import { Gemini } from './gemini.js';
 import { buildToolRegistry } from './registry.js';
 import { SpendMeter } from './spend.js';
@@ -15,7 +16,13 @@ import { SpendMeter } from './spend.js';
 async function main(): Promise<void> {
   const gemini = new Gemini({ apiKey: config.geminiApiKey, timeoutMs: config.timeoutMs });
   const spend = new SpendMeter();
-  const { tools, dispatch } = buildToolRegistry({ gemini, spend, outputDir: config.outputDir });
+  const cutout = makeCutout(config.pythonBin);
+  const { tools, dispatch } = buildToolRegistry({
+    gemini,
+    spend,
+    outputDir: config.outputDir,
+    cutout,
+  });
 
   const mcp = new Server(
     { name: config.server.name, version: config.server.version },

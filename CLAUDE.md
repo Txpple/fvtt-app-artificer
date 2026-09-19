@@ -10,7 +10,7 @@ generate art, edit existing art, cut tokens to alpha, curate the results by actu
 them, and hand the winners to the Foundry pipeline (`upload-asset` → `set-actor-art` /
 `add-journal-image` in `fvtt-mcp-molten5e`).
 
-Status: **rebuilding on the API (decided 2026-09-19).** The first version of this server wrapped
+Status: **rebuilt on the API (2026-09-19); tools live, skill rewrite and v1.0.0 tag pending.** The first version of this server wrapped
 a local ComfyUI install with FLUX models and a trained house-style LoRA. That direction is dead:
 the local pipeline took many iterations per usable image, the LoRA never delivered a consistent
 look, and the owner was already feeding its output to Nano Banana to fix. ComfyUI, the models, the

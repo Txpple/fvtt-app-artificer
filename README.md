@@ -1,8 +1,7 @@
 # fvtt-mcp-artificer
 
-> 🚧 **Rebuilt on the Gemini image API 2026-09-19.** `generate-image`, `edit-image`, and
-> `artificer-status` are live; `cutout-image` (the token alpha step) is the next milestone in
-> [ROADMAP.md](ROADMAP.md). Until then tokens come back on their chroma plate.
+> **Rebuilt on the Gemini image API 2026-09-19.** All four tools are live; the
+> `illustration-builder` skill rewrite and the v1.0.0 tag are what remain in [ROADMAP.md](ROADMAP.md).
 
 A **Foundry-specific** image-generation [Model Context Protocol](https://modelcontextprotocol.io)
 server for D&D table art, driven by **Claude Code**. It calls the **Gemini image API** (Nano
@@ -43,7 +42,7 @@ and size, and the post-processing:
 | kind | tier default | API call | finished output |
 | --- | --- | --- | --- |
 | `icon` | flash | 1:1 at 1K | 512×512 |
-| `token` | flash | 1:1 at 1K | 512×512 RGBA, background cut to alpha |
+| `token` | flash | 1:1 at 1K, top-down, on a chroma plate whose colour is chosen per subject | 512×512 RGBA, cut to alpha, plate PNG kept beside it |
 | `portrait` | pro | 3:4 at 2K | as rendered |
 | `illustration` | pro | 16:9 at 4K with style references | 2560×1600 (16:10 crop) |
 
@@ -73,8 +72,9 @@ passed, and the refusal states the estimated cost. The skill asks the owner befo
 
 - **Node.js 22+**.
 - A **Gemini API key** with access to the image models.
-- **Python 3** with `rembg` for the AI matte in `cutout-image` (chroma key works without it).
-  First rembg use downloads a ~176 MB model.
+- **Python 3** with Pillow and numpy for `cutout-image` and the token kind; `rembg` optional for
+  the AI-matte fallback (first use downloads a ~176 MB model). `ARTIFICER_PYTHON` picks the
+  interpreter.
 
 ## Build
 

@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import sharp from 'sharp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { CutoutFn, CutoutOptions } from '../cutout.js';
 import { Gemini } from '../gemini.js';
 import { buildToolRegistry } from '../registry.js';
 import { SpendMeter } from '../spend.js';
@@ -11,7 +12,9 @@ import { referencePreamble, resolveTier } from './shared.js';
 
 let tmp: string;
 let refPng: string;
+let greenRef: string;
 let sent: Array<{ url: string; body: any }>;
+let cuts: CutoutOptions[];
 
 function fakeGemini(width = 1024, height = 1024): Gemini {
   sent = [];
@@ -37,9 +40,29 @@ function fakeGemini(width = 1024, height = 1024): Gemini {
   return new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
 }
 
+const fakeCutout: CutoutFn = async opts => {
+  cuts.push(opts);
+  fs.writeFileSync(
+    opts.output,
+    await sharp({ create: { width: 512, height: 512, channels: 4, background: '#0000' } })
+      .png()
+      .toBuffer()
+  );
+  return {
+    file: opts.output,
+    preview: `${opts.output}-preview`,
+    method: 'chroma',
+    coveragePct: 42,
+    residualKeyPct: 0.1,
+    width: 512,
+    height: 512,
+  };
+};
+
 function build(gemini = fakeGemini()) {
   const spend = new SpendMeter();
-  return { spend, ...buildToolRegistry({ gemini, spend, outputDir: tmp }) };
+  cuts = [];
+  return { spend, ...buildToolRegistry({ gemini, spend, outputDir: tmp, cutout: fakeCutout }) };
 }
 
 beforeAll(async () => {
@@ -48,6 +71,13 @@ beforeAll(async () => {
   fs.writeFileSync(
     refPng,
     await sharp({ create: { width: 8, height: 8, channels: 3, background: '#fff' } })
+      .png()
+      .toBuffer()
+  );
+  greenRef = path.join(tmp, 'green.png');
+  fs.writeFileSync(
+    greenRef,
+    await sharp({ create: { width: 8, height: 8, channels: 3, background: '#30a030' } })
       .png()
       .toBuffer()
   );
@@ -103,9 +133,10 @@ describe('generate-image', () => {
     const text = sent[0].body.contents[0].parts.at(-1).text;
     expect(text).toMatch(/^a rusted iron key Inventory icon/);
     expect(sent[0].url).toContain('gemini-3.1-flash-image');
+    expect(cuts).toHaveLength(0);
   });
 
-  it('appends the chroma plate to tokens and attaches references ahead of the text', async () => {
+  it('tokens: picks green for a neutral reference, appends framing + plate, then cuts to 512', async () => {
     const { dispatch } = build();
     const r: any = await dispatch('generate-image', {
       kind: 'token',
@@ -117,8 +148,32 @@ describe('generate-image', () => {
     expect(parts).toHaveLength(2);
     expect(parts[0].inline_data.mime_type).toBe('image/png');
     expect(parts[1].text).toMatch(/^Image 1 \(Morgash token\) is a STYLE reference/);
+    expect(parts[1].text).toContain('top-down angle');
     expect(parts[1].text).toContain('chroma-key green (#00FF00)');
-    expect(r.width).toBe(1024);
+    expect(r.chromaKey).toBe('green');
+    expect(cuts).toHaveLength(1);
+    expect(cuts[0]).toMatchObject({ color: 'green', size: 512, method: 'auto' });
+    expect(path.basename(cuts[0].input)).toMatch(/^token-goblin-[0-9a-f]{8}-plate\.png$/);
+    expect(path.basename(r.file)).toMatch(/^token-goblin-[0-9a-f]{8}\.png$/);
+    expect(r).toMatchObject({
+      width: 512,
+      height: 512,
+      cutout: { method: 'chroma', coveragePct: 42 },
+    });
+    expect(fs.existsSync(r.plate)).toBe(true);
+  });
+
+  it('tokens: switches the plate to magenta when the reference subject is green', async () => {
+    const { dispatch } = build();
+    const r: any = await dispatch('generate-image', {
+      kind: 'token',
+      prompt: 'a goblin',
+      slug: 'goblin',
+      references: [{ path: greenRef, role: 'character' }],
+    });
+    expect(r.chromaKey).toBe('magenta');
+    expect(sent[0].body.contents[0].parts.at(-1).text).toContain('chroma-key magenta (#FF00FF)');
+    expect(cuts[0].color).toBe('magenta');
   });
 
   it('crops a confirmed pro illustration to 2560×1600 at the pro price', async () => {
@@ -160,7 +215,7 @@ describe('generate-image', () => {
 });
 
 describe('edit-image', () => {
-  it('attaches the source first, defaults to flash for any kind, and shifts reference numbering', async () => {
+  it('attaches the source first, defaults to flash, shifts reference numbering, and re-cuts tokens', async () => {
     const { dispatch } = build();
     const r: any = await dispatch('edit-image', {
       sourceImage: refPng,
@@ -178,6 +233,18 @@ describe('edit-image', () => {
     expect(text).toContain('chroma-key green');
     expect(r.tier).toBe('flash');
     expect(path.basename(r.file)).toMatch(/^token-morgash-[0-9a-f]{8}\.png$/);
+    expect(cuts).toHaveLength(1);
+  });
+
+  it('samples the SOURCE token for the key: a green source gets a magenta plate', async () => {
+    const { dispatch } = build();
+    const r: any = await dispatch('edit-image', {
+      sourceImage: greenRef,
+      instruction: 'add a scar',
+      kind: 'token',
+      slug: 'goblin',
+    });
+    expect(r.chromaKey).toBe('magenta');
   });
 
   it('still gates an explicit pro edit', async () => {
@@ -191,6 +258,39 @@ describe('edit-image', () => {
         tier: 'pro',
       })
     ).rejects.toThrow(/confirmPro/);
+  });
+});
+
+describe('cutout-image', () => {
+  it('defaults the output beside the source as <name>-cut.png and forwards options', async () => {
+    const { dispatch } = build();
+    const r: any = await dispatch('cutout-image', {
+      sourceImage: refPng,
+      method: 'chroma',
+      color: 'magenta',
+      erode: 1,
+      padPct: 8,
+      trim: false,
+    });
+    expect(r.file).toBe(path.join(tmp, 'ref-cut.png'));
+    expect(cuts[0]).toMatchObject({
+      input: refPng,
+      method: 'chroma',
+      color: 'magenta',
+      erode: 1,
+      padPct: 8,
+      trim: false,
+    });
+  });
+
+  it('rejects an output equal to the source and a bad colour', async () => {
+    const { dispatch } = build();
+    await expect(dispatch('cutout-image', { sourceImage: refPng, output: refPng })).rejects.toThrow(
+      /must differ/
+    );
+    await expect(dispatch('cutout-image', { sourceImage: refPng, color: 'teal' })).rejects.toThrow(
+      /green, magenta, blue/
+    );
   });
 });
 

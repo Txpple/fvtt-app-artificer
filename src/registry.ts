@@ -3,6 +3,7 @@
 // advertised `tools` list is DERIVED from it, so the two cannot drift, and a handler without a
 // matching definition fails fast at startup.
 
+import { CutoutImageTool } from './tools/cutout.js';
 import { EditImageTool } from './tools/edit.js';
 import { GenerateImageTool } from './tools/generate.js';
 import type { ToolDeps } from './tools/shared.js';
@@ -17,17 +18,20 @@ export interface ToolRegistry {
 export function buildToolRegistry(deps: ToolDeps): ToolRegistry {
   const generate = new GenerateImageTool(deps);
   const edit = new EditImageTool(deps);
+  const cutout = new CutoutImageTool(deps);
   const status = new StatusTool(deps);
 
   const handlers: ToolRegistry['handlers'] = {
     'generate-image': args => generate.handleGenerateImage(args),
     'edit-image': args => edit.handleEditImage(args),
+    'cutout-image': args => cutout.handleCutoutImage(args),
     'artificer-status': args => status.handleStatus(args),
   };
 
   const definitions = [
     ...generate.getToolDefinitions(),
     ...edit.getToolDefinitions(),
+    ...cutout.getToolDefinitions(),
     ...status.getToolDefinitions(),
   ];
 

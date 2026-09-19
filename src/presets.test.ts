@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { KINDS, PRESETS, TOKEN_CHROMA_SUFFIX, filename, slugify } from './presets.js';
+import { KINDS, PRESETS, TOKEN_FRAMING, filename, slugify } from './presets.js';
 
 describe('presets', () => {
   it('locks the tier, aspect, and size per kind as decided 2026-09-19', () => {
@@ -28,11 +28,10 @@ describe('presets', () => {
     expect([...KINDS].sort()).toEqual(['icon', 'illustration', 'portrait', 'token']);
   });
 
-  it('keeps the proven chroma sentence verbatim in the token suffix', () => {
-    expect(PRESETS.token.suffix).toContain(TOKEN_CHROMA_SUFFIX);
-    expect(TOKEN_CHROMA_SUFFIX).toContain('edge to edge and corner to corner');
-    expect(TOKEN_CHROMA_SUFFIX).toContain('no circle, no disc, no ring');
+  it('frames tokens top-down and leaves the plate sentence to chroma.ts', () => {
+    expect(PRESETS.token.suffix).toBe(TOKEN_FRAMING);
     expect(PRESETS.token.suffix).toMatch(/top-down/);
+    expect(PRESETS.token.suffix).not.toMatch(/chroma/);
   });
 
   it('never appends framing to portraits or illustrations', () => {

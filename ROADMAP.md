@@ -1,6 +1,6 @@
 # Roadmap — v1.0.0, "rebuild on the API"
 
-> **Status: M0 and M1 shipped 2026-09-19 (the Pro gate and spend counter from M3 landed inside M1). M2 cutout port next.** The ComfyUI-era server (v0.1 → v0.4) is
+> **Status: M0, M1, M2, M3 shipped 2026-09-19. M4 (skill rewrite) and M5 (release) remain.** The ComfyUI-era server (v0.1 → v0.4) is
 > retired; its notes are in [notes/archive/](notes/archive/) and describe nothing that still
 > exists on the machine. This document is the plan for replacing it.
 
@@ -65,7 +65,7 @@ style-ref pass or a Flash prefix is enough.
   API's JPEG is converted to PNG by sharp. 34 offline tests; the live gate ran over stdio with a
   real icon, a refused Pro call, and a confirmed 2560×1600 Pro illustration with style refs.
 
-## M2 — Cutout port
+## M2 — Cutout port — DONE 2026-09-19
 
 - `cutout-image` tool wrapping the `token_cutout.py` script moved here from
   `fvtt-mcp-molten5e/.claude/skills/token-cutout/`, with its `rembg` / chroma methods, the
@@ -80,6 +80,12 @@ style-ref pass or a Flash prefix is enough.
   the key hue anyway, fall back to rembg.
 - The molten5e `token-cutout` skill is retired and its docs point here. One home.
 - Exit gate: a generated token lands as an RGBA PNG at 512 with a verified preview.
+- Shipped: `scripts/token_cutout.py` (moved verbatim), `src/chroma.ts` (per-subject key
+  choice among green / magenta / blue by channel-dominance risk, worst case across samples),
+  `src/cutout.ts` (spawns the script, parses coverage, measures residual key hue, chroma first
+  with rembg fallback when verification fails), `cutout-image` tool. Tokens from `generate-image`
+  and `edit-image` come back cut, with the plate PNG kept beside them. The molten5e skill now
+  holds only the Foundry install steps. Live gate: goblin, wolf, and a Morgash edit all cut clean.
 
 ## M3 — Pro cost gate and spend counter — DONE inside M1 (2026-09-19)
 
