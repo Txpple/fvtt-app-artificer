@@ -1,6 +1,6 @@
 // Env/config loader. Loads .env from the repo root regardless of the launch cwd (Claude Code may
-// start the server from anywhere), then resolves everything to absolute paths once so the rest of
-// the code never touches process.env or relative paths.
+// start the server from anywhere), then resolves everything once so the rest of the code never
+// touches process.env.
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -22,12 +22,10 @@ function readPackageVersion(): string {
 
 export const config = {
   server: { name: 'fvtt-mcp-artificer', version: readPackageVersion() },
-  /** Headless ComfyUI API endpoint. */
-  comfyUrl: process.env.COMFY_URL ?? 'http://127.0.0.1:8188',
-  /** Where ComfyUI writes outputs (its --output-directory); PNGs are read straight off this path. */
-  outputDir: process.env.COMFY_OUTPUT_DIR ?? 'D:\\Workbench\\LOCAL\\LocalAI\\output',
-  /** Directory holding the pinned workflow JSONs (committed with the repo). */
-  workflowsDir: path.join(repoRoot, 'workflows'),
-  /** Max wait for a single generation job. */
-  timeoutMs: Number(process.env.ARTIFICER_TIMEOUT_MS ?? 300_000),
+  /** Gemini API key. Empty string when unset; tools report that instead of crashing at startup. */
+  geminiApiKey: process.env.GEMINI_API_KEY ?? '',
+  /** Where finished renders land before curation and staging. Outside any git repo. */
+  outputDir: process.env.ARTIFICER_OUTPUT_DIR ?? 'D:\\Workbench\\LOCAL\\artificer-output',
+  /** Max wait for a single API call. */
+  timeoutMs: Number(process.env.ARTIFICER_TIMEOUT_MS ?? 120_000),
 };

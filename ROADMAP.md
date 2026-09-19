@@ -1,6 +1,6 @@
 # Roadmap — v1.0.0, "rebuild on the API"
 
-> **Status: decided 2026-09-19; M0 spike passed the same day, M1 next.** The ComfyUI-era server (v0.1 → v0.4) is
+> **Status: M0 and M1 shipped 2026-09-19 (the Pro gate and spend counter from M3 landed inside M1). M2 cutout port next.** The ComfyUI-era server (v0.1 → v0.4) is
 > retired; its notes are in [notes/archive/](notes/archive/) and describe nothing that still
 > exists on the machine. This document is the plan for replacing it.
 
@@ -40,7 +40,7 @@ dollars. Answers the only open questions:
 Exit gate: numbers in a note under `notes/`, and a decision on whether icon style needs a Pro
 style-ref pass or a Flash prefix is enough.
 
-## M1 — Backend swap
+## M1 — Backend swap — DONE 2026-09-19
 
 - `src/gemini.ts` replaces `src/comfy.ts`: one seam, nothing else touches HTTP. Model ids and
   per-image prices live in one table.
@@ -59,6 +59,11 @@ style-ref pass or a Flash prefix is enough.
 - Tests: offline unit suite on recorded API fixtures (request shaping, preset mapping, post-
   processing dimensions, filename convention, registry surface guard). No test hits the live API.
 - Exit gate: build green, tests green, one icon and one illustration rendered through the tool.
+- Shipped as planned, plus: `src/tools/shared.ts` holds the gate, reference preamble, and the
+  render pipeline; `edit-image` defaults to flash for every kind (spike showed no gain from pro
+  on edits); the token preset appends the top-down framing and the proven chroma sentence; the
+  API's JPEG is converted to PNG by sharp. 34 offline tests; the live gate ran over stdio with a
+  real icon, a refused Pro call, and a confirmed 2560×1600 Pro illustration with style refs.
 
 ## M2 — Cutout port
 
@@ -76,7 +81,7 @@ style-ref pass or a Flash prefix is enough.
 - The molten5e `token-cutout` skill is retired and its docs point here. One home.
 - Exit gate: a generated token lands as an RGBA PNG at 512 with a verified preview.
 
-## M3 — Pro cost gate and spend counter
+## M3 — Pro cost gate and spend counter — DONE inside M1 (2026-09-19)
 
 - Any call resolving to `pro` without `confirmPro: true` refuses with the estimated cost and the
   two ways out. Tested for every kind and tier combination.

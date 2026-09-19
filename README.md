@@ -1,8 +1,8 @@
 # fvtt-mcp-artificer
 
-> 🚧 **Rebuilding.** This server is being rewritten from a local ComfyUI backend to the Gemini
-> image API (decided 2026-09-19). The tools described below are the target contract; see
-> [ROADMAP.md](ROADMAP.md) for what has actually landed.
+> 🚧 **Rebuilt on the Gemini image API 2026-09-19.** `generate-image`, `edit-image`, and
+> `artificer-status` are live; `cutout-image` (the token alpha step) is the next milestone in
+> [ROADMAP.md](ROADMAP.md). Until then tokens come back on their chroma plate.
 
 A **Foundry-specific** image-generation [Model Context Protocol](https://modelcontextprotocol.io)
 server for D&D table art, driven by **Claude Code**. It calls the **Gemini image API** (Nano

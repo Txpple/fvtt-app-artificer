@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { Comfy } from './comfy.js';
-import { config } from './config.js';
+import { Gemini } from './gemini.js';
 import { buildToolRegistry } from './registry.js';
+import { SpendMeter } from './spend.js';
 
 function build() {
-  const comfy = new Comfy({ url: 'http://127.0.0.1:1', outputDir: 'x', timeoutMs: 1 });
-  return buildToolRegistry({ comfy, workflowsDir: config.workflowsDir });
+  const gemini = new Gemini({ apiKey: '', timeoutMs: 1 });
+  return buildToolRegistry({ gemini, spend: new SpendMeter(), outputDir: 'x' });
 }
 
 describe('tool registry', () => {
@@ -13,8 +13,8 @@ describe('tool registry', () => {
     const { tools, handlers } = build();
     expect(tools.map(t => t.name).sort()).toEqual([
       'artificer-status',
+      'edit-image',
       'generate-image',
-      'upscale-image',
     ]);
     expect(Object.keys(handlers).sort()).toEqual(tools.map(t => t.name).sort());
   });
@@ -34,7 +34,6 @@ describe('tool registry', () => {
   });
 
   it('validates arguments through the zod contract before any network traffic', async () => {
-    // Bad kind must fail in schema.parse — the stub Comfy URL would explode otherwise.
     await expect(
       build().dispatch('generate-image', { kind: 'poster', prompt: 'x', slug: 'x' })
     ).rejects.toThrow();

@@ -1,37 +1,65 @@
-// Purpose presets — the tool surface speaks `kind`, never raw dimensions. Locked by ROADMAP M1;
-// every generate dim is 16-divisible (EmptyFlux2LatentImage requirement) and every final output is
-// generate → 4x-UltraSharp (×4) → lanczos downsample, per the locked resolution pipeline.
+// Purpose presets — the tool surface speaks `kind`, never raw dimensions or model ids. Each kind
+// fixes the tier, the API aspect and size, the framing text the server appends to every prompt,
+// and the post-processing that turns the API's JPEG into the finished PNG.
 
-export const KINDS = ['handout', 'scene-background', 'portrait', 'token'] as const;
+import type { Aspect, ImageSize, Tier } from './gemini.js';
+
+export const KINDS = ['icon', 'token', 'portrait', 'illustration'] as const;
 export type Kind = (typeof KINDS)[number];
 
+export type Post = 'icon' | 'token' | 'portrait' | 'illustration';
+
 export interface Preset {
-  /** Native generation resolution (composition happens here — never generate at output size). */
-  gen: { width: number; height: number };
-  /** Finished output resolution after the upscale tail. */
-  out: { width: number; height: number };
+  tier: Tier;
+  aspect: Aspect;
+  size: ImageSize;
+  post: Post;
+  /** Appended to every prompt of this kind. Framing is correctness, so it lives here. */
+  suffix: string;
 }
 
-const ILLUSTRATION: Preset = {
-  gen: { width: 1536, height: 960 },
-  out: { width: 2560, height: 1600 },
-};
+/**
+ * The exact chroma sentence proven in the M0 spike. Vaguer wording ("plain green background")
+ * made Flash paint a green token DISC on white. Keep this verbatim.
+ */
+export const TOKEN_CHROMA_SUFFIX =
+  'The ENTIRE image background, edge to edge and corner to corner, is one flat uniform ' +
+  'chroma-key green (#00FF00) with no circle, no disc, no ring, no border, no ground, no shadow; ' +
+  'only the figure and the flat green.';
+
+export const TOKEN_FRAMING =
+  'Virtual tabletop token: the full body of a single figure seen from a high three-quarter ' +
+  'top-down angle, as if looking down at the character from above and slightly in front, the ' +
+  'whole figure inside the frame, centered.';
+
+export const ICON_FRAMING =
+  'Inventory icon: a single subject centered and filling the frame, no text, no border, no frame.';
 
 export const PRESETS: Record<Kind, Preset> = {
-  handout: ILLUSTRATION,
-  'scene-background': ILLUSTRATION,
-  portrait: { gen: { width: 1024, height: 1280 }, out: { width: 2048, height: 2560 } },
-  token: { gen: { width: 1024, height: 1024 }, out: { width: 2048, height: 2048 } },
+  icon: { tier: 'flash', aspect: '1:1', size: '1K', post: 'icon', suffix: ICON_FRAMING },
+  token: {
+    tier: 'flash',
+    aspect: '1:1',
+    size: '1K',
+    post: 'token',
+    suffix: `${TOKEN_FRAMING} ${TOKEN_CHROMA_SUFFIX}`,
+  },
+  portrait: { tier: 'pro', aspect: '3:4', size: '2K', post: 'portrait', suffix: '' },
+  illustration: { tier: 'pro', aspect: '16:9', size: '4K', post: 'illustration', suffix: '' },
 };
 
+/** Finished pixel sizes the post-processors guarantee. */
+export const OUTPUT = {
+  icon: { width: 512, height: 512 },
+  illustration: { width: 2560, height: 1600 },
+} as const;
+
 /**
- * Output filename prefix: `<kind>-<slug>-<seed>` (kebab-case, matching the campaign repos'
- * `maps/map-greenrest-01.jpg` style — locked with the owner 2026-08-26). ComfyUI appends
- * `_00001_.png` per batch image.
+ * Output filename: `<kind>-<slug>-<id>.png` (kebab-case, kind-prefixed, matching the campaign
+ * repos' `art/` shelf — locked with the owner 2026-08-26, id replaces the old seed).
  */
-export function filenamePrefix(kind: Kind, slug: string, seed?: number): string {
-  const clean = slugify(slug);
-  return seed === undefined ? `${kind}-${clean}` : `${kind}-${clean}-${seed}`;
+export function filename(kind: Kind, slug: string, id: string): string {
+  return `${kind}-${slugify(slug)}-${id}.png`;
 }
 
 /** Kebab-case sanitizer: lowercase, alphanumerics and hyphens only, collapsed, trimmed. */

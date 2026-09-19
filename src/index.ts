@@ -1,25 +1,21 @@
 #!/usr/bin/env node
 
-// The MCP server entry point: a single stdio process serving the registry's three tools. All
-// ComfyUI traffic goes through the `Comfy` seam (src/comfy.ts) — plain HTTP to the local headless
-// instance, connected lazily on the first tool call; tools/list answers without touching it.
+// The MCP server entry point: a single stdio process serving the registry's tools. All network
+// traffic goes through the `Gemini` seam (src/gemini.ts); tools/list answers without touching it.
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
-import { Comfy } from './comfy.js';
 import { config } from './config.js';
+import { Gemini } from './gemini.js';
 import { buildToolRegistry } from './registry.js';
+import { SpendMeter } from './spend.js';
 
 async function main(): Promise<void> {
-  const comfy = new Comfy({
-    url: config.comfyUrl,
-    outputDir: config.outputDir,
-    timeoutMs: config.timeoutMs,
-  });
-
-  const { tools, dispatch } = buildToolRegistry({ comfy, workflowsDir: config.workflowsDir });
+  const gemini = new Gemini({ apiKey: config.geminiApiKey, timeoutMs: config.timeoutMs });
+  const spend = new SpendMeter();
+  const { tools, dispatch } = buildToolRegistry({ gemini, spend, outputDir: config.outputDir });
 
   const mcp = new Server(
     { name: config.server.name, version: config.server.version },

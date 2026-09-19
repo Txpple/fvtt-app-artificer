@@ -3,10 +3,10 @@
 // advertised `tools` list is DERIVED from it, so the two cannot drift, and a handler without a
 // matching definition fails fast at startup.
 
-import { Comfy } from './comfy.js';
+import { EditImageTool } from './tools/edit.js';
 import { GenerateImageTool } from './tools/generate.js';
+import type { ToolDeps } from './tools/shared.js';
 import { StatusTool } from './tools/status.js';
-import { UpscaleImageTool } from './tools/upscale.js';
 
 export interface ToolRegistry {
   tools: Array<{ name: string; description: string; inputSchema: Record<string, unknown> }>;
@@ -14,25 +14,20 @@ export interface ToolRegistry {
   dispatch(name: string, args: unknown): Promise<unknown>;
 }
 
-export interface ToolRegistryDeps {
-  comfy: Comfy;
-  workflowsDir: string;
-}
-
-export function buildToolRegistry(deps: ToolRegistryDeps): ToolRegistry {
+export function buildToolRegistry(deps: ToolDeps): ToolRegistry {
   const generate = new GenerateImageTool(deps);
-  const upscale = new UpscaleImageTool(deps);
+  const edit = new EditImageTool(deps);
   const status = new StatusTool(deps);
 
   const handlers: ToolRegistry['handlers'] = {
     'generate-image': args => generate.handleGenerateImage(args),
-    'upscale-image': args => upscale.handleUpscaleImage(args),
+    'edit-image': args => edit.handleEditImage(args),
     'artificer-status': args => status.handleStatus(args),
   };
 
   const definitions = [
     ...generate.getToolDefinitions(),
-    ...upscale.getToolDefinitions(),
+    ...edit.getToolDefinitions(),
     ...status.getToolDefinitions(),
   ];
 

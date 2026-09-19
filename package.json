@@ -1,6 +1,6 @@
 {
   "name": "fvtt-mcp-artificer",
-  "version": "0.4.0",
+  "version": "1.0.0-dev",
   "description": "Foundry-specific image-generation MCP server backed by the Gemini image API, driven by Claude Code.",
   "private": true,
   "type": "module",
@@ -12,7 +12,6 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest --watch",
-    "test:integration": "npm run build && vitest run --config vitest.integration.config.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint ./src",
     "lint:fix": "biome lint --write ./src",
