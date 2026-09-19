@@ -3,41 +3,48 @@ name: illustration-builder
 description: >-
   Generate campaign art with the artificer tools, grounded in what the world already says and shows.
   Use when the user wants art for the table: "make a portrait for <NPC>", "generate art for this
-  scene/journal/handout", "this actor needs a token", "illustrate this location", "give the inn a
-  picture", "make a scene background". Reads the ACTUAL descriptions (actor bios, journals, scene
-  notes, campaign repo) to build prompts, studies existing art in the Foundry data files for
-  precedent and style, then runs the draft → curate → refine loop and wires the winner into the
-  world. The artificer tools own correctness (workflows, dimensions, upscale, file naming); this
-  skill owns the judgment: what to prompt, what to reject, where the art goes.
+  scene/journal/handout", "this actor needs a token", "icons for these items", "illustrate this
+  location", "give the inn a picture", "change this token's cloak". Reads the ACTUAL descriptions
+  (actor bios, journals, scene notes, campaign repo) to build prompts, studies existing art in the
+  Foundry data files for precedent and style, runs the generate → look → edit loop, and wires the
+  winner into the world. The artificer tools own correctness (model per kind, dimensions, cutout,
+  file naming, the Pro cost gate); this skill owns the judgment: what to prompt, which references
+  to attach, what to reject, when to pay for Pro, where the art goes.
 ---
 
 # Illustration builder
 
-The judgment layer over `generate-image` / `upscale-image`. Its whole job is to make sure the
-prompt comes from **canon**, the style comes from **precedent**, and nothing lands in the world
-uncurated. It adds no mechanics — the artificer server owns workflow execution and file
-conventions; molten5e owns delivery (`upload-asset`, `set-actor-art`, `add-journal-image`,
-`create-scene` / `update-scene`).
+> **Tool availability:** the artificer server is being rebuilt on the Gemini image API
+> ([ROADMAP.md](../../../ROADMAP.md)). Until milestone M1 lands, `generate-image` and
+> `edit-image` do not exist in their described form and this skill cannot render anything. The
+> research and prompt-craft steps below still apply and can be done ahead of the tools.
 
-Tools used: `artificer-status`, `generate-image`, `upscale-image` (artificer);
+The judgment layer over `generate-image` / `edit-image` / `cutout-image`. Its whole job is to make
+sure the prompt comes from **canon**, the style comes from **precedent**, the owner is asked
+before Pro money is spent, and nothing lands in the world uncurated. It adds no mechanics — the
+artificer server owns model selection, dimensions, cutout, and file conventions; molten5e owns
+delivery (`upload-asset`, `set-actor-art`, `add-journal-image`).
+
+Tools used: `artificer-status`, `generate-image`, `edit-image`, `cutout-image` (artificer);
 `get-actor`, `search-journals`, `list-journals`, `list-scenes`, `list-assets`, `download-asset`,
-`upload-asset`, `set-actor-art`, `add-journal-image`, `update-scene` (molten5e). Token alpha work
-hands off to the **`token-cutout`** skill.
+`upload-asset`, `set-actor-art`, `add-journal-image` (molten5e).
 
 ## Step 0 — Pin the subject and the destination
 
 Two questions before anything renders: **what is this a picture of**, and **where does it live**?
-The destination picks the `kind`:
+The destination picks the `kind`, and the kind picks the model tier:
 
-| destination | kind |
-| --- | --- |
-| journal image page / player handout | `handout` |
-| scene background | `scene-background` |
-| actor sheet portrait | `portrait` |
-| actor token (goes through token-cutout after) | `token` |
+| destination | kind | tier |
+| --- | --- | --- |
+| item / spell / feature icon | `icon` | flash |
+| actor token (cut to alpha automatically) | `token` | flash |
+| actor sheet portrait | `portrait` | pro (ask first) |
+| journal image page / player handout / location splash | `illustration` | pro (ask first) |
 
-If the user named a subject that exists in the world (an NPC, a location with a journal, a scene),
-the next two steps are **mandatory** — never prompt from imagination for a named subject.
+There is no map kind. Battlemaps are bought as UVTT packs; never try to generate one.
+
+If the user named a subject that exists in the world (an NPC, a location with a journal, an
+item), the next two steps are **mandatory** — never prompt from imagination for a named subject.
 
 ## Step 1 — Ground the prompt in canon
 
@@ -45,6 +52,8 @@ Pull the authoritative description before writing a word of prompt:
 
 - **Actors**: `get-actor` — bio, race/species, gender, age, class, notable gear. The stat block is
   canon for props (a bandit statted with a crossbow gets a crossbow, whatever looks cooler).
+- **Items**: the item's description and type. An icon of a "rusted iron key" is a rusted iron key,
+  not a generic key.
 - **Locations / events**: `search-journals` for the subject name; scene notes; quest journals.
 - **Campaign repo** (when working in it — e.g. `fvtt-campaign-greenrest`): `notes/`, `plot/`,
   `sessions/` often carry richer description than the world does.
@@ -53,6 +62,8 @@ Pull the authoritative description before writing a word of prompt:
   (`sessions/<date>/`), and **looking at the battlemap it was fought on** (`screenshot-scene`, or
   read the scene background) — terrain, layout, and the fight's actual beats come from there,
   never from imagination. Who was present matters too (absent PCs don't appear).
+- **Arm the scene for the RIGHT session**: a fight from session 1 predates the party's later
+  magic items. Check that session's own loot ledger before putting a weapon in anyone's hand.
 
 Extract the **paintable facts**: species, gender, age, build, clothing, signature props, mood,
 lighting, time of day, weather. These become the prompt's spine.
@@ -62,213 +73,142 @@ color, either ask, or propose ("canon doesn't say — I'll go with grey hair in 
 rather") and note what was invented so it can be written back into the bio. Generic subjects
 ("some bandit") invent freely.
 
-## Step 2 — Study precedent art
+**READ THE TOKEN ART, not just the bio** (learned the hard way 2026-08-28): bios routinely omit
+appearance. Gren's never mentions his hair; four generations shipped an invented brown before his
+token settled it as white hair, a full white beard and a green-crystal staff. Tokens live at
+`%LOCALAPPDATA%/FoundryVTT/Data/worlds/<world>/assets/tokens/<name>.png` — the path is in the
+actor's `prototypeToken.texture.src`. Open it before writing a word of prompt.
 
-Match the shelf, not just the subject — all campaign art should feel like one book:
+## Step 2 — Study precedent, then attach it as references
 
-- `list-assets` on `worlds/<world>/assets/art` (and `maps/` for backgrounds). Read the filenames:
-  the `<kind>-<slug>-<seed>` convention tells you what exists and for whom.
+All campaign art should feel like one book. On this backend that is done with **reference
+images**, not with words alone and not with trained weights:
+
+- `list-assets` on `worlds/<world>/assets/art`. Read the filenames: the `<kind>-<slug>-<id>`
+  convention tells you what exists and for whom.
 - `download-asset` (or read the campaign repo copies) of the 2–3 pieces closest in subject, and
-  **look at them**: palette, rendering style (painterly? ink-lined?), framing, lighting mood.
-- For actor art this is a **hard gate, not a suggestion**: when the actor has existing art
-  (`hasImage`), get the actual file (`export-actor` → `img` / `prototypeToken.texture.src` →
-  `download-asset`) and **Read it** before writing the prompt. Backstories rarely state
-  appearance facts the art settles — skin tone, hairstyle, armor colors. Learned the hard way:
-  a canon Morgash has bone-white skin his backstory never mentions; the first portrait shipped
-  green. Keep continuity with the existing art unless the user asks for a redesign.
-- Reuse the style opener that produced the existing pieces (house baseline:
-  `fantasy illustration, … ` for scenes, `fantasy character portrait of …, oil painting style` for
-  people) so new art matches old.
-- **House portrait finish (owner-locked 2026-08-26, consistency pass):** the reference look is
-  the Morgash/Gren pair — `soft diffuse dusk light, low contrast, pale hazy muted palette, matte
-  powdery skin with no gloss or shine, gentle even lighting with no harsh highlights, matte oil
-  painting, visible painterly brushwork, soft faded storybook finish`. Words like "gleaming"
-  invite a glossy high-contrast studio sheen (the owner: "1960s TV cameo vibe") — describe armor
-  as `worn … with a soft dull sheen` instead. Same trap as neon: shine words compound. Don't
-  overshoot into `pale hazy / faded` — that washes the image out; pair the matte-skin words with
-  `rich mid-tones and deep shadows` to keep Morgash/Gren-level tonal depth.
-- **THE CANONICAL PARTY REFERENCE SHELF (approved 2026-08-28)** — these four are the identity
-  anchors for every scene the party appears in, passed to `generate-image` as `referenceImages`
-  in `draft`/`scene` mode. Live in the campaign repo at `fvtt-campaign-greenrest\art\`:
-  | PC | file | binding phrase to use in the prompt |
-  | --- | --- | --- |
-  | Gren | `portrait-gren-greenmantle-611.png` | "a short white-bearded gnome in green and gold robes" |
-  | Morgash | `portrait-morgash-gravemaker-611.png` | "a bone-white orc in battered steel plate" |
-  | Thomas | `portrait-thomas-invictus-611.png` | "a blond human paladin with a golden sunburst on his breastplate" |
-  | Jetten | `portrait-jetten-elisedil-3010.png` | "a lean tan ash-haired elf archer in a red cloak, arms covered in grey-brown sleeves and leather bracers" |
-  The older `-10534853 / -13527905 / -1504122958 / -934277758` files in the same folder are
-  SUPERSEDED (old models, owner: "none of the pre-existing portraits are canonical"). Do not
-  pass them as references. Salyth is not an active PC.
-- **Identity comes from references, style comes from the LoRA — they are different mechanisms.**
-  The LoRA is NOT trained on the party and never will be; it carries the house look only.
-  Putting a PC in a scene = `scene` mode + that PC's portrait in `referenceImages` (FLUX.2
-  reference conditioning), then the style tail (`refine` + `dnd24art-house-v1` at denoise
-  0.25–0.4) to bring the finished render into house style. No retraining is involved.
-- **Style anchoring with extra references (proven 2026-08-26):** for portraits, pass two of the
-  approved portraits above as refs 2–3 alongside the subject's identity ref. FLUX.2 absorbs
-  their palette and brushwork WITHOUT face bleed — provided the prompt pins the subject's
-  species features (`clean-shaven human features` kept tusks and beards off Thomas). With the
-  house LoRA now shipping, prefer the LoRA for style and reserve extra refs for identity.
-- **The house LoRA exists (locked 2026-08-28): `lora: "dnd24art-house-v1.safetensors"`,
-  `loraStrength: 1.0`, trigger word `dnd24art` leading the prompt.** Use it on every `final` and
-  `refine` render unless the owner asks for base-model output. It is rank-32 @ step 2000 on the
-  46-plate rebuilt corpus, picked by multi-seed judging at final quality against a no-LoRA
-  control (crypt + house-spec portrait, seeds 101/202/303/404). What the judging established:
-  - Scenes are the clear win — better light shafts, depth, palette, and *prompt adherence*
-    (control forgot the bones in a crypt prompt; the LoRA painted them).
-  - Portraits: more matte and painterly, pushes skin paler (helps bone-white canon subjects).
-    It does NOT fight the house portrait finish — spec words work identically with it loaded.
-  - Daylight is safe despite the dark corpus (desert probe stayed high-key at every strength).
-  - 0.7 is the fallback strength if the style overrides prompt content on a specific render.
-  - Do NOT use the `-final` (step-4000) checkpoints of any run: over-trained (~87 epochs),
-    they wash out into pale haze. Step-2000 checkpoints beat them across all ranks.
-  - The LoRA is FLUX.1-only: `draft`/`scene` cannot load it. Styling scene output = mode
-    `refine` + this lora + denoise 0.25–0.4 over the finished render (the style tail).
-    Validated on nonhuman faces 2026-08-28 (Morgash-type orc, FLUX.2 scene base, d0.25 and
-    d0.35): tusks and bone-white skin survive BOTH levels, and the no-LoRA control humanized
-    the same face — the LoRA is what protects orc anatomy in the tail, so never run the tail
-    lora-less on nonhuman faces.
+  **look at them**: palette, rendering style, framing, lighting mood.
+- For actor art this is a **hard gate**: when the actor has existing art (`hasImage`), get the
+  actual file (`export-actor` → `img` / `prototypeToken.texture.src` → `download-asset`) and
+  **Read it** before writing the prompt. Backstories rarely state appearance facts the art
+  settles. A canon Morgash has bone-white skin his backstory never mentions; the first portrait
+  shipped green. Keep continuity with the existing art unless the user asks for a redesign.
+
+**Two kinds of reference, passed with a role:**
+
+- **Character references** hold identity. Both tiers take them (Flash up to 4 characters, Pro up
+  to 5). Bind each one with an unmistakable prompt phrase so the model knows which figure is
+  which.
+- **Style references** hold the house look. **Pro only**, up to 3. This is why portraits and
+  illustrations default to Pro. Attach the standing style shelf on every Pro call unless the
+  owner asks for something deliberately different.
+
+**THE CANONICAL PARTY REFERENCE SHELF (approved 2026-08-28)** — the identity anchors for every
+scene the party appears in. In the campaign repo at `fvtt-campaign-greenrest\art\`:
+
+| PC | file | binding phrase to use in the prompt |
+| --- | --- | --- |
+| Gren | `portrait-gren-greenmantle-611.png` | "a short white-bearded gnome in green and gold robes" |
+| Morgash | `portrait-morgash-gravemaker-611.png` | "a bone-white orc in battered steel plate" |
+| Thomas | `portrait-thomas-invictus-611.png` | "a blond human paladin with a golden sunburst on his breastplate" |
+| Jetten | `portrait-jetten-elisedil-3010.png` | "a lean tan ash-haired elf archer in a red cloak, arms covered in grey-brown sleeves and leather bracers" |
+
+The older `-10534853 / -13527905 / -1504122958 / -934277758` files in the same folder are
+SUPERSEDED (owner: "none of the pre-existing portraits are canonical"). Do not pass them as
+references. Salyth is not an active PC.
+
+**The standing style shelf** is the same four portraits until the owner approves illustrations
+under the new backend; then pick the three that best carry the look and record them here.
+
+**House portrait finish (owner-locked 2026-08-26):** the reference look is the Morgash/Gren
+pair — `soft diffuse dusk light, low contrast, muted palette, matte powdery skin with no gloss or
+shine, gentle even lighting with no harsh highlights, matte oil painting, visible painterly
+brushwork, soft storybook finish`, paired with `rich mid-tones and deep shadows` so it does not
+wash out. Words like "gleaming" invite a glossy studio sheen (the owner: "1960s TV cameo vibe") —
+describe armor as `worn … with a soft dull sheen` instead. With style references attached, the
+words reinforce the images; they are not a substitute for them.
 
 ## Step 3 — Craft the prompt (the cookbook)
 
-Learned rules, from the M1/M3 proofs ([notes/m3-loop-proof.md](../../../notes/m3-loop-proof.md)):
+Rules that have held across every model tried. Anything specific to the old local models was
+dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writing them here.
 
-- **Say the identity outright**: klein under-weights gender/species modifiers. "old halfling woman
-  innkeeper, grey hair in a neat bun" — never a bare pronoun or a species adjective doing the work.
+- **Say the identity outright**: "old halfling woman innkeeper, grey hair in a neat bun" — never
+  a bare pronoun or a species adjective doing the work.
 - **Describe props concretely**: "crossbow" drifts into muskets; "wooden crossbow with a drawn
   string" holds. Stat-block gear gets described, not named.
-- **Never say "book art", "cover", or "poster"** — klein paints title typography and plate
-  borders. Style lives in words like "fantasy illustration", "oil painting style".
-- **Tokens**: end with "waist-up, centered, plain dark background" for cutout-ready framing.
-- Expect **ghost signatures** in dev renders regardless of "no signature" — tolerate at table
-  scale, or crop; don't burn batches fighting it.
-- **dev img2img humanizes nonhuman faces — unless the house LoRA is loaded**: lora-less refine
-  erased an orc's tusks at 0.7/0.55 denoise and mangled them at 0.45, and a lora-less style tail
-  at 0.35 still thins them toward human. With `dnd24art-house-v1` + trigger word, the tail at
-  0.25-0.35 PRESERVED tusks and bone-white skin (validated 2026-08-28) — the corpus pulls toward
-  orc anatomy. So: nonhuman faces may take the style tail WITH the house LoRA; full-denoise
-  refine (0.45+) on them remains klein-only territory, and lora-less refine stays banned.
-- **Group scenes: anchor identities with `referenceImages`** (shipped v0.2): pass 1–5 canonical
-  portraits from the campaign `art/` shelf to `generate-image` (draft mode) and they feed FLUX.2
-  reference conditioning. Bind each reference with an unmistakable prompt phrase in the same
-  order ("bone-white orc with two lower tusks", "tiny white-bearded gnome in green-gold robes"),
-  compose around ONE hero moment, and let the rest support. Finish the pick with
-  `upscale-image` — the refine path stays off-limits for these (nonhuman faces).
-- **READ THE TOKEN ART, not just the bio** (learned the hard way 2026-08-28): bios routinely
-  omit appearance. Gren's never mentions his hair; four generations shipped an invented
-  "russet-brown greying at the temples" before his token settled it as WHITE hair, a full white
-  beard and a green-crystal staff. Tokens live at
-  `%LOCALAPPDATA%/FoundryVTT/Data/worlds/<world>/assets/tokens/<name>.png` — the path is in
-  the actor's `prototypeToken.texture.src`. Open it before writing a word of prompt.
-- **Negation backfires — describe presence, never absence** (proven twice, 2026-08-28).
-  "no large tusks" DRAWS large tusks; "clean-shaven"/"no beard" GROWS a beard. FLUX reads the
-  tokens, not the "no". Say what IS there instead: "his chin and jaw and upper lip are smooth
-  bare hairless skin" finally produced a beardless elf after three failures.
-- **The garment NOUN overrides any clause describing it** (proven 2026-08-28, Jetten sleeves).
-  A "jerkin" is by definition sleeveless, and dev painted bare arms through four attempts even
-  with "long leather sleeves covering both arms all the way down to leather bracers" spelled out
-  in the same sentence. Renaming it a "long-sleeved coat" did NOT help — dev defaults the OUTER
-  layer sleeveless whenever a ranger silhouette (quiver + cloak + bow) is in play, and the
-  orphaned sleeve words reattach to the nearest surface (one render turned the tooled leaf
-  pattern into an armband on a bare bicep). What works is **layering**: name a separate
-  long-sleeved shirt worn UNDER the vest — "a dull grey-brown heavy wool shirt with long sleeves
-  underneath a closed brown leather vest" — then armour the covered arms with vambraces. Pick a
-  garment noun that already implies the silhouette you want; adjectives will not overrule it.
-- **"Shoulder caps" / "pauldrons" render as STEEL even in an all-leather prompt** — fine if you
-  want a martial look, wrong for a woodsman. Say "leather vambraces" and leave the shoulders out.
-- **Bulk lives in the body words, not the face words**: dropping "a man's thick neck and wide
-  shoulders" for "a lean slim build with narrow shoulders and slender arms" de-swole a subject
-  without feminizing him, PROVIDED the hard-jaw/heavy-brow face clause stays verbatim. Rewriting
-  the face clause at the same time is what costs the likeness — change one axis per render.
-- **Gendered features must be stacked, not stated once**: a lean build + smooth young face +
-  no facial hair rendered a canon male elf as a woman despite the word "male". Recovery needs
-  redundancy — "a man, a male X, masculine male warrior" plus a strong square jaw, heavy brow,
-  thick neck and wide shoulders.
-- **Directional words about tusks are read as SIZE on dev**: "pointing up", "rising toward his
-  eyes", "standing vertically" all produce walrus ivory, even paired with "no bigger than a
-  thumbnail". There is currently NO known phrasing that yields small tusks angled upward — the
-  working phrase gives small tusks angled low/outward, and that is the trade.
-- **Refine mode REPLACES portrait style, it does not preserve it**: nudging an approved portrait
-  through `refine` at denoise 0.40-0.45 flattened three of four into cel-shaded vector art with
-  hard outlines. To fix a detail while keeping a look, re-run `final` on the SAME SEED with an
-  edited prompt — the seed carries the composition, the LoRA carries the paint.
-- **Species proportion is a losing fight in a waist-up crop**: every push toward gnome
-  proportions produced caricature (rosy comic dwarf), and every retreat produced a short human.
-  Facial structure works better than size words, and a scale cue in frame beats both.
-
+- **Never say "book art", "cover", or "poster"** — that paints title typography and plate
+  borders. Style lives in words like "fantasy illustration", "oil painting style". The exception
+  is a deliberate text prop (a real wanted poster), which is a Pro illustration.
+- **Tokens**: end with "waist-up, centered, plain flat solid-color background" for a clean cut.
+- **Icons**: one subject, centered, filling the frame, plain or softly vignetted background, no
+  text, no border. State the material ("rusted iron", "worn oak") and one lighting word. Use the
+  same style prefix for every icon in a set so they read as a set.
+- **Negation backfires — describe presence, never absence** (proven twice, 2026-08-28). "no large
+  tusks" DRAWS large tusks; "no beard" GROWS a beard. Say what IS there instead: "his chin and jaw
+  and upper lip are smooth bare hairless skin".
+- **The garment NOUN overrides any clause describing it** (proven 2026-08-28, Jetten sleeves). A
+  "jerkin" is sleeveless whatever you say about its sleeves. Pick a garment noun that already
+  implies the silhouette you want, and layer: "a grey-brown wool shirt with long sleeves underneath
+  a closed leather vest".
+- **"Shoulder caps" / "pauldrons" render as STEEL even in an all-leather prompt.** Say "leather
+  vambraces" and leave the shoulders out.
+- **Gendered features must be stacked, not stated once**: a lean build + smooth young face
+  rendered a canon male elf as a woman despite the word "male". Add redundancy — "a man, a male
+  elf" plus a strong square jaw and heavy brow.
+- **Change one axis per render.** Rewriting the face clause and the body clause together is what
+  costs the likeness. With `edit-image` this is natural: one instruction, one change.
+- **Species proportion is a losing fight in a waist-up crop**: facial structure works better
+  than size words, and a scale cue in frame beats both.
 - **Translate canon into the model's vocabulary — never prompt in-world proper nouns or
   mechanics** (owner rule 2026-08-26). The generator has never heard of First Light, the Maul of
-  Momentum, the Hollowing, or Spellfire; naming them either does nothing or makes it free-
-  associate garbage (a "rose-gold blazing" sword rendered as a pink lightsaber). Canon decides
-  WHAT is true; the prompt says only what a camera would see, in ordinary illustrator terms:
-  "First Light" → "a longsword catching warm dawn-colored light"; "spellfire" → "silver-white
-  fire"; "displacement" → "a ghostly after-image a step to one side". Keep effects modest —
-  over-described glow becomes neon. When a canon element has no standard-fantasy visual
-  equivalent, simplify it rather than explain it.
-- **Computational limits — compose inside them** (proven 2026-08-26, Cadoc A/B): the entity-count
-  ceiling is real. Past roughly six distinct subjects, FLUX.2 collapses into a posed cast lineup
-  facing the camera, duplicates faces, and floats weapons. The full-party group shot is the
-  HARDEST genre — a rare set-piece needing several seeds and ruthless curation, never the default.
-  Default to **duel/vignette compositions**: 1–2 party members + one enemy + one landmark, one
-  directional action, hero large and central. Across a session's art, give each PC their moment in
-  separate images rather than cramming four into one frame. Money renders use scene mode's pinned
-  **24 steps, no turbo** (~80 s) — the 10-step turbo pass visibly costs coherence.
-- **Three-pass self-review is mandatory before showing scene/final art** (owner rule 2026-08-26):
-  generate → Read → critique against canon, anatomy, and composition (weapons and hands
-  especially — Morgash's maul grip is a repeat offender) → fix the prompt or re-seed → repeat, at
-  least THREE passes, iterating on seeds and tweaks. Show the owner only the best surviving
-  render, with a one-line note of what was rejected on the way. Draft batches for curation are
-  exempt; anything presented as a finished scene is not.
-- **Reference identities duplicate and bleed** (scene mode, three-scene test 2026-08-26): FLUX.2
-  will paint a referenced face onto *more than one* body when figures are spread wide — a second
-  bone-white orc, a twin elf — and will lend a reference to a nearby NPC (Morgash's face landed on
-  a hobgoblin captain). Mitigations: give every party member exactly ONE unmistakable action
-  clause, describe enemies with contrasting features ("orange-red skin"), keep the cast tight, and
-  put the hero large and near the centre — small background figures hold identity poorly.
-- **Arm the scene for the RIGHT session**: a fight from session 1 predates the party's later magic
-  items. Check that session's own loot ledger before putting a weapon in anyone's hand (Morgash
-  carried a greatsword long before the Maul of Momentum; Thomas won First Light *in* the cave
-  fight, so he cannot be swinging it during that fight).
-- **"Tusk" is sized by its adjective, and only small adjectives are safe** (re-validated on dev
-  2026-08-28, 8-phrasing × multi-seed test at final quality). The word "tusk" itself is fine;
-  the size adjective does everything. "large broad" AND "thick heavy" → walrus ivory erupting
-  from the mouth corners (the old prescribed phrase contradicted this rule's own warning and
-  broke every dev-mode orc portrait). Explicit size anchors ("length of a thumb") are ignored.
-  **Negation backfires**: appending "no large tusks" DRAWS large tusks — FLUX reads the tokens,
-  not the "no". What works on dev/final, all seeds tested:
-  "mouth closed with lips together, two small blunt lower tusks that barely clear his lower lip"
-  (klein draft mode: same phrase works; the old "thick heavy" wording is banned everywhere).
-  Omitting tusks entirely → dev renders no tusks at all, so the clause is mandatory for orcs.
+  Momentum, or Spellfire; naming them does nothing or free-associates garbage (a "rose-gold
+  blazing" sword rendered as a pink lightsaber). Canon decides WHAT is true; the prompt says only
+  what a camera would see: "First Light" → "a longsword catching warm dawn-colored light";
+  "spellfire" → "silver-white fire"; "displacement" → "a ghostly after-image a step to one side".
+  Keep effects modest — over-described glow becomes neon.
+- **Compose inside the entity ceiling.** Past roughly six distinct subjects any model collapses
+  into a posed lineup facing the camera, duplicates faces, and floats weapons. The full-party
+  group shot is the HARDEST genre and a rare set-piece. Default to **duel/vignette compositions**:
+  1–2 party members + one enemy + one landmark, one directional action, hero large and central.
+  Give every party member exactly ONE unmistakable action clause; describe enemies with
+  contrasting features so a reference face does not land on them.
 
-## Step 4 — Run the loop, curate ruthlessly
+## Step 4 — Run the loop: generate, look, edit
 
 0. **The chat IS the gallery (owner preference — browser-pane previews don't work for them).**
-   Reading a PNG with the Read tool renders it inline in the conversation, so curating by
-   reading doubles as showing the owner every draft — never curate silently or make them
-   navigate to a file path. Finals additionally go out via `SendUserFile` so they get a card.
-1. Cold start? `artificer-status` first; it names anything missing.
-2. `generate-image` **draft**: batch 6 for scenes/handouts, 4 for characters/tokens.
-3. **Read every PNG.** Judge against canon, not against "is it pretty": wrong gender, wrong
+   Reading a PNG renders it inline, so curating by reading doubles as showing the owner every
+   candidate. Finals additionally go out via `SendUserFile` so they get a card.
+1. Cold start? `artificer-status` first: key present, models reachable, spend so far.
+2. **Ask before Pro.** Portraits and illustrations default to Pro. The tool refuses without
+   `confirmPro: true` and states the estimated cost. Put that to the owner in one line
+   ("Pro portrait, about 13 cents, go?") and only then confirm. A cheap first look is fine:
+   `tier: "flash"` needs no confirm, and a Flash draft can be edited or re-rendered on Pro after.
+3. `generate-image` with the canon prompt and the references. Two or three candidates for
+   portraits and illustrations, one for icons and tokens (they one-shot well; re-roll on a miss).
+4. **Read every PNG.** Judge against canon, not against "is it pretty": wrong gender, wrong
    species, wrong props, wrong mood are **rejections** even on beautiful renders.
-4. A failed batch is cheap (~10 s): fix the prompt (usually by being more explicit) and re-draft.
-   Don't refine a draft that's almost-right on a canon fact — refine keeps the skeleton, including
-   the wrong parts.
-5. Finish the winner: `mode: refine` (denoise 0.7) for dev-quality re-render; drop toward 0.55
-   only when the draft's exact composition must survive and its style already matches; or
-   `upscale-image` when a draft wins outright as-is.
-6. Show the user the final (send the file) before or as it lands in the world.
+5. **Edit before re-rolling.** A candidate that is right on canon but wrong on one detail goes
+   through `edit-image` with a single instruction ("swap the sword for a hand axe", "make the
+   cloak forest green"). Re-generate only when the composition or the identity is wrong.
+6. **Three-pass self-review is mandatory before showing portrait or illustration art** (owner
+   rule 2026-08-26): generate → Read → critique against canon, anatomy, and composition (weapons
+   and hands especially) → edit or re-generate → repeat, at least THREE passes. Show the owner
+   only the best surviving render, with a one-line note of what was rejected on the way.
+   Icons and tokens are exempt from the three-pass rule but not from being Read.
+7. Show the user the final (send the file) before or as it lands in the world.
 
 ## Step 5 — Stage locally; Foundry only after approval
 
 **Nothing goes to Foundry uncurated by the owner.** Finals land in the campaign repo's staging
 area first:
 
-- Copy the finished PNG to `<campaign repo>\art\staging\<kind>-<slug>-<seed>.png` (strip
-  ComfyUI's `_00001_` suffix; keep the seed — it's the provenance). For Greenrest:
+- Copy the finished PNG to `<campaign repo>\art\staging\<kind>-<slug>-<id>.png`. For Greenrest:
   `D:\Workbench\FVTT\Repos\fvtt-campaign-greenrest\art\staging\`.
 - Show the user the file and **stop there by default**. Uploading to the live world
-  (`upload-asset`) and wiring (`set-actor-art`, `add-journal-image`, `update-scene`) happen only
-  when the owner approves — then the file also graduates from `art\staging\` to `art\`.
-- Tokens go through **token-cutout** for alpha before `set-actor-art`'s token half.
+  (`upload-asset`) and wiring (`set-actor-art`, `add-journal-image`) happen only when the owner
+  approves — then the file also graduates from `art\staging\` to `art\`.
+- Tokens arrive already cut to alpha on a 512 square; Read the magenta preview the cutout wrote
+  before trusting the edge.
 - If canon details were invented in Step 1, offer to write them back into the actor bio/journal so
   the art and the text agree forever after.

@@ -1,148 +1,113 @@
-# Roadmap — v0.1.0, "prove the loop"
+# Roadmap — v1.0.0, "rebuild on the API"
 
-> **Status: SHIPPED 2026-08-26.** All five milestones landed same-day (M0 → M4); the release gate
-> ran end to end in [`notes/m3-loop-proof.md`](notes/m3-loop-proof.md) and `v0.1.0` is tagged.
-> This document stays as the record of what was decided and why. Post-0.1 candidates live under
-> [Deferred](#deferred-post-01).
+> **Status: decided 2026-09-19, nothing built yet.** The ComfyUI-era server (v0.1 → v0.4) is
+> retired; its notes are in [notes/archive/](notes/archive/) and describe nothing that still
+> exists on the machine. This document is the plan for replacing it.
 
-The initial release is done when the full loop from [`CLAUDE.md`](CLAUDE.md) runs end to end on
-real table art:
+The release is done when the full loop runs end to end on real table art with no local
+inference anywhere:
 
-> prompt → draft batch (klein) → Claude curates the PNGs → final render (dev) → upscale pipeline
-> → `upload-asset` → art visible in the live Foundry world via molten5e.
+> prompt → `generate-image` (Gemini) → Claude curates by reading the PNGs → `edit-image` to fix
+> the pick → `cutout-image` for tokens → staging in the campaign repo → `upload-asset` →
+> `set-actor-art` / `add-journal-image` via molten5e.
 
-Everything below serves that gate. LoRA house style, SDXL fallback, and Qwen text props are
-**deliberately deferred** past 0.1 — see [Deferred](#deferred-post-01).
+## Why the change
 
----
-
-## M0 — Environment bring-up (ComfyUI + models)
-
-Goal: headless ComfyUI generating with both FLUX models on the 5090.
-
-- Install the **ComfyUI standalone Windows build** into `D:\Workbench\LOCAL\LocalAI` (locked
-  2026-08-26); verify the embedded torch is a **CUDA 12.8+ build** (Blackwell / `sm_120` kernels —
-  first-run smoke test, not assumption).
-- Launch convention: headless API mode, `--listen 127.0.0.1`, pinned port, `--disable-auto-launch`,
-  `--output-directory` pointed at a known artificer output root (simplifies file handoff — the MCP
-  server reads outputs straight off disk, no `/view` fetches).
-- Model downloads — **each needs per-download approval (file, source, size)**, per house rule:
-
-  | file | source | ~size | role |
-  | --- | --- | --- | --- |
-  | `flux1-dev-fp8.safetensors` (all-in-one) | Comfy-Org repackage (ungated) | ~17 GB | final renders |
-  | FLUX.2-klein checkpoint + its text encoder | Comfy-Org repackage — **verify current files/sizes at download time** | ~5–10 GB | draft batches |
-  | `4x-UltraSharp.pth` | upscale-model hub | ~67 MB | model upscale |
-
-  **fp8 all-in-one dev is locked** (2026-08-26): one file, `CheckpointLoaderSimple`, hardware fp8
-  speed on Blackwell; the bf16 split-file upgrade path stays open if an M1 A/B ever shows a visible
-  difference. v0.1 total ≈ **25–30 GB**, well under the 60–100 GB budget.
-- Exit gate: one klein image and one dev image rendered headless via the HTTP API; timings and
-  VRAM headroom recorded in the repo notes.
-
-## M1 — Pin the workflow JSONs
-
-Goal: the 2–3 pinned graphs the server will substitute into — **never free-form graphs**.
-
-- `workflows/draft.json` — klein, 4-step, **batch 6–8**, generated at the preset's native res
-  (klein is fast enough that drafts render at full 1536×960 — keeps composition judgments honest).
-- `workflows/final.json` — dev at native res → 4x-UltraSharp → downsample, in **one graph**, so a
-  single call yields the finished preset resolution (e.g. 1536×960 → ×4 → 2560×1600).
-- `workflows/upscale.json` — the upscale tail alone, for finishing an already-picked image.
-- Settle the **draft→final composition question**: seeds don't transfer between klein and dev, so
-  test both re-render strategies — fresh dev txt2img from the refined prompt, vs **img2img over
-  the winning draft** at ~0.5–0.7 denoise to preserve composition. Whichever wins becomes a
-  `final.json` mode.
-- Lock the exact preset dimensions (`portrait` and `token` gen/output sizes; handout is already
-  locked at 1536×960 → 2560×1600).
-- Substitution contract documented: which node inputs take prompt / seed / batch / dimensions /
-  `filename_prefix`, addressed by node title. `filename_prefix` gets a per-job id so the server
-  finds its outputs deterministically — no directory-scan races.
-- Exit gate: all three JSONs committed, each proven by manual API submission.
-
-## M2 — The MCP server
-
-Goal: the tools, built to the family bar.
-
-- **Stack mirrors molten5e**: Node 22+ / TypeScript, `@modelcontextprotocol/sdk` over stdio, zod
-  schemas → generated JSON Schema, `registry.ts` as the single source of truth, vitest + biome +
-  knip. One seam: `src/comfy.ts` (submit, await via WS, collect files) — nothing else touches HTTP.
-- **Tool surface (resist sprawl — three tools):**
-
-  | tool | contract |
-  | --- | --- |
-  | `generate-image` | `kind` (preset: `handout` / `scene-background` / `portrait` / `token`), `prompt`, `mode` (`draft` batch / `final`), optional `seed`, optional source image for img2img refine |
-  | `upscale-image` | path in → finished preset-resolution PNG out |
-  | `artificer-status` | ComfyUI reachable, models present, VRAM/queue state — cold-start diagnosability |
-
-- **Output convention locked** (2026-08-26): `art/<kind>-<slug>-<seed>.png` (kebab-case,
-  kind-prefixed — matches the campaign repo's existing `maps/map-greenrest-01.jpg` style), so
-  generate → curate → upload needs no glue.
-- Tests: offline unit suite (substitution correctness, preset dimensions, filename conventions,
-  registry surface guard); live ComfyUI suite gated like molten5e's integration tests.
-- Exit gate: build green, tests green, `.mcp.json.example` committed, registered at **user scope**
-  (owner restarts Claude Code — the session can't).
-
-## M3 — Prove the loop
-
-Goal: the release gate itself, on real art.
-
-- Run the full loop for **one handout, one portrait, one token**: prompt → draft batch → curation
-  by reading the PNGs → final render → `upload-asset` → `add-journal-image` / `set-actor-art` in
-  the live world.
-- Record model-switch latency (klein ↔ dev swap cost on 32 GB VRAM / 96 GB RAM) and per-image
-  timings; fold anything surprising back into the workflows.
-- Exit gate: the three finished pieces visible in Foundry, loop notes committed.
-
-## M4 — Release hygiene → tag `v0.1.0`
-
-- README graduates from greenfield: Requirements / Build / Wire into Claude Code / Configuration /
-  Tools sections in the family format; 🚧 callout comes down.
-- `.env.example` (`COMFY_URL`, output root), final `npm test` / `typecheck` / `check` pass.
-- Tag `v0.1.0`.
+- ComfyUI needed many iterations per usable image; the owner was routinely feeding its output to
+  Nano Banana to fix, which it did in one pass. The local pipeline was a slow random draft
+  generator in front of the model that actually did the work.
+- The trained house-style LoRA never delivered a consistent look despite a curated 46-plate
+  corpus and a rank sweep. Nano Banana Pro takes style reference images natively.
+- Battlemaps, the one workload where free local generation could matter, are bought as UVTT
+  packs. Everything that remains is low-volume, high-taste work that costs cents per image.
+- A 100 GB local install with nothing in git violated the family's "everything is in git" rule.
 
 ---
 
-## Shipped after 0.1
+## M0 — Spike (go/no-go)
 
-- **v0.2.0 — party scenes**: `draft-ref.json` + `referenceImages` on `generate-image` (FLUX.2
-  reference conditioning holds party identities in group scenes).
-- **v0.3.0 — the scene finisher**: `scene.json` + `mode: "scene"` (FLUX.2-dev fp8 + Turbo LoRA,
-  10 steps, references + upscale tail in one graph, ~30 s warm). klein drafts fumble multi-figure
-  anatomy; the 32B model fixes hands, weapons, and limb counts.
-- **`illustration-builder` skill** — the judgment layer (canon research gates, precedent study,
-  the prompt cookbook, staging-first delivery).
+A throwaway script in the session scratchpad, not the server. Both tiers, real API, a few
+dollars. Answers the only open questions:
 
-## Backlog
+- **Refusal rate** on fantasy violence: a combat scene with drawn weapons, a wounded monster,
+  blood. The docs say nothing specific; this measures it.
+- **Style hold**: three approved pieces as Pro style references, ten illustrations, one look?
+- **Icon consistency**: twenty item icons on Flash from one style prefix, do they read as a set?
+- **Party identity**: the four canonical portraits in the character slots, a campfire scene on
+  each tier. Do all four survive?
+- **Latency and actual cost** per call at each size, recorded.
 
-- **`edit-token` — AI tweaks to existing token art** (owner request 2026-08-26). Take a token
-  from the world's token library (or the campaign shelf) and apply a described edit — "swap the
-  sword for an axe", "dress them in a green cloak", "add a scar", "make the armor plate instead
-  of leather" — preserving the rest of the image and the alpha. Today the owner does this by
-  uploading tokens to Google's Nano Banana; this brings it in-house.
-  Likely shape: a new pinned workflow using FLUX.2-dev's **image-edit / Kontext-style** path
-  (reference-conditioned img2img at low denoise, or an inpaint mask when the edit is localized),
-  a `sourceImage` + `edit` instruction contract, and a re-matte pass through the existing
-  `token-cutout` skill to restore transparency. Open questions: whether FLUX.2-dev edit mode
-  preserves the untouched regions well enough without masking, and how to keep the token's
-  circular framing intact.
-- **House-style LoRAs baked into presets** — now unblocked: the party portraits and scenes are a
-  corpus to judge candidates against (CLAUDE.md setup step 5).
-- **Per-character LoRAs** — the strongest identity lock (~30 min/character to train on the 5090),
-  composable across scenes; the reference-latent path may prove sufficient first.
-- **NVFP4 FLUX.2-dev** (~18 GB, fits entirely in 32 GB VRAM) — Blackwell-only speed gear for fast
-  scene iteration if fp8's ~30 s/scene starts to chafe.
-- **SDXL fine-tune fallback** (painterly LoRAs FLUX doesn't cover) and **Qwen-Image** text-props —
-  each is a new checkpoint download + workflow; add when a real table need arrives.
+Exit gate: numbers in a note under `notes/`, and a decision on whether icon style needs a Pro
+style-ref pass or a Flash prefix is enough.
 
-## Risks & watch items
+## M1 — Backend swap
 
-- **Blackwell torch mismatch** — a portable build with pre-12.8 CUDA wheels fails on `sm_120`;
-  M0's first smoke test exists to catch this, fallback is a cu128/cu129 nightly torch swap.
-- **FLUX.2-klein support surface** — Comfy-Org repackage filenames, text-encoder weights, and true
-  VRAM footprint verified at M0, not assumed from the model card.
-- **Draft→final composition drift** — the M1 img2img-refine test is the mitigation; if neither
-  strategy preserves picks well, curation shifts to "pick the prompt direction" rather than "pick
-  the image", which the tool contract already tolerates.
-- **Output discovery** — per-job `filename_prefix` from day one; never infer ownership of files
-  from timestamps.
+- `src/gemini.ts` replaces `src/comfy.ts`: one seam, nothing else touches HTTP. Model ids and
+  per-image prices live in one table.
+- Presets rewritten to `{ ratio, size, tier, post }` per kind: `icon`, `token`, `portrait`,
+  `illustration`. `handout` and `scene-background` are gone.
+- `sharp` owns post-processing: 16:9 → 16:10 crop and downsample for illustrations, 512 square
+  for icons and tokens, format.
+- `generate-image` contract: `kind`, `prompt`, `slug`, optional `references` (paths; the server
+  sorts them into character vs style slots by a `role` field), optional `tier`, `confirmPro`.
+  Returns absolute paths named `<kind>-<slug>-<id>.png`.
+- `edit-image` contract: `sourceImage`, `instruction`, `kind`, optional `tier`, `confirmPro`.
+  Native instruction editing; the token kind re-runs cutout after.
+- Delete: `workflows/`, `src/workflows.ts`, `src/comfy.ts`, `src/tools/upscale.ts`,
+  `tests/integration/`, `vitest.integration.config.ts`. `.env.example` carries `GEMINI_API_KEY`
+  and `ARTIFICER_OUTPUT_DIR`.
+- Tests: offline unit suite on recorded API fixtures (request shaping, preset mapping, post-
+  processing dimensions, filename convention, registry surface guard). No test hits the live API.
+- Exit gate: build green, tests green, one icon and one illustration rendered through the tool.
+
+## M2 — Cutout port
+
+- `cutout-image` tool wrapping the `token_cutout.py` script moved here from
+  `fvtt-mcp-molten5e/.claude/skills/token-cutout/`, with its `rembg` / chroma methods, the
+  magenta preview, and the 512-square canvas rule intact. First rembg use downloads a ~176 MB
+  model: approval-gated, stated up front.
+- `kind: "token"` in `generate-image` and `edit-image` chains cutout automatically.
+- The molten5e `token-cutout` skill is retired and its docs point here. One home.
+- Exit gate: a generated token lands as an RGBA PNG at 512 with a verified preview.
+
+## M3 — Pro cost gate and spend counter
+
+- Any call resolving to `pro` without `confirmPro: true` refuses with the estimated cost and the
+  two ways out. Tested for every kind and tier combination.
+- Session spend counter, estimated from the price table; `artificer-status` reports key present,
+  models reachable, spend so far.
+- Exit gate: the refusal message reads well in the chat, and a confirmed Pro call goes through.
+
+## M4 — `illustration-builder` skill rewrite
+
+- Drop every ComfyUI, FLUX, seed, denoise, and LoRA rule. Keep the model-independent judgment:
+  canon research gates, read the token art, negation backfires, garment nouns override clauses,
+  translate canon into camera language, three-pass self-review, staging before Foundry.
+- Add: the style shelf (which approved pieces are the standing style references), the Pro
+  confirm rule and how to ask it, icon recipes, edit-first iteration.
+- Re-earn any phrasing lessons on the new models; do not carry FLUX-specific findings over as
+  if they still held.
+
+## M5 — Docs and release
+
+- README, CLAUDE.md, this roadmap, and the backlog reflect the shipped tool. `.mcp.json.example`
+  unchanged in shape.
+- Tag `v1.0.0`. Register at user scope; the owner restarts Claude Code.
+
+---
+
+## Decisions still open (owner)
+
+- **Output directory** for raw renders before staging. Default proposed:
+  `D:\Workbench\LOCAL\artificer-output`, gitignored by being outside the repo.
+- **Icon format**: Foundry ships webp for compendium icons; the campaign repos hold png today.
+- **Flash for portraits and illustrations** without a confirm: allowed as a cheap first draft, or
+  is Pro mandatory there? Proposed: allowed via explicit `tier: "flash"`.
+
+## History
+
+- v0.1.0 (2026-08-26): ComfyUI + FLUX.1-dev / FLUX.2-klein, pinned workflow graphs, the loop
+  proven end to end.
+- v0.2.0: reference conditioning for party scenes. v0.3.0: FLUX.2-dev scene finisher.
+- v0.4.0 (2026-08-28): house-style LoRA trained and shipped; four party portraits approved.
+- 2026-09-19: direction changed to the Gemini API; ComfyUI and everything local deleted.

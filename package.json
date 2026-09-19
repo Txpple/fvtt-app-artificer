@@ -1,7 +1,7 @@
 {
   "name": "fvtt-mcp-artificer",
   "version": "0.4.0",
-  "description": "Foundry-specific image-generation MCP server wrapping headless ComfyUI, driven by Claude Code.",
+  "description": "Foundry-specific image-generation MCP server backed by the Gemini image API, driven by Claude Code.",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
@@ -24,6 +24,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "dotenv": "^16.3.0",
+    "sharp": "^0.35.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -47,8 +48,8 @@
     "foundry-vtt",
     "mcp",
     "claude-code",
-    "comfyui",
-    "flux",
+    "gemini",
+    "nano-banana",
     "image-generation",
     "tabletop",
     "rpg"
