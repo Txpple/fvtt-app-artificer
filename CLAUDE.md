@@ -10,7 +10,7 @@ generate art, edit existing art, cut tokens to alpha, curate the results by actu
 them, and hand the winners to the Foundry pipeline (`upload-asset` → `set-actor-art` /
 `add-journal-image` in `fvtt-mcp-molten5e`).
 
-Status: **rebuilt on the API (2026-09-19); tools live, skill rewrite and v1.0.0 tag pending.** The first version of this server wrapped
+Status: **v1.0.0 shipped 2026-09-19 on the Gemini API.** The first version of this server wrapped
 a local ComfyUI install with FLUX models and a trained house-style LoRA. That direction is dead:
 the local pipeline took many iterations per usable image, the LoRA never delivered a consistent
 look, and the owner was already feeding its output to Nano Banana to fix. ComfyUI, the models, the
@@ -89,7 +89,7 @@ out (confirm, or `tier: "flash"`). The skill puts that question to the owner ver
 confirming. The server keeps a running estimated-spend counter per session; `artificer-status`
 reports it. Tools enforce, skills ask.
 
-## Setup order
+## Setup order (done 2026-09-19; kept as the record)
 
 1. Spike (throwaway script, not the server): both tiers on one icon, one token, a party scene
    with the four portraits as character references, and a combat scene with weapons and a

@@ -1,6 +1,7 @@
 # Roadmap — v1.0.0, "rebuild on the API"
 
-> **Status: M0, M1, M2, M3 shipped 2026-09-19. M4 (skill rewrite) and M5 (release) remain.** The ComfyUI-era server (v0.1 → v0.4) is
+> **Status: SHIPPED 2026-09-19, tagged `v1.0.0`.** All milestones landed in one day; this file
+> stays as the record of what was decided and why. Later work lives in [BACKLOG.md](BACKLOG.md). The ComfyUI-era server (v0.1 → v0.4) is
 > retired; its notes are in [notes/archive/](notes/archive/) and describe nothing that still
 > exists on the machine. This document is the plan for replacing it.
 
@@ -95,7 +96,7 @@ style-ref pass or a Flash prefix is enough.
   models reachable, spend so far.
 - Exit gate: the refusal message reads well in the chat, and a confirmed Pro call goes through.
 
-## M4 — `illustration-builder` skill rewrite
+## M4 — `illustration-builder` skill rewrite — DONE 2026-09-19
 
 - Drop every ComfyUI, FLUX, seed, denoise, and LoRA rule. Keep the model-independent judgment:
   canon research gates, read the token art, negation backfires, garment nouns override clauses,
@@ -105,7 +106,7 @@ style-ref pass or a Flash prefix is enough.
 - Re-earn any phrasing lessons on the new models; do not carry FLUX-specific findings over as
   if they still held.
 
-## M5 — Docs and release
+## M5 — Docs and release — DONE 2026-09-19
 
 - README, CLAUDE.md, this roadmap, and the backlog reflect the shipped tool. `.mcp.json.example`
   unchanged in shape.
@@ -128,3 +129,4 @@ style-ref pass or a Flash prefix is enough.
 - v0.2.0: reference conditioning for party scenes. v0.3.0: FLUX.2-dev scene finisher.
 - v0.4.0 (2026-08-28): house-style LoRA trained and shipped; four party portraits approved.
 - 2026-09-19: direction changed to the Gemini API; ComfyUI and everything local deleted.
+- v1.0.0 (2026-09-19): API rebuild shipped: four tools, per-subject chroma cut, Pro gate.

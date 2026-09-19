@@ -1,8 +1,5 @@
 # fvtt-mcp-artificer
 
-> **Rebuilt on the Gemini image API 2026-09-19.** All four tools are live; the
-> `illustration-builder` skill rewrite and the v1.0.0 tag are what remain in [ROADMAP.md](ROADMAP.md).
-
 A **Foundry-specific** image-generation [Model Context Protocol](https://modelcontextprotocol.io)
 server for D&D table art, driven by **Claude Code**. It calls the **Gemini image API** (Nano
 Banana 2 and Nano Banana Pro) and exposes a small set of Foundry-shaped tools so Claude can author

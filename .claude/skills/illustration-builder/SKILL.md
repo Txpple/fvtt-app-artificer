@@ -14,11 +14,6 @@ description: >-
 
 # Illustration builder
 
-> **Tool availability:** the artificer server is being rebuilt on the Gemini image API
-> ([ROADMAP.md](../../../ROADMAP.md)). Until milestone M1 lands, `generate-image` and
-> `edit-image` do not exist in their described form and this skill cannot render anything. The
-> research and prompt-craft steps below still apply and can be done ahead of the tools.
-
 The judgment layer over `generate-image` / `edit-image` / `cutout-image`. Its whole job is to make
 sure the prompt comes from **canon**, the style comes from **precedent**, the owner is asked
 before Pro money is spent, and nothing lands in the world uncurated. It adds no mechanics — the
@@ -37,7 +32,7 @@ The destination picks the `kind`, and the kind picks the model tier:
 | destination | kind | tier |
 | --- | --- | --- |
 | item / spell / feature icon | `icon` | flash |
-| actor token (cut to alpha automatically) | `token` | flash |
+| actor token (top-down, cut to alpha automatically) | `token` | flash |
 | actor sheet portrait | `portrait` | pro (ask first) |
 | journal image page / player handout / location splash | `illustration` | pro (ask first) |
 
@@ -94,14 +89,22 @@ images**, not with words alone and not with trained weights:
   settles. A canon Morgash has bone-white skin his backstory never mentions; the first portrait
   shipped green. Keep continuity with the existing art unless the user asks for a redesign.
 
-**Two kinds of reference, passed with a role:**
+**Two kinds of reference, passed as `references: [{ path, role, label }]`.** The tool attaches
+them in order and writes a preamble that binds each one by its 1-based index and label, so your
+prompt can simply say "Morgash" and be understood:
 
 - **Character references** hold identity. Both tiers take them (Flash up to 4 characters, Pro up
   to 5). Bind each one with an unmistakable prompt phrase so the model knows which figure is
   which.
-- **Style references** hold the house look. **Pro only**, up to 3. This is why portraits and
-  illustrations default to Pro. Attach the standing style shelf on every Pro call unless the
-  owner asks for something deliberately different.
+- **Style references** hold the house look. The docs say Pro only, up to 3, but they work on
+  Flash in practice (spike 2026-09-19). Attach the standing style shelf on every portrait and
+  illustration call unless the owner asks for something deliberately different.
+- **Tokens take the world's own tokens as the style reference.** They are top-down full-body
+  figures on transparency (see `assets/tokens/morgash.png` in the world data). Attach one as
+  `role: "style"` and the new token comes out at the same angle and in the same ink-lined look.
+  The tool appends the framing and the chroma plate sentence itself, samples the references to
+  pick a plate colour the subject will not share, cuts the result to alpha on a 512 square, and
+  keeps the plate PNG beside it. Read the `*_preview.png` it reports before trusting the edge.
 
 **THE CANONICAL PARTY REFERENCE SHELF (approved 2026-08-28)** — the identity anchors for every
 scene the party appears in. In the campaign repo at `fvtt-campaign-greenrest\art\`:
@@ -140,10 +143,16 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
 - **Never say "book art", "cover", or "poster"** — that paints title typography and plate
   borders. Style lives in words like "fantasy illustration", "oil painting style". The exception
   is a deliberate text prop (a real wanted poster), which is a Pro illustration.
-- **Tokens**: end with "waist-up, centered, plain flat solid-color background" for a clean cut.
-- **Icons**: one subject, centered, filling the frame, plain or softly vignetted background, no
-  text, no border. State the material ("rusted iron", "worn oak") and one lighting word. Use the
-  same style prefix for every icon in a set so they read as a set.
+- **Tokens**: describe the creature and its pose only. Never write framing, angle, or
+  background words; the tool owns those and vaguer plate wording made Flash paint a green DISC
+  on white in the spike. "Ink-lined with painted color and shading" in the prompt reinforces the
+  world-token style reference.
+- **Icons**: the tool appends "single subject centered, filling the frame, no text, no border";
+  you supply the STYLE, or the render comes back photoreal. The proven set prefix: `fantasy RPG
+  inventory icon, painterly oil illustration, soft top-left light, rich mid-tones and deep
+  shadows, plain dark vignetted background. Subject:` then the object with its material ("rusted
+  iron key", "worn oak longbow"). Same prefix for every icon in a set so they read as a set;
+  twenty in a row held on Flash.
 - **Negation backfires — describe presence, never absence** (proven twice, 2026-08-28). "no large
   tusks" DRAWS large tusks; "no beard" GROWS a beard. Say what IS there instead: "his chin and jaw
   and upper lip are smooth bare hairless skin".
@@ -186,11 +195,17 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    `tier: "flash"` needs no confirm, and a Flash draft can be edited or re-rendered on Pro after.
 3. `generate-image` with the canon prompt and the references. Two or three candidates for
    portraits and illustrations, one for icons and tokens (they one-shot well; re-roll on a miss).
+   Every result reports `estimatedUsd` and `sessionEstimatedUsd`; `artificer-status` totals by
+   tier. The API has no balance call, so these are estimates from the price table.
 4. **Read every PNG.** Judge against canon, not against "is it pretty": wrong gender, wrong
    species, wrong props, wrong mood are **rejections** even on beautiful renders.
 5. **Edit before re-rolling.** A candidate that is right on canon but wrong on one detail goes
    through `edit-image` with a single instruction ("swap the sword for a hand axe", "make the
-   cloak forest green"). Re-generate only when the composition or the identity is wrong.
+   cloak forest green"). Edits default to Flash for every kind and hold identity, pose, angle,
+   and style (Morgash's token took Sharran plate and a crackling maul in one pass). Re-generate
+   only when the composition or the identity is wrong. Editing an existing WORLD token is the
+   normal way to change a PC's gear: source the token file, describe the change, and the result
+   is already cut.
 6. **Three-pass self-review is mandatory before showing portrait or illustration art** (owner
    rule 2026-08-26): generate → Read → critique against canon, anatomy, and composition (weapons
    and hands especially) → edit or re-generate → repeat, at least THREE passes. Show the owner
@@ -209,6 +224,8 @@ area first:
   (`upload-asset`) and wiring (`set-actor-art`, `add-journal-image`) happen only when the owner
   approves — then the file also graduates from `art\staging\` to `art\`.
 - Tokens arrive already cut to alpha on a 512 square; Read the magenta preview the cutout wrote
-  before trusting the edge.
+  before trusting the edge. For a token from anywhere else, `cutout-image` does the same cut.
+  Installing a token in the world (upload, `set-actor-art`, resetting the inherited prototype
+  scale/ring/rotation) follows the molten5e `token-cutout` skill, which now holds only that half.
 - If canon details were invented in Step 1, offer to write them back into the actor bio/journal so
   the art and the text agree forever after.

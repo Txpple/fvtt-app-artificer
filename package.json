@@ -1,6 +1,6 @@
 {
   "name": "fvtt-mcp-artificer",
-  "version": "1.0.0-dev",
+  "version": "1.0.0",
   "description": "Foundry-specific image-generation MCP server backed by the Gemini image API, driven by Claude Code.",
   "private": true,
   "type": "module",
