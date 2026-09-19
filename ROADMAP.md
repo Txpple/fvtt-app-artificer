@@ -67,6 +67,12 @@ style-ref pass or a Flash prefix is enough.
   magenta preview, and the 512-square canvas rule intact. First rembg use downloads a ~176 MB
   model: approval-gated, stated up front.
 - `kind: "token"` in `generate-image` and `edit-image` chains cutout automatically.
+- **Key color is sampled, not fixed (owner rule 2026-09-19).** Some subjects need chroma green,
+  others magenta, depending on the token's own colors. The server samples the subject palette
+  (the source token for edits, the reference token or a first render for generates), picks the
+  key hue farthest from it, requests that plate in the prompt suffix, and verifies after the cut
+  that the corners were keyed and little residue remains inside the figure. If the subject shares
+  the key hue anyway, fall back to rembg.
 - The molten5e `token-cutout` skill is retired and its docs point here. One home.
 - Exit gate: a generated token lands as an RGBA PNG at 512 with a verified preview.
 
