@@ -62,8 +62,11 @@ Facts that shape the design (verified against Google's docs 2026-09-19):
 - Resolutions are fixed steps (0.5K on Flash, 1K, 2K, 4K). Aspect ratios are a fixed list with
   **no 16:10**. The 2560×1600 table format is produced by generating 16:9 and cropping.
 - Every output carries an invisible SynthID watermark. Irrelevant for a private table.
-- The content policy says nothing specific about fantasy violence. Refusal rate on combat and
-  monster art is measured in the roadmap spike, not assumed.
+- The API returns JPEG; the server converts to PNG. Style references work on Flash in practice
+  despite the docs listing them as Pro-only (spike, 2026-09-19).
+- The content policy says nothing specific about fantasy violence. The spike rendered blood,
+  corpses, and a severed head on both tiers with zero refusals; treat the filter as a non-issue for
+  table art until proven otherwise.
 
 ## Tool design: purpose presets, not raw dimensions
 
@@ -73,7 +76,7 @@ default tier, and its post-processing:
 | kind | tier default | API call | post-process | destination |
 |---|---|---|---|---|
 | `icon` | flash | 1:1 at 1K | resize to 512 square | item / spell / feature icons |
-| `token` | flash | 1:1 at 1K | cutout to alpha, 512 square | actor token |
+| `token` | flash | 1:1 at 1K, top-down full-body, an existing world token attached as the angle/style reference, explicit edge-to-edge chroma-green suffix | cutout to alpha, 512 square | actor token |
 | `portrait` | pro | 3:4 at 2K | none beyond naming | actor sheet portrait |
 | `illustration` | pro | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
 

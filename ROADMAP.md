@@ -1,6 +1,6 @@
 # Roadmap — v1.0.0, "rebuild on the API"
 
-> **Status: decided 2026-09-19, nothing built yet.** The ComfyUI-era server (v0.1 → v0.4) is
+> **Status: decided 2026-09-19; M0 spike passed the same day, M1 next.** The ComfyUI-era server (v0.1 → v0.4) is
 > retired; its notes are in [notes/archive/](notes/archive/) and describe nothing that still
 > exists on the machine. This document is the plan for replacing it.
 
@@ -24,7 +24,7 @@ inference anywhere:
 
 ---
 
-## M0 — Spike (go/no-go)
+## M0 — Spike (go/no-go) — DONE 2026-09-19, GO ([notes/m0-spike-2026-09-19.md](notes/m0-spike-2026-09-19.md))
 
 A throwaway script in the session scratchpad, not the server. Both tiers, real API, a few
 dollars. Answers the only open questions:
