@@ -32,3 +32,12 @@ reference images or multi-turn editing. Only worth a `draft` tier if icon volume
   than 16:9.
 - **Per-character consistency beyond references**: Pro's five character slots cover the party
   plus one NPC. If a recurring villain needs to hold across dozens of images, revisit.
+
+## 5 · Key colour from the prompt, not only from samples (found 2026-09-19)
+
+`pickChromaKey` samples reference and source images. A *generated* token's subject colour lives
+only in the prompt: the first Bramblemaw token (a green dragon, Morgash's grey token as the
+only sample) went out on a green plate. The cut still came clean because olive scales are far
+from #00FF00, but it was luck. Add a cheap prompt heuristic: "green"/"emerald"/"moss" argues
+against green, "purple"/"violet"/"pink"/"magenta" against magenta, "blue"/"azure" against blue,
+combined with the sampled risk before picking.
