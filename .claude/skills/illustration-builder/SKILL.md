@@ -197,8 +197,25 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    portraits and illustrations, one for icons and tokens (they one-shot well; re-roll on a miss).
    Every result reports `estimatedUsd` and `sessionEstimatedUsd`; `artificer-status` totals by
    tier. The API has no balance call, so these are estimates from the price table.
-4. **Read every PNG.** Judge against canon, not against "is it pretty": wrong gender, wrong
-   species, wrong props, wrong mood are **rejections** even on beautiful renders.
+4. **Read every PNG, twice.** First against canon, not against "is it pretty": wrong gender,
+   wrong species, wrong props, wrong mood are **rejections** even on beautiful renders. Then
+   **the flaw pass (owner rule 2026-09-19)**: scan the image deliberately for the defects these
+   models make and a viewer spots instantly. Count them out loud in your head:
+   - **Limbs and digits**: legs per creature (a peryton has two; a wolf four), arms per figure,
+     fingers on visible hands, feet that touch the ground.
+   - **Duplicated effects and props**: one spell, one effect. A stray second fireball, a floating
+     extra weapon, a second bow, a sword with two hilts.
+   - **Faces and identity**: every referenced character present once, no reference face on an
+     NPC, no twin of a party member in the background.
+   - **Signatures and text**: scribbles in a corner, lettering on banners, watermark-like marks.
+   - **Objects that make no sense**: a shield strap to nothing, a staff passing through a body,
+     a reflection that does not match.
+   If any of these is **obvious**, it goes through `edit-image` in one instruction that names
+   every flaw precisely and ends with "keep everything else identical", then gets Read again.
+   Two edit passes at most; if the third read still shows it, re-generate instead. Subtle
+   softness is not a flaw; an extra leg is. **The pass is mandatory every time; the edit is
+   not.** A render with no obvious flaw is finished. Do not touch it to make it "better";
+   every edit re-rolls the pixels and can introduce a new flaw.
 5. **Edit before re-rolling.** A candidate that is right on canon but wrong on one detail goes
    through `edit-image` with a single instruction ("swap the sword for a hand axe", "make the
    cloak forest green"). Edits default to Flash for every kind and hold identity, pose, angle,
@@ -206,11 +223,13 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    only when the composition or the identity is wrong. Editing an existing WORLD token is the
    normal way to change a PC's gear: source the token file, describe the change, and the result
    is already cut.
-6. **Three-pass self-review is mandatory before showing portrait or illustration art** (owner
-   rule 2026-08-26): generate → Read → critique against canon, anatomy, and composition (weapons
-   and hands especially) → edit or re-generate → repeat, at least THREE passes. Show the owner
-   only the best surviving render, with a one-line note of what was rejected on the way.
-   Icons and tokens are exempt from the three-pass rule but not from being Read.
+6. **Self-review is mandatory before showing portrait or illustration art** (owner rules
+   2026-08-26 and 2026-09-19): generate → Read (canon, then the flaw pass) → edit or re-generate
+   → Read again. Never show a render whose flaw pass you skipped; the owner found a second
+   fireball and a four-legged peryton in a scene that had been shown as finished. Show the owner
+   only the best surviving render, with a one-line note of what was fixed or rejected on the
+   way. Icons and tokens skip the canon critique but not the flaw pass (limb count, symmetry,
+   a clean silhouette).
 7. Show the user the final (send the file) before or as it lands in the world.
 
 ## Step 5 — Stage locally; Foundry only after approval

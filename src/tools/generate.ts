@@ -48,9 +48,11 @@ export class GenerateImageTool {
         description:
           'Generate one Foundry art asset from a prompt via the Gemini image API. kind picks ' +
           'the model tier, aspect, size, framing text, and post-processing; the result is a ' +
-          'finished PNG on disk (read it to curate). Pro kinds (portrait, illustration) refuse ' +
-          'without confirmPro: true and state the cost. Returns the file path, dimensions, and ' +
-          'estimated spend.',
+          'finished PNG on disk. READ IT before showing anyone: count limbs per creature, ' +
+          'check for duplicated spell effects or props, stray signatures, and reference faces ' +
+          'on the wrong figure; obvious flaws are one edit-image call away. Pro kinds ' +
+          '(portrait, illustration) refuse without confirmPro: true and state the cost. ' +
+          'Returns the file path, dimensions, and estimated spend.',
         inputSchema: toInputSchema(generateImageSchema),
       },
     ];

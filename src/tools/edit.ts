@@ -23,7 +23,10 @@ const editImageSchema = z.object({
     .min(1)
     .describe(
       'The change, and only the change: "replace the greatsword with a war maul crackling with ' +
-        'violet energy". Everything else is kept by the tool\'s own wording.'
+        'violet energy". For a flaw-fix pass, name every flaw precisely in one instruction ' +
+        '("the left peryton has four legs; give it two", "remove the second fireball") and ' +
+        'end with "keep everything else identical". Everything else is kept by the tool's ' +
+        'own wording.'
     ),
   kind: kindSchema,
   slug: z.string().min(1).describe('Kebab-cased into the filename: <kind>-<slug>-<id>.png.'),
