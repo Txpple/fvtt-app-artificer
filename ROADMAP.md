@@ -10,7 +10,7 @@ inference anywhere:
 
 > prompt → `generate-image` (Gemini) → Claude curates by reading the PNGs → `edit-image` to fix
 > the pick → `cutout-image` for tokens → staging in the campaign repo → `upload-asset` →
-> `set-actor-art` / `add-journal-image` via molten5e.
+> `set-actor-art` / `add-journal-image` via fvtt-mcp-dnd5e.
 
 ## Why the change
 
@@ -69,7 +69,7 @@ style-ref pass or a Flash prefix is enough.
 ## M2 — Cutout port — DONE 2026-09-19
 
 - `cutout-image` tool wrapping the `token_cutout.py` script moved here from
-  `fvtt-mcp-molten5e/.claude/skills/token-cutout/`, with its `rembg` / chroma methods, the
+  `fvtt-mcp-dnd5e/.claude/skills/token-cutout/`, with its `rembg` / chroma methods, the
   magenta preview, and the 512-square canvas rule intact. First rembg use downloads a ~176 MB
   model: approval-gated, stated up front.
 - `kind: "token"` in `generate-image` and `edit-image` chains cutout automatically.
@@ -80,13 +80,13 @@ style-ref pass or a Flash prefix is enough.
   from both, requests that plate in the prompt suffix, and verifies after the cut
   that the corners were keyed and little residue remains inside the figure. If the subject shares
   the key hue anyway, fall back to rembg.
-- The molten5e `token-cutout` skill is retired and its docs point here. One home.
+- The fvtt-mcp-dnd5e `token-cutout` skill is retired and its docs point here. One home.
 - Exit gate: a generated token lands as an RGBA PNG at 512 with a verified preview.
 - Shipped: `scripts/token_cutout.py` (moved verbatim), `src/chroma.ts` (per-subject key
   choice among green / magenta / blue by channel-dominance risk, worst case across samples),
   `src/cutout.ts` (spawns the script, parses coverage, measures residual key hue, chroma first
   with rembg fallback when verification fails), `cutout-image` tool. Tokens from `generate-image`
-  and `edit-image` come back cut, with the plate PNG kept beside them. The molten5e skill now
+  and `edit-image` come back cut, with the plate PNG kept beside them. The fvtt-mcp-dnd5e skill now
   holds only the Foundry install steps. Live gate: goblin, wolf, and a Morgash edit all cut clean.
 
 ## M3 — Pro cost gate and spend counter — DONE inside M1 (2026-09-19)

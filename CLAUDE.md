@@ -8,7 +8,7 @@ Image-generation MCP server for D&D table art, backed by the **Gemini image API*
 Banana models). It exposes a small set of **Foundry-specific** tools so Claude can author prompts,
 generate art, edit existing art, cut tokens to alpha, curate the results by actually looking at
 them, and hand the winners to the Foundry pipeline (`upload-asset` → `set-actor-art` /
-`add-journal-image` in `fvtt-mcp-molten5e`).
+`add-journal-image` in `fvtt-mcp-dnd5e`).
 
 Status: **v1.0.0 shipped 2026-09-19 on the Gemini API.** The first version of this server wrapped
 a local ComfyUI install with FLUX models and a trained house-style LoRA. That direction is dead:
@@ -24,9 +24,9 @@ training toolkit, and the corpus are deleted from the machine. Nothing local rem
   vocabulary and get tweaked freely for Foundry work. Do not generalize.
 - **API only.** No local models, no local inference, no GPU dependency. Do not reintroduce a
   local backend or a backend abstraction. One client, one provider.
-- **Separate from `fvtt-mcp-molten5e`.** That server is scoped to Foundry content authoring and
+- **Separate from `fvtt-mcp-dnd5e`.** That server is scoped to Foundry content authoring and
   must not couple to image generation. This server never talks to the Foundry bridge; the
-  handoff between them is files on disk + the molten5e upload tools.
+  handoff between them is files on disk + the dnd5e MCP's upload tools.
 - Same house philosophy as the rest of the family: **tools do, skills decide.** Correctness
   (model selection per kind, ratio and size, post-processing, cutout, file conventions, the Pro
   cost gate) lives in tested tools here; judgment (prompt craft, curation taste, which reference
@@ -99,8 +99,8 @@ reports it. Tools enforce, skills ask.
 2. Backend swap: Gemini client replaces the ComfyUI client; presets become ratio + size;
    `sharp` does crop and resize; `workflows/`, `src/comfy.ts`, `upscale-image`, and the live
    ComfyUI test suite are deleted. Tests run on recorded fixtures, never the live API.
-3. Cutout port: the `token-cutout` script and its judgment move here from molten5e as
-   `cutout-image`; `kind: "token"` chains it; the molten5e copy is retired.
+3. Cutout port: the `token-cutout` script and its judgment move here from fvtt-mcp-dnd5e as
+   `cutout-image`; `kind: "token"` chains it; the fvtt-mcp-dnd5e copy is retired.
 4. Pro gate and spend counter.
 5. `illustration-builder` skill rewrite for the edit-first, reference-driven workflow.
 6. Docs and release: tag `v1.0.0`. New tools ⇒ Claude Code restart (the owner restarts, the

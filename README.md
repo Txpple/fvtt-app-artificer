@@ -95,7 +95,7 @@ straight into a Foundry asset folder.
 ## With a Foundry MCP server: art grounded in your world
 
 This server only makes pictures. Pair it with a Foundry MCP server such as
-[`fvtt-mcp-molten5e`](https://github.com/Txpple/fvtt-mcp-molten5e) and Claude can read your
+[`fvtt-mcp-dnd5e`](https://github.com/Txpple/fvtt-mcp-dnd5e) and Claude can read your
 world before it prompts and put the result back when it is done. Then you can ask for things
 like:
 

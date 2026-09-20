@@ -1,5 +1,5 @@
 // The tool registry — the single place tool names, definitions, and handlers are wired together
-// (pattern inherited from fvtt-mcp-molten5e). The `handlers` map is the source of truth; the
+// (pattern inherited from fvtt-mcp-dnd5e). The `handlers` map is the source of truth; the
 // advertised `tools` list is DERIVED from it, so the two cannot drift, and a handler without a
 // matching definition fails fast at startup.
 
