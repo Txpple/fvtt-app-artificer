@@ -212,7 +212,11 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
      a reflection that does not match.
    If any of these is **obvious**, it goes through `edit-image` in one instruction that names
    every flaw precisely and ends with "keep everything else identical", then gets Read again.
-   Two edit passes at most; if the third read still shows it, re-generate instead. Subtle
+   Two edit passes at most; if the third read still shows it, re-generate instead. **Name the
+   flaw anatomically, not by count.** "Every peryton must have exactly two legs" failed twice,
+   once on Pro; "delete the rear pair of legs trailing behind its front talons, leaving two bird
+   legs and a feathered tail" worked first time on Flash. Pro is not a better fixer, and it
+   re-cropped the image (2026-09-19); stay on Flash for edits and say precisely what to remove. Subtle
    softness is not a flaw; an extra leg is. **The pass is mandatory every time; the edit is
    not.** A render with no obvious flaw is finished. Do not touch it to make it "better";
    every edit re-rolls the pixels and can introduce a new flaw.
