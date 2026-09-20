@@ -1,109 +1,124 @@
 # fvtt-mcp-artificer
 
-A **Foundry-specific** image-generation [Model Context Protocol](https://modelcontextprotocol.io)
-server for D&D table art, driven by **Claude Code**. It calls the **Gemini image API** (Nano
-Banana 2 and Nano Banana Pro) and exposes a small set of Foundry-shaped tools so Claude can author
-prompts, generate art, edit existing art, cut tokens to alpha, **curate the results by actually
-looking at them**, and hand the winners to the Foundry pipeline in its sister server,
-[`fvtt-mcp-molten5e`](https://github.com/Txpple/fvtt-mcp-molten5e)
-(`upload-asset` → `set-actor-art` / `add-journal-image`).
+An MCP server that lets Claude make art for your Foundry VTT table using Google's Gemini image
+models (Nano Banana). Four tools, one API key, no GPU.
 
-No local models, no GPU. Everything that matters is in git: this repo holds the tool, the
-campaign repos hold the approved art, and the only machine-side state is an API key.
+Claude writes the prompt, the server renders it, Claude looks at the result and fixes what is
+wrong, and the finished file lands on disk ready to upload into Foundry.
 
-## Why this shape
+## What you can make
 
-This is **not a generic image-API bridge**, by decree. Tools speak Foundry vocabulary — icons,
-tokens, portraits, illustrations — and get tweaked freely for Foundry work. And it stays
-**separate from `fvtt-mcp-molten5e`**: that server is scoped to Foundry content authoring and must
-not couple to image generation. This server never talks to the Foundry bridge; the handoff
-between them is files on disk plus the molten5e upload tools.
+- **Item, spell, and feature icons.** Twenty icons from one style line come back as one
+  matching set. About 7 cents each.
+- **Tokens.** Top-down, full-body, cut to transparency, centred on a square so Foundry's scale
+  1.0 is right. Hand it one of your existing tokens as a style reference and new ones match the
+  angle and look. About 7 cents each.
+- **Portraits.** Actor sheet art at 3:4. Hand it a previous portrait or two as style
+  references and the new one matches your table's look.
+- **Illustrations.** Player handouts and scene splashes at 2560×1600. Hand it your party's
+  portraits as character references and they keep their faces in group scenes.
+- **Edits.** Change one thing about an existing image and keep the rest: swap a weapon, recolor
+  a cloak, add a scar, fix an extra limb.
+- **Cutouts.** Knock the background off any token image you already have.
 
-Same house philosophy as the rest of the family: **tools do, skills decide.** Correctness (model
-per kind, ratio and size, post-processing, cutout, file conventions, the Pro cost gate) lives in
-tested tools here; judgment (prompt craft, curation taste, which references to attach, which actor
-or journal gets the art) lives in the `illustration-builder` skill.
+## The tools
+
+| tool | what it does |
+| --- | --- |
+| `generate-image` | Render one asset from a prompt. `kind` is `icon`, `token`, `portrait`, or `illustration`; it picks the model, aspect, size, framing, and post-processing for you. Optional `references` (character or style). |
+| `edit-image` | Apply one instruction to an existing image and keep everything else. Tokens are re-cut automatically. |
+| `cutout-image` | Cut a token's background to alpha and deliver it on a square canvas. |
+| `artificer-status` | Key present, models reachable, estimated spend this session. |
+
+Every call returns the file path, the pixel size, and an estimated cost.
+
+## Models and cost
+
+Everything runs on **Nano Banana 2** (Gemini 3.1 Flash Image) by default: roughly 7 cents for
+an icon or token, 10 cents for a portrait, 15 cents for an illustration.
+
+**Nano Banana Pro** (Gemini 3 Pro Image) is available for about double. It is stronger on
+crowded multi-figure scenes and images with legible text. Claude will not use it unless you
+say so: a Pro call refuses without an explicit confirm and tells you the price first.
+
+Prices are Google's published per-image rates and may change. The server keeps a running
+estimate; your actual bill is in the Google Cloud console.
+
+## Requirements
+
+- Node.js 22 or newer.
+- A Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey) with billing
+  enabled. Prepaid credit with auto-reload off is a sensible ceiling.
+- Python 3 with Pillow and numpy for the token cutout. `rembg` is optional and adds an AI
+  matte fallback for busy backgrounds (first use downloads a ~176 MB model).
+
+## Install
+
+```bash
+git clone https://github.com/Txpple/fvtt-mcp-artificer.git
+cd fvtt-mcp-artificer
+npm install
+npm run build
+cp .env.example .env
+```
+
+Put your key in `.env`:
+
+```
+GEMINI_API_KEY=your-key
+ARTIFICER_OUTPUT_DIR=C:\path\where\renders\should\land
+```
+
+Register the server with Claude Code (user scope, so it is available in every project), then
+restart Claude Code:
+
+```bash
+claude mcp add -s user artificer -- node /absolute/path/to/fvtt-mcp-artificer/dist/index.js
+```
+
+Or copy [`.mcp.json.example`](.mcp.json.example) and set absolute paths.
+
+## Using it
+
+Ask Claude for what you want in table terms:
+
+- "Make icons for these six items."
+- "This goblin needs a token; use my existing orc token as the style reference."
+- "Illustrate the party arriving at the ruined mill at dusk; here are their portraits."
+- "Change this token's cloak to forest green."
+- "Cut the background off this token."
+
+Claude reads every render before showing it to you and fixes obvious flaws (an extra limb, a
+duplicated spell effect) with one edit. Files are named `<kind>-<slug>-<id>.png` so they drop
+straight into a Foundry asset folder. Uploading into a world is done with a Foundry MCP server
+such as [`fvtt-mcp-molten5e`](https://github.com/Txpple/fvtt-mcp-molten5e); this server never
+talks to Foundry itself.
+
+## How it works
 
 ```
 Claude ──MCP──> fvtt-mcp-artificer ──HTTPS──> Gemini image API
                       │
-                      ├── sharp: crop, resize, format
-                      └── cutout: rembg matte / chroma key → alpha
+                      ├── sharp: convert, crop, resize
+                      └── token_cutout.py: chroma key or rembg → alpha
 ```
 
-## Purpose presets, not raw dimensions
+- The API returns a JPEG; the server converts to PNG and applies the kind's post-processing
+  (512 square for icons, 16:9 to 16:10 crop for illustrations, cutout for tokens).
+- Tokens are rendered on a flat chroma plate whose colour is chosen per subject (green,
+  magenta, or blue, whichever the subject shares least), then keyed out. A magenta-composited
+  preview is written beside every cut so the edge can be checked.
+- No local models, no fine-tuning, no ComfyUI. Style comes from reference images you attach.
 
-`generate-image` takes a `kind`, not width/height. Each kind fixes the model tier, the API ratio
-and size, and the post-processing:
-
-| kind | tier default | API call | finished output |
-| --- | --- | --- | --- |
-| `icon` | flash | 1:1 at 1K | 512×512 |
-| `token` | flash | 1:1 at 1K, top-down, on a chroma plate whose colour is chosen per subject | 512×512 RGBA, cut to alpha, plate PNG kept beside it |
-| `portrait` | flash | 3:4 at 2K | as rendered |
-| `illustration` | flash | 16:9 at 4K with style references | 2560×1600 (16:10 crop) |
-
-Battlemaps are not a kind. They are bought as UVTT packs and imported.
-
-## Tiers and the cost gate
-
-| tier | model | for |
-| --- | --- | --- |
-| `flash` | Nano Banana 2 (Gemini 3.1 Flash Image) | the default for every kind |
-| `pro` | Nano Banana Pro (Gemini 3 Pro Image) | opt-in: offered for portraits and illustrations for a bit extra; crowded scenes, text-heavy handouts |
-
-Pro costs roughly twice Flash. `tier: "pro"` refuses unless `confirmPro: true` is passed, and
-the refusal states the estimated cost. The skill offers Pro once and confirms only on a yes.
-`artificer-status` reports estimated spend for the session.
-
-## Tools
-
-| tool | what it does |
-| --- | --- |
-| `generate-image` | `kind` + `prompt` + `slug`, optional `references` (character or style, by role), optional `tier`, `confirmPro`. Returns absolute PNG paths named `<kind>-<slug>-<id>.png`. |
-| `edit-image` | `sourceImage` + `instruction` + `kind`. Instruction-style editing of an existing image: swap a weapon, change a cloak, add a scar. Tokens are re-cut to alpha after. |
-| `cutout-image` | Knock the background off a token render to real alpha (rembg AI matte, or chroma key for flat plates), verified against a magenta preview, delivered on a 512 square so Foundry scale 1.0 is right. |
-| `artificer-status` | Key present, models reachable, estimated session spend. |
-
-## Requirements
-
-- **Node.js 22+**.
-- A **Gemini API key** with access to the image models.
-- **Python 3** with Pillow and numpy for `cutout-image` and the token kind; `rembg` optional for
-  the AI-matte fallback (first use downloads a ~176 MB model). `ARTIFICER_PYTHON` picks the
-  interpreter.
-
-## Build
+## Development
 
 ```bash
-npm install
-npm run build
+npm test          # offline unit suite; nothing hits the live API
+npm run typecheck
+npm run check     # biome
+npm run knip
 ```
-
-Tests: `npm test` (offline unit suite on recorded API fixtures; nothing hits the live API).
-Quality gates: `npm run typecheck`, `npm run check` (biome), `npm run knip`.
-
-## Wire into Claude Code
-
-House convention registers the server at **user scope** (new MCP tools ⇒ restart Claude Code).
-Either use the CLI:
-
-```bash
-claude mcp add -s user artificer -- node D:/path/to/fvtt-mcp-artificer/dist/index.js
-```
-
-or copy [`.mcp.json.example`](.mcp.json.example) into a `.mcp.json` Claude Code reads (or merge
-into `~/.claude.json` `mcpServers`) with **absolute** paths. On Windows point `command` at the full
-`node.exe` path if Node isn't on `PATH`.
-
-## Configuration
-
-Copy [`.env.example`](.env.example) to `.env` (gitignored):
-
-- `GEMINI_API_KEY` — never committed, never placed in a skill or prompt.
-- `ARTIFICER_OUTPUT_DIR` — where raw renders land before curation and staging.
-- `ARTIFICER_TIMEOUT_MS` — per-call wait cap.
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT. See [LICENSE](LICENSE).
