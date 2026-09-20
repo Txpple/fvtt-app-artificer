@@ -57,8 +57,9 @@ Claude ──MCP──> fvtt-mcp-artificer ──HTTPS──> Gemini image API
 Facts that shape the design (verified against Google's docs 2026-09-19):
 
 - Both take up to 14 reference images. Flash holds identity for up to 4 characters; Pro for 5.
-- **Only Pro takes style references** (up to 3). That is the replacement for the LoRA: the house
-  look comes from attaching approved pieces, not from trained weights.
+- The docs say only Pro takes style references (up to 3); in practice they work on Flash too.
+  Either way that is the replacement for the LoRA: the house look comes from attaching approved
+  pieces, not from trained weights.
 - Resolutions are fixed steps (0.5K on Flash, 1K, 2K, 4K). Aspect ratios are a fixed list with
   **no 16:10**. The 2560×1600 table format is produced by generating 16:9 and cropping.
 - Every output carries an invisible SynthID watermark. Irrelevant for a private table.
@@ -76,7 +77,7 @@ default tier, and its post-processing:
 | kind | tier default | API call | post-process | destination |
 |---|---|---|---|---|
 | `icon` | flash | 1:1 at 1K | resize to 512 square | item / spell / feature icons |
-| `token` | flash | 1:1 at 1K, top-down full-body, an existing world token attached as the angle/style reference, explicit edge-to-edge chroma-green suffix | cutout to alpha, 512 square | actor token |
+| `token` | flash | 1:1 at 1K, top-down full-body at the pitch of the world's tokens (an existing token attached as the style reference), on a chroma plate whose colour is chosen per subject | cutout to alpha, 512 square (1024 for Large+) | actor token |
 | `portrait` | flash | 3:4 at 2K | none beyond naming | actor sheet portrait |
 | `illustration` | flash | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
 
