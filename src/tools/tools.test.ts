@@ -148,7 +148,7 @@ describe('generate-image', () => {
     expect(parts).toHaveLength(2);
     expect(parts[0].inline_data.mime_type).toBe('image/png');
     expect(parts[1].text).toMatch(/^Image 1 \(Morgash token\) is a STYLE reference/);
-    expect(parts[1].text).toContain('top-down angle');
+    expect(parts[1].text).toContain('fifteen degrees off vertical');
     expect(parts[1].text).toContain('chroma-key green (#00FF00)');
     expect(r.chromaKey).toBe('green');
     expect(cuts).toHaveLength(1);

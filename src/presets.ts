@@ -22,9 +22,12 @@ export interface Preset {
 }
 
 export const TOKEN_FRAMING =
-  'Virtual tabletop token: the full body of a single figure seen from a high three-quarter ' +
-  'top-down angle, as if looking down at the character from above and slightly in front, the ' +
-  'whole figure inside the frame, centered.';
+  'Virtual tabletop token, top-down: the camera is high above and slightly in front of the ' +
+  'figure, about fifteen degrees off vertical, never straight down and never a three-quarter ' +
+  'view. The top of the head and the shoulders are the largest shapes, the torso is ' +
+  'foreshortened, the feet are mostly hidden beneath the body, and the face tilts up toward the ' +
+  'viewer. If a token is attached as a style reference, match its camera pitch exactly. A ' +
+  'single figure, centered, filling the frame.';
 
 export const ICON_FRAMING =
   'Inventory icon: a single subject centered and filling the frame, no text, no border, no frame.';
