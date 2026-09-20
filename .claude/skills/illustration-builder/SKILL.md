@@ -15,8 +15,8 @@ description: >-
 # Illustration builder
 
 The judgment layer over `generate-image` / `edit-image` / `cutout-image`. Its whole job is to make
-sure the prompt comes from **canon**, the style comes from **precedent**, the owner is asked
-before Pro money is spent, and nothing lands in the world uncurated. It adds no mechanics — the
+sure the prompt comes from **canon**, the style comes from **precedent**, Pro money is never
+spent without the owner opting in, and nothing lands in the world uncurated. It adds no mechanics — the
 artificer server owns model selection, dimensions, cutout, and file conventions; molten5e owns
 delivery (`upload-asset`, `set-actor-art`, `add-journal-image`).
 
@@ -33,8 +33,8 @@ The destination picks the `kind`, and the kind picks the model tier:
 | --- | --- | --- |
 | item / spell / feature icon | `icon` | flash |
 | actor token (top-down, cut to alpha automatically) | `token` | flash |
-| actor sheet portrait | `portrait` | pro (ask first) |
-| journal image page / player handout / location splash | `illustration` | pro (ask first) |
+| actor sheet portrait | `portrait` | flash; mention Pro is available for a bit extra |
+| journal image page / player handout / location splash | `illustration` | flash; mention Pro is available for a bit extra |
 
 There is no map kind. Battlemaps are bought as UVTT packs; never try to generate one.
 
@@ -97,8 +97,9 @@ prompt can simply say "Morgash" and be understood:
   to 5). Bind each one with an unmistakable prompt phrase so the model knows which figure is
   which.
 - **Style references** hold the house look. The docs say Pro only, up to 3, but they work on
-  Flash in practice (spike 2026-09-19). Attach the standing style shelf on every portrait and
-  illustration call unless the owner asks for something deliberately different.
+  Flash in practice (spike 2026-09-19; the whole 2026-09-19 batch was Flash and held the look).
+  Attach the standing style shelf on every portrait and illustration call unless the owner asks
+  for something deliberately different.
 - **Tokens take the world's own tokens as the style reference.** They are top-down full-body
   figures on transparency (see `assets/tokens/morgash.png` in the world data). Attach one as
   `role: "style"` and the new token comes out at the same angle and in the same ink-lined look.
@@ -189,10 +190,12 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    Reading a PNG renders it inline, so curating by reading doubles as showing the owner every
    candidate. Finals additionally go out via `SendUserFile` so they get a card.
 1. Cold start? `artificer-status` first: key present, models reachable, spend so far.
-2. **Ask before Pro.** Portraits and illustrations default to Pro. The tool refuses without
-   `confirmPro: true` and states the estimated cost. Put that to the owner in one line
-   ("Pro portrait, about 13 cents, go?") and only then confirm. A cheap first look is fine:
-   `tier: "flash"` needs no confirm, and a Flash draft can be edited or re-rendered on Pro after.
+2. **Flash by default, Pro on request (owner rule 2026-09-19).** Every kind runs on Flash
+   with no confirm. When the owner asks for a portrait or an illustration, say once, in one
+   line, that Pro is available for a bit extra (about double: 13 cents at 2K, 24 cents at 4K)
+   and carry on with Flash unless they take it. Pro earns its cost on crowded multi-figure
+   scenes and text-heavy handouts; it is not a better fixer. `tier: "pro"` needs
+   `confirmPro: true`, which you pass only after the owner said yes.
 3. `generate-image` with the canon prompt and the references. Two or three candidates for
    portraits and illustrations, one for icons and tokens (they one-shot well; re-roll on a miss).
    Every result reports `estimatedUsd` and `sessionEstimatedUsd`; `artificer-status` totals by

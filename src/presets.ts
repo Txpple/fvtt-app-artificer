@@ -35,8 +35,9 @@ export const ICON_FRAMING =
 export const PRESETS: Record<Kind, Preset> = {
   icon: { tier: 'flash', aspect: '1:1', size: '1K', post: 'icon', suffix: ICON_FRAMING },
   token: { tier: 'flash', aspect: '1:1', size: '1K', post: 'token', suffix: TOKEN_FRAMING },
-  portrait: { tier: 'pro', aspect: '3:4', size: '2K', post: 'portrait', suffix: '' },
-  illustration: { tier: 'pro', aspect: '16:9', size: '4K', post: 'illustration', suffix: '' },
+  // Flash for every kind (owner rule 2026-09-19). Pro is opt-in via tier + confirmPro.
+  portrait: { tier: 'flash', aspect: '3:4', size: '2K', post: 'portrait', suffix: '' },
+  illustration: { tier: 'flash', aspect: '16:9', size: '4K', post: 'illustration', suffix: '' },
 };
 
 /** Finished pixel sizes the post-processors guarantee. */

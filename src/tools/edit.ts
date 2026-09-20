@@ -52,7 +52,7 @@ export class EditImageTool {
         name: 'edit-image',
         description:
           'Edit an existing image with one instruction while keeping identity, pose, angle, and ' +
-          'style. Defaults to the flash tier for every kind (edits hold as well as on pro). ' +
+          'style. Flash for every kind (pro was no better at fixes and re-cropped once). ' +
           'Tokens get the chroma plate re-applied so they can be cut again. Returns the new ' +
           'file path, dimensions, and estimated spend.',
         inputSchema: toInputSchema(editImageSchema),

@@ -25,24 +25,24 @@ export const kindSchema = z
   .describe(
     'Purpose preset. icon: 1:1 flash → 512 square. token: 1:1 flash, top-down full body on a ' +
       'chroma plate, cut to alpha on a 512 square (framing, plate, and cut are done for you). ' +
-      'portrait: 3:4 pro at 2K. illustration: 16:9 pro at 4K → 2560×1600 (16:10 crop). ' +
-      'Pro kinds need confirmPro.'
+      'portrait: 3:4 at 2K. illustration: 16:9 at 4K → 2560×1600 (16:10 crop). Every kind ' +
+      'defaults to flash; tier: "pro" is opt-in and needs confirmPro.'
   );
 
 export const tierSchema = z
   .enum(TIERS)
   .optional()
   .describe(
-    'Override the kind\'s default tier. "flash" (Nano Banana 2, ~7-15¢) never needs a confirm; ' +
-      '"pro" (Nano Banana Pro, ~13-24¢) does.'
+    'Default flash (Nano Banana 2, ~7-15¢), never needs a confirm. "pro" (Nano Banana Pro, ' +
+      '~13-24¢, style-reference slots, stronger multi-figure scenes) needs confirmPro.'
   );
 
 export const confirmProSchema = z
   .boolean()
   .optional()
   .describe(
-    'Required true for any call that resolves to the pro tier. Ask the owner first; the ' +
-      'refusal message states the estimated cost.'
+    'Required true with tier: "pro". Offer pro to the owner as an option for portraits and ' +
+      'illustrations ("pro is available for a bit extra"); never assume it.'
   );
 
 export const referenceSchema = z.object({
@@ -70,9 +70,8 @@ export function resolveTier(
   if (resolved === 'pro' && !confirmPro) {
     const usd = PRICE.pro[PRESETS[kind].size];
     throw new Error(
-      `This ${kind} resolves to the pro tier (Nano Banana Pro), about $${usd.toFixed(2)} per ` +
-        'image. Ask the owner, then pass confirmPro: true; or pass tier: "flash" for the cheap ' +
-        'tier (no confirm needed).'
+      `tier: "pro" (Nano Banana Pro) costs about $${usd.toFixed(2)} per ${kind}. Confirm with ` +
+        'the owner, then pass confirmPro: true; or omit tier for flash (no confirm needed).'
     );
   }
   return resolved;

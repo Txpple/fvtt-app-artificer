@@ -50,8 +50,8 @@ export class GenerateImageTool {
           'the model tier, aspect, size, framing text, and post-processing; the result is a ' +
           'finished PNG on disk. READ IT before showing anyone: count limbs per creature, ' +
           'check for duplicated spell effects or props, stray signatures, and reference faces ' +
-          'on the wrong figure; obvious flaws are one edit-image call away. Pro kinds ' +
-          '(portrait, illustration) refuse without confirmPro: true and state the cost. ' +
+          'on the wrong figure; obvious flaws are one edit-image call away. Every kind runs ' +
+          'on flash by default; tier: "pro" refuses without confirmPro: true and states the cost. ' +
           'Returns the file path, dimensions, and estimated spend.',
         inputSchema: toInputSchema(generateImageSchema),
       },

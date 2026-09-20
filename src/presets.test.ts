@@ -11,13 +11,13 @@ describe('presets', () => {
       post: 'token',
     });
     expect(PRESETS.portrait).toMatchObject({
-      tier: 'pro',
+      tier: 'flash',
       aspect: '3:4',
       size: '2K',
       post: 'portrait',
     });
     expect(PRESETS.illustration).toMatchObject({
-      tier: 'pro',
+      tier: 'flash',
       aspect: '16:9',
       size: '4K',
       post: 'illustration',

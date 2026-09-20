@@ -86,16 +86,17 @@ afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
 describe('the Pro cost gate', () => {
   it('refuses pro kinds without confirmPro and states the cost and both ways out', () => {
-    expect(() => resolveTier('illustration', undefined, undefined)).toThrow(
-      /pro tier.*\$0\.24.*confirmPro: true.*tier: "flash"/s
+    expect(() => resolveTier('illustration', 'pro', undefined)).toThrow(
+      /tier: "pro".*\$0\.24.*confirmPro: true.*omit tier for flash/s
     );
-    expect(() => resolveTier('portrait', undefined, false)).toThrow(/\$0\.13/);
+    expect(() => resolveTier('portrait', 'pro', false)).toThrow(/\$0\.13/);
   });
 
-  it('lets flash kinds through, honours an explicit flash override, and accepts a confirmed pro call', () => {
+  it('defaults every kind to flash and accepts a confirmed pro call', () => {
     expect(resolveTier('icon', undefined, undefined)).toBe('flash');
-    expect(resolveTier('illustration', 'flash', undefined)).toBe('flash');
-    expect(resolveTier('illustration', undefined, true)).toBe('pro');
+    expect(resolveTier('illustration', undefined, undefined)).toBe('flash');
+    expect(resolveTier('portrait', undefined, undefined)).toBe('flash');
+    expect(resolveTier('illustration', 'pro', true)).toBe('pro');
     expect(() => resolveTier('icon', 'pro', undefined)).toThrow(/pro tier/);
   });
 });
@@ -182,6 +183,7 @@ describe('generate-image', () => {
       kind: 'illustration',
       prompt: 'an inn',
       slug: 'inn',
+      tier: 'pro',
       confirmPro: true,
     });
     expect(r).toMatchObject({ tier: 'pro', width: 2560, height: 1600, estimatedUsd: 0.24 });
@@ -192,10 +194,10 @@ describe('generate-image', () => {
     expect(sent[0].url).toContain('gemini-3-pro-image');
   });
 
-  it('refuses a pro kind before any network call', async () => {
+  it('refuses an unconfirmed pro call before any network call', async () => {
     const { dispatch } = build();
     await expect(
-      dispatch('generate-image', { kind: 'portrait', prompt: 'x', slug: 'x' })
+      dispatch('generate-image', { kind: 'portrait', prompt: 'x', slug: 'x', tier: 'pro' })
     ).rejects.toThrow(/confirmPro/);
     expect(sent).toHaveLength(0);
   });

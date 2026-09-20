@@ -51,8 +51,8 @@ Claude ──MCP──> fvtt-mcp-artificer ──HTTPS──> Gemini image API
 
 | tier | model | role | rough cost |
 |---|---|---|---|
-| `flash` (default) | Nano Banana 2 (Gemini 3.1 Flash Image) | icons, tokens, edits, drafts, volume | ~7¢ at 1K, ~10¢ at 2K, ~15¢ at 4K |
-| `pro` | Nano Banana Pro (Gemini 3 Pro Image) | portraits, illustrations, text-heavy handouts, party scenes | ~13¢ at 1K/2K, ~24¢ at 4K |
+| `flash` (default for every kind) | Nano Banana 2 (Gemini 3.1 Flash Image) | everything unless the owner opts up | ~7¢ at 1K, ~10¢ at 2K, ~15¢ at 4K |
+| `pro` (opt-in) | Nano Banana Pro (Gemini 3 Pro Image) | offered for portraits and illustrations "for a bit extra"; crowded scenes, text-heavy handouts | ~13¢ at 1K/2K, ~24¢ at 4K |
 
 Facts that shape the design (verified against Google's docs 2026-09-19):
 
@@ -77,16 +77,16 @@ default tier, and its post-processing:
 |---|---|---|---|---|
 | `icon` | flash | 1:1 at 1K | resize to 512 square | item / spell / feature icons |
 | `token` | flash | 1:1 at 1K, top-down full-body, an existing world token attached as the angle/style reference, explicit edge-to-edge chroma-green suffix | cutout to alpha, 512 square | actor token |
-| `portrait` | pro | 3:4 at 2K | none beyond naming | actor sheet portrait |
-| `illustration` | pro | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
+| `portrait` | flash | 3:4 at 2K | none beyond naming | actor sheet portrait |
+| `illustration` | flash | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
 
 There is no `scene-background` kind. Battlemaps are bought as UVTT packs from vendors and
 imported; this server never makes map layers.
 
-**The Pro cost gate (owner rule 2026-09-19):** any call that resolves to the `pro` tier refuses
-unless `confirmPro: true` is passed, and the refusal states the estimated cost and the two ways
-out (confirm, or `tier: "flash"`). The skill puts that question to the owner verbatim before
-confirming. The server keeps a running estimated-spend counter per session; `artificer-status`
+**The Pro cost gate (owner rule 2026-09-19, revised the same day):** every kind defaults to
+flash. `tier: "pro"` refuses unless `confirmPro: true` is passed, and the refusal states the
+estimated cost. The skill mentions once that Pro is available for a bit extra when the owner
+asks for a portrait or illustration, and passes the confirm only after they say yes. The server keeps a running estimated-spend counter per session; `artificer-status`
 reports it. Tools enforce, skills ask.
 
 ## Setup order (done 2026-09-19; kept as the record)

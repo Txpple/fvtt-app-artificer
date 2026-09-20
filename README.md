@@ -40,8 +40,8 @@ and size, and the post-processing:
 | --- | --- | --- | --- |
 | `icon` | flash | 1:1 at 1K | 512×512 |
 | `token` | flash | 1:1 at 1K, top-down, on a chroma plate whose colour is chosen per subject | 512×512 RGBA, cut to alpha, plate PNG kept beside it |
-| `portrait` | pro | 3:4 at 2K | as rendered |
-| `illustration` | pro | 16:9 at 4K with style references | 2560×1600 (16:10 crop) |
+| `portrait` | flash | 3:4 at 2K | as rendered |
+| `illustration` | flash | 16:9 at 4K with style references | 2560×1600 (16:10 crop) |
 
 Battlemaps are not a kind. They are bought as UVTT packs and imported.
 
@@ -49,11 +49,11 @@ Battlemaps are not a kind. They are bought as UVTT packs and imported.
 
 | tier | model | for |
 | --- | --- | --- |
-| `flash` | Nano Banana 2 (Gemini 3.1 Flash Image) | icons, tokens, edits, cheap drafts |
-| `pro` | Nano Banana Pro (Gemini 3 Pro Image) | portraits, illustrations, party scenes, text-heavy handouts; the only tier that takes style references |
+| `flash` | Nano Banana 2 (Gemini 3.1 Flash Image) | the default for every kind |
+| `pro` | Nano Banana Pro (Gemini 3 Pro Image) | opt-in: offered for portraits and illustrations for a bit extra; crowded scenes, text-heavy handouts |
 
-Pro costs roughly twice Flash. Any call that resolves to Pro refuses unless `confirmPro: true` is
-passed, and the refusal states the estimated cost. The skill asks the owner before confirming.
+Pro costs roughly twice Flash. `tier: "pro"` refuses unless `confirmPro: true` is passed, and
+the refusal states the estimated cost. The skill offers Pro once and confirms only on a yes.
 `artificer-status` reports estimated spend for the session.
 
 ## Tools
