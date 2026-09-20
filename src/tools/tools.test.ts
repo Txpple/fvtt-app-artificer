@@ -97,7 +97,7 @@ describe('the Pro cost gate', () => {
     expect(resolveTier('illustration', undefined, undefined)).toBe('flash');
     expect(resolveTier('portrait', undefined, undefined)).toBe('flash');
     expect(resolveTier('illustration', 'pro', true)).toBe('pro');
-    expect(() => resolveTier('icon', 'pro', undefined)).toThrow(/pro tier/);
+    expect(() => resolveTier('icon', 'pro', undefined)).toThrow(/confirmPro/);
   });
 });
 
