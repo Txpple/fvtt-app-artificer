@@ -90,9 +90,33 @@ Ask Claude for what you want in table terms:
 
 Claude reads every render before showing it to you and fixes obvious flaws (an extra limb, a
 duplicated spell effect) with one edit. Files are named `<kind>-<slug>-<id>.png` so they drop
-straight into a Foundry asset folder. Uploading into a world is done with a Foundry MCP server
-such as [`fvtt-mcp-molten5e`](https://github.com/Txpple/fvtt-mcp-molten5e); this server never
-talks to Foundry itself.
+straight into a Foundry asset folder.
+
+## With a Foundry MCP server: art grounded in your world
+
+This server only makes pictures. Pair it with a Foundry MCP server such as
+[`fvtt-mcp-molten5e`](https://github.com/Txpple/fvtt-mcp-molten5e) and Claude can read your
+world before it prompts and put the result back when it is done. Then you can ask for things
+like:
+
+- **"Make a new token for the dragon in the Wyrmwood."** Claude pulls the actor's stat block
+  and bio, opens the token your world already uses for a similar creature so the angle and line
+  style match, renders, cuts to alpha, and can assign it to the actor.
+- **"Illustrate the party walking into the dragon's lair for the first time."** Claude
+  screenshots the battlemap, finds where the dragon's token is placed, reads the plot notes for
+  the room, attaches the party's portraits so the faces hold, and paints the view from the
+  doors down the hall to the dais.
+- **"Illustrate three cool moments from the last few sessions."** Claude reads the session
+  recaps and GM notes, picks the scenes, checks which actors were present and what they were
+  carrying that night, and renders each one.
+- **"Give this actor a portrait."** Claude reads the bio, looks at the existing token so the
+  hair and skin match canon, renders at 3:4, and can set it as the sheet portrait.
+- **"Icons for every item in this compendium folder."** One shared style line, one call per
+  item, uploaded as a set.
+
+The handoff is files on disk: this server writes them, the Foundry server uploads them
+(`upload-asset`, `set-actor-art`, `add-journal-image`). Nothing here talks to Foundry directly,
+so either half works on its own.
 
 ## How it works
 
