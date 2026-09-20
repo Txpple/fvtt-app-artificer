@@ -177,6 +177,19 @@ describe('generate-image', () => {
     expect(cuts[0].color).toBe('magenta');
   });
 
+  it('tokens: reads the prompt for the key, so a green dragon on a grey reference gets magenta', async () => {
+    const { dispatch } = build();
+    const r: any = await dispatch('generate-image', {
+      kind: 'token',
+      prompt: 'a young green dragon, olive scales, wings half-spread',
+      slug: 'bramblemaw',
+      references: [{ path: refPng, role: 'style', label: 'Morgash token' }],
+    });
+    expect(r.chromaKey).toBe('magenta');
+    expect(sent[0].body.contents[0].parts.at(-1).text).toContain('chroma-key magenta (#FF00FF)');
+    expect(cuts[0].color).toBe('magenta');
+  });
+
   it('crops a confirmed pro illustration to 2560×1600 at the pro price', async () => {
     const { dispatch } = build(fakeGemini(4096, 2304));
     const r: any = await dispatch('generate-image', {
@@ -245,6 +258,17 @@ describe('edit-image', () => {
       instruction: 'add a scar',
       kind: 'token',
       slug: 'goblin',
+    });
+    expect(r.chromaKey).toBe('magenta');
+  });
+
+  it('reads the edit instruction for the key: a cloak recoloured green leaves the green plate', async () => {
+    const { dispatch } = build();
+    const r: any = await dispatch('edit-image', {
+      sourceImage: refPng,
+      instruction: 'make the cloak forest green',
+      kind: 'token',
+      slug: 'morgash',
     });
     expect(r.chromaKey).toBe('magenta');
   });

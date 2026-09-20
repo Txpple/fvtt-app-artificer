@@ -146,8 +146,12 @@ export async function render(deps: ToolDeps, input: RenderInput): Promise<Render
   let prompt = input.prompt;
   let chromaKey: ChromaKey | undefined;
   if (input.kind === 'token') {
-    // Sample every attached image (source token for edits, reference tokens for generates).
-    chromaKey = await pickChromaKey(input.images.map(i => i.data));
+    // Sample every attached image (source token for edits, reference tokens for generates) and
+    // read the prompt: a generated subject's colour is only in the words.
+    chromaKey = await pickChromaKey(
+      input.images.map(i => i.data),
+      input.prompt
+    );
     prompt = `${prompt} ${chromaSuffix(chromaKey)}`;
   }
 

@@ -50,8 +50,8 @@ Pull the authoritative description before writing a word of prompt:
 - **Items**: the item's description and type. An icon of a "rusted iron key" is a rusted iron key,
   not a generic key.
 - **Locations / events**: `search-journals` for the subject name; scene notes; quest journals.
-- **Campaign repo** (when working in it — e.g. `fvtt-campaign-greenrest`): `notes/`, `plot/`,
-  `sessions/` often carry richer description than the world does.
+- **Campaign repo** (when working in it): `notes/`, `plot/`, `sessions/` often carry richer
+  description than the world does.
 - **Scenes of played events are a hard gate (owner rule)**: illustrating something that happened
   at the table means reading the session diary page AND the session transcript/gm-notes
   (`sessions/<date>/`), and **looking at the battlemap it was fought on** (`screenshot-scene`, or
@@ -69,15 +69,23 @@ rather") and note what was invented so it can be written back into the bio. Gene
 ("some bandit") invent freely.
 
 **READ THE TOKEN ART, not just the bio** (learned the hard way 2026-08-28): bios routinely omit
-appearance. Gren's never mentions his hair; four generations shipped an invented brown before his
-token settled it as white hair, a full white beard and a green-crystal staff. Tokens live at
+appearance. One PC's bio never mentions his hair; four generations shipped an invented brown
+before his token settled it as white hair, a full white beard and a green-crystal staff. Tokens live at
 `%LOCALAPPDATA%/FoundryVTT/Data/worlds/<world>/assets/tokens/<name>.png` — the path is in the
 actor's `prototypeToken.texture.src`. Open it before writing a word of prompt.
 
 ## Step 2 — Study precedent, then attach it as references
 
 All campaign art should feel like one book. On this backend that is done with **reference
-images**, not with words alone and not with trained weights:
+images**, not with words alone and not with trained weights.
+
+**The campaign's reference shelf lives in the campaign repo, at `art/SHELF.md`, not in this
+skill.** Read it first, every time. It records the approved identity anchors (one file per PC
+with the binding phrase to use in the prompt), the standing style shelf, which older files are
+superseded and must never be attached, the house finish words, and the staging path. This skill
+is generic; the shelf is what makes it one campaign's. If the repo has no `art/SHELF.md` yet,
+build the shelf from the `art/` folder and the world's assets as below, then propose committing
+one so the next session does not have to.
 
 - `list-assets` on `worlds/<world>/assets/art`. Read the filenames: the `<kind>-<slug>-<id>`
   convention tells you what exists and for whom.
@@ -86,51 +94,32 @@ images**, not with words alone and not with trained weights:
 - For actor art this is a **hard gate**: when the actor has existing art (`hasImage`), get the
   actual file (`export-actor` → `img` / `prototypeToken.texture.src` → `download-asset`) and
   **Read it** before writing the prompt. Backstories rarely state appearance facts the art
-  settles. A canon Morgash has bone-white skin his backstory never mentions; the first portrait
+  settles. One canon orc has bone-white skin his backstory never mentions; the first portrait
   shipped green. Keep continuity with the existing art unless the user asks for a redesign.
 
 **Two kinds of reference, passed as `references: [{ path, role, label }]`.** The tool attaches
 them in order and writes a preamble that binds each one by its 1-based index and label, so your
-prompt can simply say "Morgash" and be understood:
+prompt can simply say the character's name and be understood:
 
 - **Character references** hold identity. Both tiers take them (Flash up to 4 characters, Pro up
   to 5). Bind each one with an unmistakable prompt phrase so the model knows which figure is
   which.
 - **Style references** hold the house look. The docs say Pro only, up to 3, but they work on
   Flash in practice (spike 2026-09-19; the whole 2026-09-19 batch was Flash and held the look).
-  Attach the standing style shelf on every portrait and illustration call unless the owner asks
-  for something deliberately different.
+  Attach the standing style shelf (from `art/SHELF.md`) on every portrait and illustration
+  call unless the owner asks for something deliberately different.
 - **Tokens take the world's own tokens as the style reference.** They are top-down full-body
-  figures on transparency (see `assets/tokens/morgash.png` in the world data). Attach one as
+  figures on transparency (`assets/tokens/<name>.png` in the world data). Attach one as
   `role: "style"` and the new token comes out at the same angle and in the same ink-lined look.
-  The tool appends the framing and the chroma plate sentence itself, samples the references to
-  pick a plate colour the subject will not share, cuts the result to alpha on a 512 square, and
-  keeps the plate PNG beside it. Read the `*_preview.png` it reports before trusting the edge.
+  The tool appends the framing and the chroma plate sentence itself, picks a plate colour the
+  subject will not share (it samples the references AND reads the prompt for colour words, so a
+  green dragon prompted against a grey token gets a magenta plate), cuts the result to alpha on
+  a 512 square, and keeps the plate PNG beside it. Read the `*_preview.png` it reports before
+  trusting the edge.
 
-**THE CANONICAL PARTY REFERENCE SHELF (approved 2026-08-28)** — the identity anchors for every
-scene the party appears in. In the campaign repo at `fvtt-campaign-greenrest\art\`:
-
-| PC | file | binding phrase to use in the prompt |
-| --- | --- | --- |
-| Gren | `portrait-gren-greenmantle-611.png` | "a short white-bearded gnome in green and gold robes" |
-| Morgash | `portrait-morgash-gravemaker-611.png` | "a bone-white orc in battered steel plate" |
-| Thomas | `portrait-thomas-invictus-611.png` | "a blond human paladin with a golden sunburst on his breastplate" |
-| Jetten | `portrait-jetten-elisedil-3010.png` | "a lean tan ash-haired elf archer in a red cloak, arms covered in grey-brown sleeves and leather bracers" |
-
-The older `-10534853 / -13527905 / -1504122958 / -934277758` files in the same folder are
-SUPERSEDED (owner: "none of the pre-existing portraits are canonical"). Do not pass them as
-references. Salyth is not an active PC.
-
-**The standing style shelf** is the same four portraits until the owner approves illustrations
-under the new backend; then pick the three that best carry the look and record them here.
-
-**House portrait finish (owner-locked 2026-08-26):** the reference look is the Morgash/Gren
-pair — `soft diffuse dusk light, low contrast, muted palette, matte powdery skin with no gloss or
-shine, gentle even lighting with no harsh highlights, matte oil painting, visible painterly
-brushwork, soft storybook finish`, paired with `rich mid-tones and deep shadows` so it does not
-wash out. Words like "gleaming" invite a glossy studio sheen (the owner: "1960s TV cameo vibe") —
-describe armor as `worn … with a soft dull sheen` instead. With style references attached, the
-words reinforce the images; they are not a substitute for them.
+**House finish words come from the shelf too.** With style references attached, words reinforce
+the images; they are not a substitute for them. One lesson holds everywhere: "gleaming" invites a
+glossy studio sheen; describe armor as `worn … with a soft dull sheen` instead.
 
 ## Step 3 — Craft the prompt (the cookbook)
 
@@ -157,7 +146,7 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
 - **Negation backfires — describe presence, never absence** (proven twice, 2026-08-28). "no large
   tusks" DRAWS large tusks; "no beard" GROWS a beard. Say what IS there instead: "his chin and jaw
   and upper lip are smooth bare hairless skin".
-- **The garment NOUN overrides any clause describing it** (proven 2026-08-28, Jetten sleeves). A
+- **The garment NOUN overrides any clause describing it** (proven 2026-08-28, an elf archer's sleeves). A
   "jerkin" is sleeveless whatever you say about its sleeves. Pick a garment noun that already
   implies the silhouette you want, and layer: "a grey-brown wool shirt with long sleeves underneath
   a closed leather vest".
@@ -226,7 +215,7 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
 5. **Edit before re-rolling.** A candidate that is right on canon but wrong on one detail goes
    through `edit-image` with a single instruction ("swap the sword for a hand axe", "make the
    cloak forest green"). Edits default to Flash for every kind and hold identity, pose, angle,
-   and style (Morgash's token took Sharran plate and a crackling maul in one pass). Re-generate
+   and style (an orc token took new plate armour and a crackling maul in one pass). Re-generate
    only when the composition or the identity is wrong. Editing an existing WORLD token is the
    normal way to change a PC's gear: source the token file, describe the change, and the result
    is already cut.
@@ -244,8 +233,8 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
 **Nothing goes to Foundry uncurated by the owner.** Finals land in the campaign repo's staging
 area first:
 
-- Copy the finished PNG to `<campaign repo>\art\staging\<kind>-<slug>-<id>.png`. For Greenrest:
-  `D:\Workbench\FVTT\Repos\fvtt-campaign-greenrest\art\staging\`.
+- Copy the finished PNG to `<campaign repo>\art\staging\<kind>-<slug>-<id>.png`. The absolute
+  path is in the campaign's `art/SHELF.md`.
 - Show the user the file and **stop there by default**. Uploading to the live world
   (`upload-asset`) and wiring (`set-actor-art`, `add-journal-image`) happen only when the owner
   approves — then the file also graduates from `art\staging\` to `art\`.
