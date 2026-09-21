@@ -21,7 +21,7 @@ artificer server owns model selection, dimensions, cutout, and file conventions;
 delivery (`upload-asset`, `set-actor-art`, `add-journal-image`).
 
 Tools used: `artificer-status`, `generate-image`, `edit-image`, `cutout-image` (artificer);
-`get-actor`, `search-journals`, `list-journals`, `list-scenes`, `list-assets`, `download-asset`,
+`manage-actors` `get`, `search-journals`, `manage-journals` (`list` / `get`), `manage-scenes` (`list`), `list-assets`, `download-asset`,
 `upload-asset`, `set-actor-art`, `add-journal-image` (molten5e).
 
 ## Step 0 — Pin the subject and the destination
@@ -45,7 +45,7 @@ item), the next two steps are **mandatory** — never prompt from imagination fo
 
 Pull the authoritative description before writing a word of prompt:
 
-- **Actors**: `get-actor` — bio, race/species, gender, age, class, notable gear. The stat block is
+- **Actors**: `manage-actors` `get` — bio, race/species, gender, age, class, notable gear. The stat block is
   canon for props (a bandit statted with a crossbow gets a crossbow, whatever looks cooler).
 - **Items**: the item's description and type. An icon of a "rusted iron key" is a rusted iron key,
   not a generic key.
@@ -92,7 +92,7 @@ one so the next session does not have to.
 - `download-asset` (or read the campaign repo copies) of the 2–3 pieces closest in subject, and
   **look at them**: palette, rendering style, framing, lighting mood.
 - For actor art this is a **hard gate**: when the actor has existing art (`hasImage`), get the
-  actual file (`export-actor` → `img` / `prototypeToken.texture.src` → `download-asset`) and
+  actual file (`manage-actors` `export` → `img` / `prototypeToken.texture.src` → `download-asset`) and
   **Read it** before writing the prompt. Backstories rarely state appearance facts the art
   settles. One canon orc has bone-white skin his backstory never mentions; the first portrait
   shipped green. Keep continuity with the existing art unless the user asks for a redesign.
