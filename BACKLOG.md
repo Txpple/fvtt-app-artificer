@@ -32,6 +32,11 @@ reference images or multi-turn editing. Only worth a `draft` tier if icon volume
   than 16:9.
 - **Per-character consistency beyond references**: Pro's five character slots cover the party
   plus one NPC. If a recurring villain needs to hold across dozens of images, revisit.
+- **No upscaler, on purpose** (asked 2026-09-21, left). `upscale-image` went with ComfyUI.
+  Every kind renders larger than it delivers, so only old or bought art could need one. If it
+  ever does: sharp Lanczos for a 2x with no install, or `realesrgan-ncnn-vulkan` (one 40 MB
+  zip, runs on the GPU via Vulkan, no CUDA) spawned like the cutout script. Never `edit-image`;
+  it regenerates the pixels.
 
 ## Done
 
