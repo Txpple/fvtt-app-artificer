@@ -1,5 +1,5 @@
 {
-  "name": "fvtt-mcp-artificer",
+  "name": "fvtt-app-artificer",
   "version": "1.0.0",
   "description": "Foundry-specific image-generation MCP server backed by the Gemini image API, driven by Claude Code.",
   "private": true,
@@ -41,7 +41,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Txpple/fvtt-mcp-artificer.git"
+    "url": "https://github.com/Txpple/fvtt-app-artificer.git"
   },
   "keywords": [
     "foundry-vtt",

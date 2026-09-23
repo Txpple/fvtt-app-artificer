@@ -3,7 +3,7 @@
   "mcpServers": {
     "artificer": {
       "command": "C:/Program Files/nodejs/node.exe",
-      "args": ["D:/Workbench/FVTT/Repos/fvtt-mcp-artificer/dist/index.js"]
+      "args": ["D:/Workbench/FVTT/Repos/fvtt-app-artificer/dist/index.js"]
     }
   }
 }

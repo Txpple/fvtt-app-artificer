@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# fvtt-mcp-artificer
+# fvtt-app-artificer
 
 Image-generation MCP server for D&D table art, backed by the **Gemini image API** (the Nano
 Banana models). It exposes a small set of **Foundry-specific** tools so Claude can author prompts,
@@ -37,7 +37,7 @@ training toolkit, and the corpus are deleted from the machine. Nothing local rem
 ## Architecture
 
 ```
-Claude ──MCP──> fvtt-mcp-artificer ──HTTPS──> Gemini image API
+Claude ──MCP──> fvtt-app-artificer ──HTTPS──> Gemini image API
                       │                        (Nano Banana 2 / Nano Banana Pro)
                       ├── sharp: crop, resize, format
                       └── cutout: rembg matte / chroma key → alpha

@@ -1,4 +1,4 @@
-# fvtt-mcp-artificer
+# fvtt-app-artificer
 
 An MCP server that lets Claude make art for your Foundry VTT table using Google's Gemini image
 models (Nano Banana). Four tools, one API key, no GPU.
@@ -55,8 +55,8 @@ estimate; your actual bill is in the Google Cloud console.
 ## Install
 
 ```bash
-git clone https://github.com/Txpple/fvtt-mcp-artificer.git
-cd fvtt-mcp-artificer
+git clone https://github.com/Txpple/fvtt-app-artificer.git
+cd fvtt-app-artificer
 npm install
 npm run build
 cp .env.example .env
@@ -73,7 +73,7 @@ Register the server with Claude Code (user scope, so it is available in every pr
 restart Claude Code:
 
 ```bash
-claude mcp add -s user artificer -- node /absolute/path/to/fvtt-mcp-artificer/dist/index.js
+claude mcp add -s user artificer -- node /absolute/path/to/fvtt-app-artificer/dist/index.js
 ```
 
 Or copy [`.mcp.json.example`](.mcp.json.example) and set absolute paths.
@@ -121,7 +121,7 @@ so either half works on its own.
 ## How it works
 
 ```
-Claude ──MCP──> fvtt-mcp-artificer ──HTTPS──> Gemini image API
+Claude ──MCP──> fvtt-app-artificer ──HTTPS──> Gemini image API
                       │
                       ├── sharp: convert, crop, resize
                       └── token_cutout.py: chroma key or rembg → alpha

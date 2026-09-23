@@ -21,7 +21,7 @@ function readPackageVersion(): string {
 }
 
 export const config = {
-  server: { name: 'fvtt-mcp-artificer', version: readPackageVersion() },
+  server: { name: 'fvtt-app-artificer', version: readPackageVersion() },
   /** Gemini API key. Empty string when unset; tools report that instead of crashing at startup. */
   geminiApiKey: process.env.GEMINI_API_KEY ?? '',
   /** Where finished renders land before curation and staging. Outside any git repo. */
