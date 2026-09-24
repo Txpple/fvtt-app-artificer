@@ -115,13 +115,13 @@ style-ref pass or a Flash prefix is enough.
 
 ---
 
-## Decisions still open (owner)
+## Decisions settled (owner, 2026-09-23)
 
-- **Output directory** for raw renders before staging. Default proposed:
-  `D:\Workbench\LOCAL\artificer-output`, gitignored by being outside the repo.
-- **Icon format**: Foundry ships webp for compendium icons; the campaign repos hold png today.
-- **Flash for portraits and illustrations** without a confirm: allowed as a cheap first draft, or
-  is Pro mandatory there? Proposed: allowed via explicit `tier: "flash"`.
+- **Output directory** for raw renders before staging: `D:\Workbench\LOCAL\artificer-output`,
+  outside the repo. The `config.ts` default; `ARTIFICER_OUTPUT_DIR` overrides.
+- **Icon format**: PNG, like every other kind, matching the campaign repos' `art/` shelf. No webp.
+- **Flash for portraits and illustrations**: the default, no confirm. Pro stays opt-in behind
+  `confirmPro`, offered once for a bit extra.
 
 ## History
 
