@@ -1,7 +1,11 @@
 # fvtt-app-artificer
 
-An MCP server that lets Claude make art for your Foundry VTT table using Google's Gemini image
-models (Nano Banana). Four tools, one API key, no GPU.
+An app that lets Claude make art for your Foundry VTT table using Google's Gemini image models
+(Nano Banana). Four tools, one API key, no GPU.
+
+[Claude Code](https://claude.com/claude-code) drives it. The app runs as an
+[MCP](https://modelcontextprotocol.io) server named `artificer`, and its `illustration-builder`
+skill grounds every piece in what your world already says and shows.
 
 Claude writes the prompt, the server renders it, Claude looks at the result and fixes what is
 wrong, and the finished file lands on disk ready to upload into Foundry.
@@ -94,7 +98,7 @@ straight into a Foundry asset folder.
 
 ## With a Foundry MCP server: art grounded in your world
 
-This server only makes pictures. Pair it with a Foundry MCP server such as
+The artificer only makes pictures. Pair it with a Foundry MCP server such as
 [`fvtt-mcp-dnd5e`](https://github.com/Txpple/fvtt-mcp-dnd5e) and Claude can read your
 world before it prompts and put the result back when it is done. Then you can ask for things
 like:
