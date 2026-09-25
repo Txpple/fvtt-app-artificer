@@ -112,6 +112,13 @@ describe('referencePreamble', () => {
     expect(s).toMatch(/Image 2 is a STYLE reference only/);
     expect(referencePreamble([])).toBe('');
   });
+
+  it('binds a pose reference to pose and silhouette and forbids copying its drawing', () => {
+    const s = referencePreamble([{ path: 'a', role: 'pose', label: 'old bear' }]);
+    expect(s).toMatch(/^Image 1 \(old bear\) is a POSE reference only: match its exact pose/);
+    expect(s).toContain('silhouette');
+    expect(s).toContain('Do not copy its drawing');
+  });
 });
 
 describe('generate-image', () => {
@@ -181,6 +188,24 @@ describe('generate-image', () => {
     await expect(
       dispatch('generate-image', { kind: 'token', prompt: 'x', slug: 'x', creatureSize: 'huge' })
     ).rejects.toThrow();
+  });
+
+  it('tokens: a pose reference drops the preset framing but keeps the plate and the cut', async () => {
+    const { dispatch } = build();
+    await dispatch('generate-image', {
+      kind: 'token',
+      prompt: 'a big black bear',
+      slug: 'bear',
+      references: [{ path: refPng, role: 'pose', label: 'old bear' }],
+    });
+    const text = sent[0].body.contents[0].parts.at(-1).text;
+    expect(text).toMatch(/^Image 1 \(old bear\) is a POSE reference only/);
+    expect(text).not.toContain(TOKEN_FRAMING);
+    expect(text).toContain('chroma-key');
+    expect(cuts).toHaveLength(1);
+    // Without a pose reference the framing is still appended.
+    await dispatch('generate-image', { kind: 'token', prompt: 'a bear', slug: 'bear' });
+    expect(sent[0].body.contents[0].parts.at(-1).text).toContain(TOKEN_FRAMING);
   });
 
   it('tokens: switches the plate to magenta when the reference subject is green', async () => {

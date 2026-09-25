@@ -65,7 +65,10 @@ export class GenerateImageTool {
     const tier = resolveTier(p.kind, p.tier, p.confirmPro);
     const refs = p.references ?? [];
     const images = refs.map(r => loadImage(r.path));
-    const suffix = PRESETS[p.kind].suffix;
+    // A pose reference carries the camera angle; the token framing's "face tilts up toward the
+    // viewer" fought it and turned beasts to face the camera (bear, hound, troll, 2026-09-24).
+    const posed = p.kind === 'token' && refs.some(r => r.role === 'pose');
+    const suffix = posed ? '' : PRESETS[p.kind].suffix;
     const prompt = `${referencePreamble(refs)}${p.prompt.trim()}${suffix ? ` ${suffix}` : ''}`;
     return render(this.deps, {
       tool: 'generate-image',

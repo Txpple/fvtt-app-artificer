@@ -235,13 +235,18 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    **A refresh only works on a good source.** An edit keeps the source's drawing, so a weak
    token (flat shading, stiff pose, clip-art proportions: most of the `_Free & Lower Quality`
    shelf) comes back as the same weak drawing with sharper lines (20-token test, 2026-09-24).
-   **Replace those instead**: `generate-image` `kind: "token"`, a prompt that describes what the
-   old token shows (species, build, hair, gear, colours, pose), and ONE good world token
-   attached as `role: "style"`. **Do not attach the old token.** As a character reference it
-   either pulled the weak drawing straight back (guard commander) or confused the model into
-   copying the STYLE token's subject instead (a wizard and a harpy both came back with the drow
-   style token's purple skin, gold-trimmed armour, and blade). The words carry the old token's
-   identity; the style token carries the look.
+   **Replace those instead**: `generate-image` `kind: "token"`, the old token attached as the
+   ONLY reference with `role: "pose"`, and a prompt that describes what it shows (species,
+   build, hair, gear, colours) plus the finish in words ("rich painterly fantasy illustration:
+   detailed fur, scales and skin texture, soft painted shading, crisp detail and clean
+   confident edges"). The pose role holds the old token's angle, head direction, and
+   silhouette without its drawing, and drops the tool's own framing text so a beast is not
+   turned to face the camera (bear, hound, troll, 2026-09-24). **One image only.** A second
+   image always confused the model: the old token as `character` pulled its weak drawing back
+   (guard commander); a style token beside it got its subject copied (a wizard and a harpy
+   came back as the drow style token; a bear and a hound given each other as style references
+   swapped bodies). The words carry the identity and the look; the pose image carries the
+   shape.
 6. **Self-review is mandatory before showing portrait or illustration art** (owner rules
    2026-08-26 and 2026-09-19): generate → Read (canon, then the flaw pass) → edit or re-generate
    → Read again. Never show a render whose flaw pass you skipped; the owner found a second

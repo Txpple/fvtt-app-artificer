@@ -65,10 +65,12 @@ export const creatureSizeSchema = z
 export const referenceSchema = z.object({
   path: z.string().min(1).describe('Absolute path of a PNG/JPEG on disk.'),
   role: z
-    .enum(['character', 'style'])
+    .enum(['character', 'style', 'pose'])
     .describe(
       'character: hold this face/figure (up to 4 on flash, 5 on pro). style: match palette, ' +
-        'brushwork, light, camera angle; never copy the subject (works on both tiers in practice).'
+        'brushwork, light, camera angle; never copy the subject (works on both tiers in practice). ' +
+        'pose: match only its pose, head direction, camera angle, and silhouette, never its ' +
+        'drawing; for replacing a weak token, attach the old one as the ONLY image with this role.'
     ),
   label: z
     .string()
@@ -121,6 +123,14 @@ export function referencePreamble(refs: Reference[]): string {
     if (r.role === 'character') {
       lines.push(
         `Image ${n}${who} is a CHARACTER reference: keep this exact face, build, and outfit faithful.`
+      );
+    } else if (r.role === 'pose') {
+      // Wording proven on the bear, hound, and troll (2026-09-24): angle and silhouette held,
+      // the old drawing did not come back.
+      lines.push(
+        `Image ${n}${who} is a POSE reference only: match its exact pose, body position, head ` +
+          'direction, camera angle, and silhouette. Do not copy its drawing, colours, rendering, ' +
+          'or level of detail; it is an old low-quality image being replaced.'
       );
     } else {
       lines.push(
