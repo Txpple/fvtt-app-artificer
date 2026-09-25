@@ -205,7 +205,7 @@ describe('generate-image', () => {
     expect(cuts).toHaveLength(1);
     // Without a pose reference the framing is still appended.
     await dispatch('generate-image', { kind: 'token', prompt: 'a bear', slug: 'bear' });
-    expect(sent[0].body.contents[0].parts.at(-1).text).toContain(TOKEN_FRAMING);
+    expect(sent[1].body.contents[0].parts.at(-1).text).toContain(TOKEN_FRAMING);
   });
 
   it('tokens: switches the plate to magenta when the reference subject is green', async () => {
