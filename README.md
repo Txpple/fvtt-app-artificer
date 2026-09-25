@@ -15,8 +15,14 @@ wrong, and the finished file lands on disk ready to upload into Foundry.
 - **Item, spell, and feature icons.** Twenty icons from one style line come back as one
   matching set. About 7 cents each.
 - **Tokens.** Top-down, full-body, cut to transparency, centred on a square so Foundry's scale
-  1.0 is right. Hand it one of your existing tokens as a style reference and new ones match the
-  angle and look. About 7 cents each.
+  1.0 is right: 512 px, or 1024 px for Large and bigger creatures. Humanoids face up at the
+  camera; beasts are seen along the back. No shadow, and nothing ever clips off the edge: a
+  render with a sword or wing cut by the frame is redone, and refused if it clips twice. Hand it
+  one of your existing tokens as a style reference and new ones match the angle and look. About
+  7 cents each.
+- **Token refreshes.** Point it at an old, low-res token and it repaints it at higher quality
+  while keeping the pose, silhouette, design, and colours your players know. It can also turn
+  one creature into another in the same pose (a rat's token into a squirrel).
 - **Portraits.** Actor sheet art at 3:4. Hand it a previous portrait or two as style
   references and the new one matches your table's look.
 - **Illustrations.** Player handouts and scene splashes at 2560×1600. Hand it your party's
@@ -29,8 +35,8 @@ wrong, and the finished file lands on disk ready to upload into Foundry.
 
 | tool | what it does |
 | --- | --- |
-| `generate-image` | Render one asset from a prompt. `kind` is `icon`, `token`, `portrait`, or `illustration`; it picks the model, aspect, size, framing, and post-processing for you. Optional `references` (character or style). |
-| `edit-image` | Apply one instruction to an existing image and keep everything else. Tokens are re-cut automatically. |
+| `generate-image` | Render one asset from a prompt. `kind` is `icon`, `token`, `portrait`, or `illustration`; it picks the model, aspect, size, framing, and post-processing for you. Optional `references` (character, style, or pose) and, for tokens, `creatureSize` (`medium` or `large`). |
+| `edit-image` | Apply one instruction to an existing image and keep everything else. Token edits are prompted the way you would type in the Gemini app and re-cut automatically. Takes `creatureSize` too. |
 | `cutout-image` | Cut a token's background to alpha and deliver it on a square canvas. |
 | `artificer-status` | Key present, models reachable, estimated spend this session. |
 
@@ -90,6 +96,7 @@ Ask Claude for what you want in table terms:
 - "This goblin needs a token; use my existing orc token as the style reference."
 - "Illustrate the party arriving at the ruined mill at dusk; here are their portraits."
 - "Change this token's cloak to forest green."
+- "This old token looks rough; give it an updated painterly pass."
 - "Cut the background off this token."
 
 Claude reads every render before showing it to you and fixes obvious flaws (an extra limb, a
@@ -133,9 +140,15 @@ Claude ──MCP──> fvtt-app-artificer ──HTTPS──> Gemini image API
 
 - The API returns a JPEG; the server converts to PNG and applies the kind's post-processing
   (512 square for icons, 16:9 to 16:10 crop for illustrations, cutout for tokens).
-- Tokens are rendered on a flat chroma plate whose colour is chosen per subject (green,
-  magenta, or blue, whichever the subject shares least), then keyed out. A magenta-composited
-  preview is written beside every cut so the edge can be checked.
+- Tokens are rendered on a flat chroma plate, then keyed out. Magenta is the default because
+  soft edges keep a trace of the plate and a magenta trace reads as a dark outline on warm
+  subjects (skin, hair, fur, leather) where green reads as an olive fringe; green or blue takes
+  over for purple, pink, or violet subjects. A magenta-composited preview is written beside
+  every cut so the edge can be checked.
+- Before a token is cut, the server checks the plate's outer edge for subject pixels. A clipped
+  render is redone once and refused if it clips again.
+- A render the image safety filter blocks is retried once; the filter is not consistent on the
+  same input.
 - No local models, no fine-tuning, no ComfyUI. Style comes from reference images you attach.
 
 ## Development
