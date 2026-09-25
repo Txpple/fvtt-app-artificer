@@ -246,7 +246,13 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    (guard commander); a style token beside it got its subject copied (a wizard and a harpy
    came back as the drow style token; a bear and a hound given each other as style references
    swapped bodies). The words carry the identity and the look; the pose image carries the
-   shape.
+   shape. **Read the file name first; it is prompt material.** The owner's token library
+   (`D:\Workshelf\Assets\FVTT\Tokens\Token Library`) names files `Category - Subject`:
+   the category is the creature type ("Fiend -", "Undead -", "Giant -"), `M_` / `F_` is the
+   gender, and the words after it are the role or variant ("archer", "Ripper", "Pale_brute",
+   "armored", "flying") that a 400 px image may not show clearly. `_hi` and trailing numbers
+   are resolution and variant markers, not subject. Keep the original name beside any working
+   copy: "Beast - Wolf Spider" was once shortened to "wolf" and mislabelled.
 6. **Self-review is mandatory before showing portrait or illustration art** (owner rules
    2026-08-26 and 2026-09-19): generate → Read (canon, then the flaw pass) → edit or re-generate
    → Read again. Never show a render whose flaw pass you skipped; the owner found a second
