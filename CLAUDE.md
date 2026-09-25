@@ -77,7 +77,7 @@ default tier, and its post-processing:
 | kind | tier default | API call | post-process | destination |
 |---|---|---|---|---|
 | `icon` | flash | 1:1 at 1K | resize to 512 square | item / spell / feature icons |
-| `token` | flash | 1:1 at 1K, top-down full-body at the pitch of the world's tokens (an existing token attached as the style reference), on a chroma plate whose colour is chosen per subject | cutout to alpha, no shadow, 512 square (1024 when `creatureSize` is large+) | actor token |
+| `token` | flash | 1:1 at 1K, top-down full-body at the pitch of the world's tokens (an existing token attached as the style reference), on a chroma plate whose colour is chosen per subject | cutout to alpha, no shadow, 512 square (1024 with `creatureSize: "large"`, meaning Large or bigger) | actor token |
 | `portrait` | flash | 3:4 at 2K | none beyond naming | actor sheet portrait |
 | `illustration` | flash | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
 

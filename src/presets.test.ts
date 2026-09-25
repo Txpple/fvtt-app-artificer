@@ -41,15 +41,8 @@ describe('presets', () => {
 });
 
 describe('TOKEN_EDGE', () => {
-  it('keeps Tiny through Medium at 512 and Large and up at the native 1024', () => {
-    expect(TOKEN_EDGE).toEqual({
-      tiny: 512,
-      small: 512,
-      medium: 512,
-      large: 1024,
-      huge: 1024,
-      gargantuan: 1024,
-    });
+  it('is two values: one-cell tokens at 512, Large and up at the native 1024', () => {
+    expect(TOKEN_EDGE).toEqual({ medium: 512, large: 1024 });
   });
 });
 

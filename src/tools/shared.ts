@@ -32,7 +32,7 @@ export const kindSchema = z
   .enum(KINDS)
   .describe(
     'Purpose preset. icon: 1:1 flash → 512 square. token: 1:1 flash, top-down full body on a ' +
-      'chroma plate, cut to alpha on a 512 square (1024 for creatureSize large+), no shadow ' +
+      'chroma plate, cut to alpha on a 512 square (1024 for creatureSize: "large"), no shadow ' +
       '(framing, plate, and cut are done for you). ' +
       'portrait: 3:4 at 2K. illustration: 16:9 at 4K → 2560×1600 (16:10 crop). Every kind ' +
       'defaults to flash; tier: "pro" is opt-in and needs confirmPro.'
@@ -58,8 +58,8 @@ export const creatureSizeSchema = z
   .enum(CREATURE_SIZES)
   .optional()
   .describe(
-    'Tokens only: the dnd5e creature size, from the actor traits. tiny/small/medium deliver ' +
-      'a 512 square (default); large/huge/gargantuan a 1024 square, the native render edge.'
+    'Tokens only. medium (default): one grid cell, Tiny through Medium, a 512 square. large: ' +
+      'Large, Huge, or Gargantuan, a 1024 square, the native render edge.'
   );
 
 export const referenceSchema = z.object({

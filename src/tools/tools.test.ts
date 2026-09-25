@@ -166,10 +166,10 @@ describe('generate-image', () => {
     expect(fs.existsSync(r.plate)).toBe(true);
   });
 
-  it('tokens: creatureSize large+ cuts to a 1024 square; medium and unset stay 512', async () => {
+  it('tokens: creatureSize large cuts to a 1024 square; medium and unset stay 512', async () => {
     const { dispatch } = build();
-    await dispatch('generate-image', { kind: 'token', prompt: 'a dragon', slug: 'd', creatureSize: 'huge' });
-    await dispatch('generate-image', { kind: 'token', prompt: 'a cat', slug: 'c', creatureSize: 'tiny' });
+    await dispatch('generate-image', { kind: 'token', prompt: 'a dragon', slug: 'd', creatureSize: 'large' });
+    await dispatch('generate-image', { kind: 'token', prompt: 'a cat', slug: 'c', creatureSize: 'medium' });
     await dispatch('edit-image', {
       sourceImage: refPng,
       instruction: 'painterly',
@@ -179,7 +179,7 @@ describe('generate-image', () => {
     });
     expect(cuts.map(c => c.size)).toEqual([1024, 512, 1024]);
     await expect(
-      dispatch('generate-image', { kind: 'token', prompt: 'x', slug: 'x', creatureSize: 'colossal' })
+      dispatch('generate-image', { kind: 'token', prompt: 'x', slug: 'x', creatureSize: 'huge' })
     ).rejects.toThrow();
   });
 
