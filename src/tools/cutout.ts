@@ -34,8 +34,7 @@ const cutoutSchema = z.object({
     .optional()
     .describe(
       "Add the world tokens' soft cast shadow (dark silhouette, ~38%, down-right) under the " +
-        'cut. Off by default here since outside art may carry its own; the token kind of ' +
-        'generate-image / edit-image always adds it.'
+        'cut. Off by default; tokens from this server go out shadowless (owner rule 2026-09-24).'
     ),
   erode: z
     .number()

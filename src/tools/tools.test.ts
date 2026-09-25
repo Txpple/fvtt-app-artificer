@@ -154,7 +154,8 @@ describe('generate-image', () => {
     expect(parts[1].text).toContain('chroma-key green (#00FF00)');
     expect(r.chromaKey).toBe('green');
     expect(cuts).toHaveLength(1);
-    expect(cuts[0]).toMatchObject({ color: 'green', size: 512, method: 'auto', dropShadow: true });
+    expect(cuts[0]).toMatchObject({ color: 'green', size: 512, method: 'auto' });
+    expect(cuts[0].dropShadow).toBeUndefined();
     expect(path.basename(cuts[0].input)).toMatch(/^token-goblin-[0-9a-f]{8}-plate\.png$/);
     expect(path.basename(r.file)).toMatch(/^token-goblin-[0-9a-f]{8}\.png$/);
     expect(r).toMatchObject({

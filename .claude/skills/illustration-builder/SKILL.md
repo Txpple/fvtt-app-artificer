@@ -241,10 +241,11 @@ area first:
 - Show the user the file and **stop there by default**. Uploading to the live world
   (`upload-asset`) and wiring (`set-actor-art`, `add-journal-image`) happen only when the owner
   approves — then the file also graduates from `art\staging\` to `art\`.
-- Tokens arrive already cut to alpha on a 512 square with the world tokens' drop shadow under
-  them; Read the magenta preview the cutout wrote before trusting the edge. For a token from
-  anywhere else, `cutout-image` does the same cut; pass `dropShadow: true` unless the art
-  already carries its own shadow.
+- Tokens arrive already cut to alpha on a 512 square, shadowless (owner rule 2026-09-24: no
+  shadows on tokens; the prompt tells the model to drop a baked one). Read the magenta preview
+  the cutout wrote before trusting the edge. For a token from anywhere else, `cutout-image`
+  does the same cut. Restyling a world token ("give this an updated painterly style") is an
+  ordinary token edit: point `sourceImage` at the file wherever it lives.
   Installing a token in the world (upload, `set-actor-art`, resetting the inherited prototype
   scale/ring/rotation) follows the molten5e `token-cutout` skill, which now holds only that half.
 - If canon details were invented in Step 1, offer to write them back into the actor bio/journal so

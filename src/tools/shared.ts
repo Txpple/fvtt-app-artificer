@@ -24,8 +24,8 @@ export const kindSchema = z
   .enum(KINDS)
   .describe(
     'Purpose preset. icon: 1:1 flash → 512 square. token: 1:1 flash, top-down full body on a ' +
-      'chroma plate, cut to alpha with a drop shadow on a 512 square (framing, ' +
-      'plate, cut, and shadow are done for you). ' +
+      'chroma plate, cut to alpha on a 512 square, no shadow (framing, plate, and cut are done ' +
+      'for you). ' +
       'portrait: 3:4 at 2K. illustration: 16:9 at 4K → 2560×1600 (16:10 crop). Every kind ' +
       'defaults to flash; tier: "pro" is opt-in and needs confirmPro.'
   );
@@ -185,8 +185,6 @@ export async function render(deps: ToolDeps, input: RenderInput): Promise<Render
       method: 'auto',
       color: chromaKey,
       size: OUTPUT.token.width,
-      // The world tokens carry a baked cast shadow; the plate prompt forbids one, so add it here.
-      dropShadow: true,
     });
     const { file: _f, width, height, ...rest } = cut;
     return { ...base, file, width, height, chromaKey, plate, cutout: rest };

@@ -48,9 +48,11 @@ export const EDIT_PREAMBLE =
  * Token edits go out light, the way the owner prompts the native app: the instruction, one keep
  * line, the plate. No strict preamble, no re-stated framing (the source already carries the
  * pitch). Chosen over the full wording in the elf A/B (2026-09-24): it redesigned more boldly
- * and held face, hair, and angle just as well.
+ * and held face, hair, and angle just as well. World tokens carry a baked cast shadow the model
+ * otherwise repaints as part of the figure; one sentence removes it (bronze dragon, same day).
  */
-export const TOKEN_EDIT_KEEP = 'Keep the face, hair, and the top-down token angle.';
+export const TOKEN_EDIT_KEEP =
+  'Keep the face, hair, and the top-down token angle. Remove any cast shadow.';
 
 /** Assemble the edit prompt for a kind. The token plate sentence is appended later by render(). */
 export function editPrompt(kind: Kind, instruction: string, refs: Reference[]): string {
@@ -78,9 +80,10 @@ export class EditImageTool {
           'Edit an existing image with one instruction while keeping identity, pose, angle, and ' +
           'style. Flash for every kind (pro was no better at fixes and re-cropped once). ' +
           'Tokens are prompted light (your instruction as you would type it in the Gemini app, ' +
-          'plus a keep-face/hair/angle line), put back on a chroma plate keyed to the token\'s ' +
-          'own colours, and cut to alpha on the 512 square in the same call. Returns the new ' +
-          'file path, dimensions, and estimated spend.',
+          'plus a keep-face/hair/angle line and "remove any cast shadow"), put back on a chroma ' +
+          'plate keyed to the token\'s own colours, and cut to alpha on the 512 square in the ' +
+          'same call. "give this an updated painterly style" restyles a world token in place. ' +
+          'Returns the new file path, dimensions, and estimated spend.',
         inputSchema: toInputSchema(editImageSchema),
       },
     ];
