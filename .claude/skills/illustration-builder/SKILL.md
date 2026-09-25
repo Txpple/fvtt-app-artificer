@@ -243,18 +243,22 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    For a weak source, push the repaint harder while pinning what must not move:
    `repaint this token at much higher quality in a painterly style: keep the exact pose,
    silhouette, design, colours and camera angle, but redraw the anatomy, faces and materials
-   properly with fine painted detail` (untested wording as of 2026-09-24; verify on a small
-   batch before relying on it).
+   properly with fine painted detail`. Tested 2026-09-24: faithful on a gnome, an assassin, a
+   stegosaurus, a guard commander, and all four PCs, with clear gains on the weak ones and a
+   light polish on good art (the party's tokens barely changed, so do not spend on good art).
+   One slip: a cream cat came back Siamese-coloured; name the colours explicitly when they
+   matter.
    **Generate from words only for a creature the library does not have** (a flying sword, a
    new NPC) or when the owner asks for a redesign. The tool's framing covers both body plans:
    upright figures face up, four-legged and crawling creatures are seen along the back in a
    walking stance. **Never attach a second image beside a source**: a style token got its
    subject copied (a wizard and a harpy came back as the drow style token; a bear and a hound
    given each other as style references swapped bodies).
-   **`role: "pose"` is for a DIFFERENT creature in an existing token's pose**: attach the old
-   token alone as the pose and describe the new animal (the rat's token became a red
-   squirrel with the rat's exact crouch and tail curve, 2026-09-24). That is the way to fill a
-   gap in the library from a token that has the right shape.
+   **A different creature in an existing token's pose is an edit too**: `turn this rat into a
+   red squirrel: <colours, markings>, keeping the exact pose, body position and camera angle,
+   repainted at high quality in a painterly style` on the rat's token gave the rat's exact
+   crouch and tail curve (2026-09-24), the same as `role: "pose"` with a description. Use the
+   edit; the pose role is a fallback.
    **Glow and aura effects are a cutout weak spot**: a soft glow painted over the chroma plate
    picks up the plate colour (an electric eel's yellow lightning came back fringed pink on a
    magenta plate). Read the magenta preview hard on anything with lightning, fire, or an aura.
