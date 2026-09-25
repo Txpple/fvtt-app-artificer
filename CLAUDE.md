@@ -78,15 +78,15 @@ default tier, and its post-processing:
 |---|---|---|---|---|
 | `icon` | flash | 1:1 at 1K | resize to 512 square | item / spell / feature icons |
 | `token` | flash | 1:1 at 1K, top-down full-body at the pitch of the world's tokens (an existing token attached as the style reference), on a chroma plate whose colour is chosen per subject | edge-clip check (subject touching the plate edge ⇒ one re-render, then refuse), cutout to alpha, no shadow, 512 square (1024 with `creatureSize: "large"`, meaning Large or bigger) | actor token |
-
-**Nothing ever clips off a token (owner rule 2026-09-24).** A sword, wing, or foot cut by the
-frame edge makes the token unusable. The framing and the token edit line both demand a margin on
-every side, and `render()` counts subject pixels in the plate's outer 3 px (`src/edge.ts`): over
-20 means clipped, the render is redone once (both calls billed), and a second clip is refused
-with both plates kept for inspection. Never deliver or show a clipped token.
 | `prop` | flash | nearest API aspect to the footprint (generate) or the source (edit), object-only wording, chroma plate | edge-clip check, cutout, fitted to the exact tile size: 300 px per cell for a new prop, the source's own pixel size and subject box for an edit | map dressing tile (furniture, barrels, trees) |
 | `portrait` | flash | 3:4 at 2K | none beyond naming | actor sheet portrait |
 | `illustration` | flash | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
+
+**Nothing ever clips off a token or a prop (owner rule 2026-09-24).** A sword, wing, or foot
+cut by the frame edge makes the token unusable. The framing and the token edit line both demand a margin on
+every side, and `render()` counts subject pixels in the plate's outer 3 px (`src/edge.ts`): over
+20 means clipped, the render is redone once (both calls billed), and a second clip is refused
+with both plates kept for inspection. Never deliver or show a clipped token or prop.
 
 There is no `scene-background` kind. Battlemaps are bought as UVTT packs from vendors and
 imported; this server never makes map layers or backgrounds. Props are the exception the owner
