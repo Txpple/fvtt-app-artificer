@@ -6,6 +6,7 @@ import { toInputSchema } from '../utils/schema.js';
 import { type Kind, PRESETS } from '../presets.js';
 import {
   confirmProSchema,
+  creatureSizeSchema,
   kindSchema,
   loadImage,
   type Reference,
@@ -38,6 +39,7 @@ const editImageSchema = z.object({
     .describe('Optional extra references (attached after the source; indexes start at 2).'),
   tier: tierSchema,
   confirmPro: confirmProSchema,
+  creatureSize: creatureSizeSchema,
 });
 
 export const EDIT_PREAMBLE =
@@ -103,6 +105,7 @@ export class EditImageTool {
       prompt,
       images,
       slug: p.slug,
+      ...(p.creatureSize ? { creatureSize: p.creatureSize } : {}),
     });
   }
 }

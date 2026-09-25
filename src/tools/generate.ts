@@ -6,6 +6,7 @@ import { toInputSchema } from '../utils/schema.js';
 import { PRESETS } from '../presets.js';
 import {
   confirmProSchema,
+  creatureSizeSchema,
   kindSchema,
   loadImage,
   referencePreamble,
@@ -36,6 +37,7 @@ const generateImageSchema = z.object({
     ),
   tier: tierSchema,
   confirmPro: confirmProSchema,
+  creatureSize: creatureSizeSchema,
 });
 
 export class GenerateImageTool {
@@ -72,6 +74,7 @@ export class GenerateImageTool {
       prompt,
       images,
       slug: p.slug,
+      ...(p.creatureSize ? { creatureSize: p.creatureSize } : {}),
     });
   }
 }

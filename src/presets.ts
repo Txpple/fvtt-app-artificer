@@ -48,6 +48,22 @@ export const OUTPUT = {
 } as const;
 
 /**
+ * dnd5e creature sizes and the token square each gets. A Foundry token image is stretched to the
+ * grid footprint, so a Large+ token shows at twice a Medium's pixels or more; 1024 is the 1K
+ * render's native edge, so nothing is upsampled. Tiny through Medium stay at 512.
+ */
+export const CREATURE_SIZES = ['tiny', 'small', 'medium', 'large', 'huge', 'gargantuan'] as const;
+export type CreatureSize = (typeof CREATURE_SIZES)[number];
+export const TOKEN_EDGE: Record<CreatureSize, number> = {
+  tiny: 512,
+  small: 512,
+  medium: 512,
+  large: 1024,
+  huge: 1024,
+  gargantuan: 1024,
+};
+
+/**
  * Output filename: `<kind>-<slug>-<id>.png` (kebab-case, kind-prefixed, matching the campaign
  * repos' `art/` shelf — locked with the owner 2026-08-26, id replaces the old seed).
  */

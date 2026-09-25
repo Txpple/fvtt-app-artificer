@@ -166,6 +166,23 @@ describe('generate-image', () => {
     expect(fs.existsSync(r.plate)).toBe(true);
   });
 
+  it('tokens: creatureSize large+ cuts to a 1024 square; medium and unset stay 512', async () => {
+    const { dispatch } = build();
+    await dispatch('generate-image', { kind: 'token', prompt: 'a dragon', slug: 'd', creatureSize: 'huge' });
+    await dispatch('generate-image', { kind: 'token', prompt: 'a cat', slug: 'c', creatureSize: 'tiny' });
+    await dispatch('edit-image', {
+      sourceImage: refPng,
+      instruction: 'painterly',
+      kind: 'token',
+      slug: 'g',
+      creatureSize: 'large',
+    });
+    expect(cuts.map(c => c.size)).toEqual([1024, 512, 1024]);
+    await expect(
+      dispatch('generate-image', { kind: 'token', prompt: 'x', slug: 'x', creatureSize: 'colossal' })
+    ).rejects.toThrow();
+  });
+
   it('tokens: switches the plate to magenta when the reference subject is green', async () => {
     const { dispatch } = build();
     const r: any = await dispatch('generate-image', {

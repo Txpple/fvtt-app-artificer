@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { KINDS, PRESETS, TOKEN_FRAMING, filename, slugify } from './presets.js';
+import { KINDS, PRESETS, TOKEN_EDGE, TOKEN_FRAMING, filename, slugify } from './presets.js';
 
 describe('presets', () => {
   it('locks the tier, aspect, and size per kind as decided 2026-09-19', () => {
@@ -37,6 +37,19 @@ describe('presets', () => {
   it('never appends framing to portraits or illustrations', () => {
     expect(PRESETS.portrait.suffix).toBe('');
     expect(PRESETS.illustration.suffix).toBe('');
+  });
+});
+
+describe('TOKEN_EDGE', () => {
+  it('keeps Tiny through Medium at 512 and Large and up at the native 1024', () => {
+    expect(TOKEN_EDGE).toEqual({
+      tiny: 512,
+      small: 512,
+      medium: 512,
+      large: 1024,
+      huge: 1024,
+      gargantuan: 1024,
+    });
   });
 });
 

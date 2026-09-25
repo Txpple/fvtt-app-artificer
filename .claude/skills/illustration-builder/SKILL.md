@@ -241,7 +241,8 @@ area first:
 - Show the user the file and **stop there by default**. Uploading to the live world
   (`upload-asset`) and wiring (`set-actor-art`, `add-journal-image`) happen only when the owner
   approves — then the file also graduates from `art\staging\` to `art\`.
-- Tokens arrive already cut to alpha on a 512 square, shadowless (owner rule 2026-09-24: no
+- Pass `creatureSize` from the actor's traits on every token call (large/huge/gargantuan
+  deliver 1024; the rest 512). Tokens arrive already cut to alpha, shadowless (owner rule 2026-09-24: no
   shadows on tokens; the prompt tells the model to drop a baked one). Read the magenta preview
   the cutout wrote before trusting the edge. For a token from anywhere else, `cutout-image`
   does the same cut. Restyling a world token ("give this an updated painterly style") is an
