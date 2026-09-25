@@ -87,6 +87,22 @@ describe('scorePrompt / pickChromaKey with a prompt', () => {
     expect(await pickChromaKey([await solid('#888888')], 'a green cloak')).toBe('magenta');
   });
 
+  it('moves a glowing subject off magenta, where a gold glow turns pink', async () => {
+    expect(await pickChromaKey([], 'a warmage with a glowing gold sigil under her hand')).toBe('green');
+    expect(await pickChromaKey([], 'an eel wreathed in crackling lightning')).toBe('green');
+    // The warmage that tied all three plates on colour words: the glow now decides.
+    expect(
+      await pickChromaKey(
+        [],
+        'the red horns and pale blue hair, the scaled green bracers, the glowing gold sigil'
+      )
+    ).toBe('green');
+    // A green glow argues against both: blue is left.
+    expect(await pickChromaKey([], 'a druid with a green fire in her palm')).toBe('blue');
+    // "Fireplace" and "glowworm" are not glow words.
+    expect(await pickChromaKey([], 'a stone fireplace')).toBe('magenta');
+  });
+
   it('keeps the magenta default for a colour-free prompt', async () => {
     expect(await pickChromaKey([], 'a goblin scout with a rusty dagger')).toBe('magenta');
   });

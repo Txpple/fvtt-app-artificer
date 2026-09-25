@@ -93,6 +93,31 @@ const PROMPT_PATTERNS: Record<ChromaKey, RegExp> = {
   blue: wordPattern(PROMPT_WORDS.blue),
 };
 
+/**
+ * Soft emissive effects (a glowing sigil, fire, lightning) are painted semi-transparent over the
+ * plate and keep its colour through the cut. On magenta a gold glow comes back pink (a tiefling's
+ * sigil and an eel's lightning, 2026-09-24), so one glow word is decisive against magenta, where
+ * the mixed-in colour is most wrong for warm light. Decisive, not one vote: a warmage with green
+ * bracers, blue hair, and a gold sigil tied all three plates on words and fell back to magenta.
+ */
+const GLOW_PATTERN = wordPattern([
+  'glow',
+  'glowing',
+  'glows',
+  'flame',
+  'flames',
+  'fire',
+  'fiery',
+  'ember',
+  'embers',
+  'lightning',
+  'sigil',
+  'aura',
+  'radiant',
+  'radiance',
+  'sparks',
+]);
+
 /** Each colour word is worth this much risk; two mentions of a colour saturate at 1. */
 const PROMPT_WORD_RISK = 0.5;
 
@@ -101,9 +126,12 @@ const PROMPT_WORD_RISK = 0.5;
  * one mention is a strong argument (0.5), two or more are decisive (1).
  */
 export function scorePrompt(prompt: string): KeyScore[] {
+  const glowing = GLOW_PATTERN.test(prompt);
+  GLOW_PATTERN.lastIndex = 0;
   return KEY_ORDER.map(key => {
     const hits = prompt.match(PROMPT_PATTERNS[key])?.length ?? 0;
-    return { key, risk: Math.min(1, hits * PROMPT_WORD_RISK) };
+    const risk = Math.min(1, hits * PROMPT_WORD_RISK);
+    return { key, risk: key === 'magenta' && glowing ? 1 : risk };
   });
 }
 
