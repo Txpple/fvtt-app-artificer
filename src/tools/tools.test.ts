@@ -7,13 +7,14 @@ import type { CutoutFn, CutoutOptions } from '../cutout.js';
 import { Gemini } from '../gemini.js';
 import { buildToolRegistry } from '../registry.js';
 import { SpendMeter } from '../spend.js';
-import { TOKEN_FRAMING } from '../presets.js';
-import { EDIT_PREAMBLE, TOKEN_EDIT_KEEP } from './edit.js';
+import { PROP_FRAMING, TOKEN_FRAMING } from '../presets.js';
+import { EDIT_PREAMBLE, PROP_EDIT_KEEP, TOKEN_EDIT_KEEP } from './edit.js';
 import { referencePreamble, resolveTier } from './shared.js';
 
 let tmp: string;
 let refPng: string;
 let greenRef: string;
+let propSrc: string;
 let sent: Array<{ url: string; body: any }>;
 let cuts: CutoutOptions[];
 
@@ -46,9 +47,19 @@ function fakeGemini(width = 1024, height = 1024): Gemini {
 
 const fakeCutout: CutoutFn = async opts => {
   cuts.push(opts);
+  // A visible subject in the middle of a transparent square, so fitting a prop has something to place.
   fs.writeFileSync(
     opts.output,
     await sharp({ create: { width: 512, height: 512, channels: 4, background: '#0000' } })
+      .composite([
+        {
+          input: await sharp({ create: { width: 200, height: 100, channels: 4, background: '#8a5a2bff' } })
+            .png()
+            .toBuffer(),
+          left: 156,
+          top: 206,
+        },
+      ])
       .png()
       .toBuffer()
   );
@@ -110,6 +121,23 @@ beforeAll(async () => {
   fs.writeFileSync(
     refPng,
     await sharp({ create: { width: 8, height: 8, channels: 3, background: '#fff' } })
+      .png()
+      .toBuffer()
+  );
+  // A 2x1 prop with its subject off-centre in the tile: 400x200 at (100, 50).
+  propSrc = path.join(tmp, 'anvil_2x1.png');
+  fs.writeFileSync(
+    propSrc,
+    await sharp({ create: { width: 600, height: 300, channels: 4, background: '#0000' } })
+      .composite([
+        {
+          input: await sharp({ create: { width: 400, height: 200, channels: 4, background: '#444444ff' } })
+            .png()
+            .toBuffer(),
+          left: 100,
+          top: 50,
+        },
+      ])
       .png()
       .toBuffer()
   );
@@ -426,6 +454,71 @@ describe('edit-image', () => {
         tier: 'pro',
       })
     ).rejects.toThrow(/confirmPro/);
+  });
+});
+
+describe('props', () => {
+  it('generate: footprint sets the API aspect and the exact tile size; object-only framing', async () => {
+    const { dispatch } = build();
+    const r: any = await dispatch('generate-image', {
+      kind: 'prop',
+      prompt: 'a blacksmith anvil on a wooden stump',
+      slug: 'anvil',
+      footprint: '2x1',
+    });
+    const body = sent[0].body;
+    expect(body.generationConfig.imageConfig.aspectRatio).toBe('16:9');
+    const text = body.contents[0].parts.at(-1).text;
+    expect(text).toContain(PROP_FRAMING);
+    expect(text).not.toMatch(/face tilts up|hair/);
+    expect(text).toContain('chroma-key');
+    expect(cuts).toHaveLength(1);
+    expect(cuts[0].size).toBe(0); // the tool fits the prop itself, not the square-fitting script
+    expect(path.basename(r.file)).toMatch(/^prop-anvil-[0-9a-f]{8}\.png$/);
+    expect(r).toMatchObject({ kind: 'prop', width: 600, height: 300 });
+    const m = await sharp(r.file).metadata();
+    expect([m.width, m.height]).toEqual([600, 300]);
+  });
+
+  it('generate: a prop with no footprint is one cell, 300 square', async () => {
+    const { dispatch } = build();
+    const r: any = await dispatch('generate-image', { kind: 'prop', prompt: 'a barrel', slug: 'barrel' });
+    expect(sent[0].body.generationConfig.imageConfig.aspectRatio).toBe('1:1');
+    expect(r).toMatchObject({ width: 300, height: 300 });
+  });
+
+  it('generate: refuses a malformed footprint before calling the API', async () => {
+    const { dispatch } = build();
+    await expect(
+      dispatch('generate-image', { kind: 'prop', prompt: 'x', slug: 'x', footprint: 'big' })
+    ).rejects.toThrow();
+    expect(sent).toHaveLength(0);
+  });
+
+  it('edit: keeps the source size and shape, with the object-only keep line', async () => {
+    const { dispatch } = build();
+    const r: any = await dispatch('edit-image', {
+      sourceImage: propSrc,
+      instruction: 'repaint this prop at much higher quality',
+      kind: 'prop',
+      slug: 'anvil',
+    });
+    const text = sent[0].body.contents[0].parts.at(-1).text;
+    expect(sent[0].body.generationConfig.imageConfig.aspectRatio).toBe('16:9');
+    expect(text).toContain(`repaint this prop at much higher quality. ${PROP_EDIT_KEEP}`);
+    expect(text).not.toContain(TOKEN_EDIT_KEEP);
+    expect(text).not.toMatch(/face, hair/);
+    expect(r).toMatchObject({ kind: 'prop', width: 600, height: 300 });
+    // The model saw the source with a transparent margin (12% of the long side, 72 px).
+    const sentSource = Buffer.from(sent[0].body.contents[0].parts[0].inline_data.data, 'base64');
+    const sm = await sharp(sentSource).metadata();
+    expect([sm.width, sm.height]).toEqual([744, 444]);
+    // The new art went back where the original sat, at the original's scale.
+    const { data, info } = await sharp(r.file).raw().toBuffer({ resolveWithObject: true });
+    const alpha = (x: number, y: number) => data[(y * info.width + x) * 4 + 3];
+    expect(alpha(300, 150)).toBe(255);
+    expect(alpha(40, 150)).toBe(0);
+    expect(alpha(560, 150)).toBe(0);
   });
 });
 

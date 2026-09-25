@@ -2,12 +2,12 @@
 // fixes the tier, the API aspect and size, the framing text the server appends to every prompt,
 // and the post-processing that turns the API's JPEG into the finished PNG.
 
-import type { Aspect, ImageSize, Tier } from './gemini.js';
+import { ASPECTS, type Aspect, type ImageSize, type Tier } from './gemini.js';
 
-export const KINDS = ['icon', 'token', 'portrait', 'illustration'] as const;
+export const KINDS = ['icon', 'token', 'prop', 'portrait', 'illustration'] as const;
 export type Kind = (typeof KINDS)[number];
 
-export type Post = 'icon' | 'token' | 'portrait' | 'illustration';
+export type Post = 'icon' | 'token' | 'prop' | 'portrait' | 'illustration';
 
 export interface Preset {
   tier: Tier;
@@ -42,9 +42,50 @@ export const ICON_FRAMING =
   'Inventory icon: a single subject centered and filling the frame, no text, no border, no ' +
   'frame; the whole subject sits inside the image with a small margin, nothing cut off by the edge.';
 
+// Props are map dressing placed as tiles (owner request 2026-09-24): furniture, barrels, trees.
+// Object-only wording on purpose: the token path's "keep the face, hair" made a red armchair grow
+// a seated man, an oak grow a dryad, and a crate grow a dwarf in the first props test.
+export const PROP_FRAMING =
+  'A single map prop for a virtual tabletop battlemap, seen from directly above, looking ' +
+  'straight down (orthographic top-down), an object only: no people, no creatures, no ' +
+  'figures, no faces, no text. The whole object sits inside the frame with a clear margin of ' +
+  'background on every side; nothing touches or crosses the edge.';
+
+/** Tom Cartos, the bulk of the owner's prop library, draws props at 300 px per grid cell. */
+export const PROP_CELL_PX = 300;
+
+export interface Footprint {
+  w: number;
+  h: number;
+}
+
+/** Parse a grid footprint like "2x1" (width x height in cells, 1 to 20 each). */
+export function parseFootprint(raw: string): Footprint {
+  const m = /^(\d{1,2})x(\d{1,2})$/.exec(raw.trim().toLowerCase());
+  const w = Number(m?.[1]);
+  const h = Number(m?.[2]);
+  if (!m || w < 1 || h < 1 || w > 20 || h > 20) {
+    throw new Error(`footprint ${JSON.stringify(raw)} must be <cells wide>x<cells tall>, e.g. "2x1"`);
+  }
+  return { w, h };
+}
+
+/** The API aspect closest to a width/height ratio (compared on a log scale, so 2:1 and 1:2 are symmetric). */
+export function nearestAspect(ratio: number): Aspect {
+  const value = (a: Aspect) => {
+    const [w, h] = a.split(':').map(Number);
+    return w / h;
+  };
+  return [...ASPECTS].sort(
+    (a, b) => Math.abs(Math.log(value(a) / ratio)) - Math.abs(Math.log(value(b) / ratio))
+  )[0];
+}
+
 export const PRESETS: Record<Kind, Preset> = {
   icon: { tier: 'flash', aspect: '1:1', size: '1K', post: 'icon', suffix: ICON_FRAMING },
   token: { tier: 'flash', aspect: '1:1', size: '1K', post: 'token', suffix: TOKEN_FRAMING },
+  // The aspect is replaced per call from the footprint (generate) or the source (edit).
+  prop: { tier: 'flash', aspect: '1:1', size: '1K', post: 'prop', suffix: PROP_FRAMING },
   // Flash for every kind (owner rule 2026-09-19). Pro is opt-in via tier + confirmPro.
   portrait: { tier: 'flash', aspect: '3:4', size: '2K', post: 'portrait', suffix: '' },
   illustration: { tier: 'flash', aspect: '16:9', size: '4K', post: 'illustration', suffix: '' },

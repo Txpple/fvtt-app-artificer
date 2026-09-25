@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { toInputSchema } from '../utils/schema.js';
-import { PRESETS } from '../presets.js';
+import { nearestAspect, PRESETS, PROP_CELL_PX, parseFootprint } from '../presets.js';
 import {
   confirmProSchema,
   creatureSizeSchema,
@@ -38,6 +38,15 @@ const generateImageSchema = z.object({
   tier: tierSchema,
   confirmPro: confirmProSchema,
   creatureSize: creatureSizeSchema,
+  footprint: z
+    .string()
+    .regex(/^\d{1,2}x\d{1,2}$/i)
+    .optional()
+    .describe(
+      'Props only: grid cells wide x tall, e.g. "2x1" for a table (default "1x1"). The prop is ' +
+        'rendered at the nearest API aspect and delivered at 300 px per cell (600x300 here). ' +
+        'Library files carry it in their name: "TC_Anvil 02_2x1.png".'
+    ),
 });
 
 export class GenerateImageTool {
@@ -69,6 +78,7 @@ export class GenerateImageTool {
     // viewer" fought it and turned beasts to face the camera (bear, hound, troll, 2026-09-24).
     const posed = p.kind === 'token' && refs.some(r => r.role === 'pose');
     const suffix = posed ? '' : PRESETS[p.kind].suffix;
+    const fp = p.kind === 'prop' ? parseFootprint(p.footprint ?? '1x1') : undefined;
     const prompt = `${referencePreamble(refs)}${p.prompt.trim()}${suffix ? ` ${suffix}` : ''}`;
     return render(this.deps, {
       tool: 'generate-image',
@@ -78,6 +88,12 @@ export class GenerateImageTool {
       images,
       slug: p.slug,
       ...(p.creatureSize ? { creatureSize: p.creatureSize } : {}),
+      ...(fp
+        ? {
+            aspect: nearestAspect(fp.w / fp.h),
+            canvas: { width: fp.w * PROP_CELL_PX, height: fp.h * PROP_CELL_PX },
+          }
+        : {}),
     });
   }
 }

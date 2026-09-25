@@ -3,7 +3,9 @@
 
 import { z } from 'zod';
 import { toInputSchema } from '../utils/schema.js';
-import { type Kind, PRESETS } from '../presets.js';
+import sharp from 'sharp';
+import { alphaBox } from '../post.js';
+import { type Kind, nearestAspect, PRESETS } from '../presets.js';
 import {
   confirmProSchema,
   creatureSizeSchema,
@@ -57,6 +59,19 @@ export const TOKEN_EDIT_KEEP =
   'Keep the face, hair, and the top-down token angle. Remove any cast shadow. Keep the whole ' +
   'figure, weapons included, inside the frame with a margin on every side; nothing crosses the edge.';
 
+/**
+ * Prop edits: the token keep line's "face, hair" grew people on an armchair, a tree, and a crate
+ * (2026-09-24), so props get an object-only line and never the token one.
+ */
+export const PROP_EDIT_KEEP =
+  'Keep the exact shape, silhouette, design, colours and the straight-down top-down camera ' +
+  'angle. This is an object: do not add any person, creature, face, or figure. Remove any cast ' +
+  'shadow. Keep the whole object inside the frame with a margin on every side; nothing crosses ' +
+  'the edge.';
+
+/** Transparent margin added around a prop source before it is sent, as a share of its long side. */
+export const PROP_EDIT_PAD = 0.12;
+
 /** Assemble the edit prompt for a kind. The token plate sentence is appended later by render(). */
 export function editPrompt(kind: Kind, instruction: string, refs: Reference[]): string {
   // Shift reference numbering past the source image.
@@ -64,9 +79,10 @@ export function editPrompt(kind: Kind, instruction: string, refs: Reference[]): 
     /Image (\d+)/g,
     (_, n) => `Image ${Number(n) + 1}`
   );
-  if (kind === 'token') {
-    const source = refs.length ? 'Image 1 is the token to edit. ' : '';
-    return `${source}${preamble}${instruction.trim().replace(/[.\s]+$/, '')}. ${TOKEN_EDIT_KEEP}`;
+  if (kind === 'token' || kind === 'prop') {
+    const source = refs.length ? `Image 1 is the ${kind} to edit. ` : '';
+    const keep = kind === 'prop' ? PROP_EDIT_KEEP : TOKEN_EDIT_KEEP;
+    return `${source}${preamble}${instruction.trim().replace(/[.\s]+$/, '')}. ${keep}`;
   }
   const suffix = PRESETS[kind].suffix;
   return `${EDIT_PREAMBLE}${preamble}Instruction: ${instruction.trim()}${suffix ? ` ${suffix}` : ''}`;
@@ -86,7 +102,9 @@ export class EditImageTool {
           'plus a keep-face/hair/angle line and "remove any cast shadow"), put back on a chroma ' +
           'plate keyed to the token\'s own colours, and cut to alpha on the 512 square in the ' +
           'same call. "give this an updated painterly style" restyles a world token in place. ' +
-          'Returns the new file path, dimensions, and estimated spend.',
+          'Props (kind "prop") get object-only wording (no figures added) and come back cut at ' +
+          'the source file\'s exact pixel size, ready for the same tile slot. Returns the new ' +
+          'file path, dimensions, and estimated spend.',
         inputSchema: toInputSchema(editImageSchema),
       },
     ];
@@ -99,6 +117,33 @@ export class EditImageTool {
     const refs = (p.references ?? []).map(r => ({ ...r }));
     const images = [loadImage(p.sourceImage), ...refs.map(r => loadImage(r.path))];
     const prompt = editPrompt(p.kind, p.instruction, refs);
+    // A prop comes back at its source's exact size, with the new art in the box the original
+    // occupied, so it drops into the same tile slot at the same scale. The model is shown the
+    // source with a transparent margin: a crate drawn edge to edge on its tile was otherwise
+    // repainted edge to edge and refused twice by the clip guard (2026-09-24).
+    let propFit = {};
+    if (p.kind === 'prop') {
+      const m = await sharp(images[0].data).metadata();
+      const width = m.width ?? 300;
+      const height = m.height ?? 300;
+      const box = await alphaBox(images[0].data);
+      const pad = Math.round(Math.max(width, height) * PROP_EDIT_PAD);
+      images[0] = {
+        mimeType: 'image/png',
+        data: await sharp(images[0].data)
+          .ensureAlpha()
+          .extend({
+            top: pad,
+            bottom: pad,
+            left: pad,
+            right: pad,
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
+          })
+          .png()
+          .toBuffer(),
+      };
+      propFit = { aspect: nearestAspect(width / height), canvas: { width, height }, box };
+    }
     return render(this.deps, {
       tool: 'edit-image',
       kind: p.kind,
@@ -107,6 +152,7 @@ export class EditImageTool {
       images,
       slug: p.slug,
       ...(p.creatureSize ? { creatureSize: p.creatureSize } : {}),
+      ...propFit,
     });
   }
 }

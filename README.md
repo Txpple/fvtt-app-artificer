@@ -23,6 +23,10 @@ wrong, and the finished file lands on disk ready to upload into Foundry.
 - **Token refreshes.** Point it at an old, low-res token and it repaints it at higher quality
   while keeping the pose, silhouette, design, and colours your players know. It can also turn
   one creature into another in the same pose (a rat's token into a squirrel).
+- **Props.** Map dressing placed as tiles: furniture, barrels, trees, anvils. Seen straight
+  down, object only, cut to transparency at the tile size (300 px per grid cell, from a
+  `footprint` like `"2x1"`). Refreshing an existing prop returns it at the file's exact pixel
+  size in the same spot on its canvas, so it replaces the old one one for one.
 - **Portraits.** Actor sheet art at 3:4. Hand it a previous portrait or two as style
   references and the new one matches your table's look.
 - **Illustrations.** Player handouts and scene splashes at 2560×1600. Hand it your party's
@@ -35,7 +39,7 @@ wrong, and the finished file lands on disk ready to upload into Foundry.
 
 | tool | what it does |
 | --- | --- |
-| `generate-image` | Render one asset from a prompt. `kind` is `icon`, `token`, `portrait`, or `illustration`; it picks the model, aspect, size, framing, and post-processing for you. Optional `references` (character, style, or pose) and, for tokens, `creatureSize` (`medium` or `large`). |
+| `generate-image` | Render one asset from a prompt. `kind` is `icon`, `token`, `prop`, `portrait`, or `illustration`; it picks the model, aspect, size, framing, and post-processing for you. Optional `references` (character, style, or pose) and, for tokens, `creatureSize` (`medium` or `large`); for props, `footprint` (`"2x1"`). |
 | `edit-image` | Apply one instruction to an existing image and keep everything else. Token edits are prompted the way you would type in the Gemini app and re-cut automatically. Takes `creatureSize` too. |
 | `cutout-image` | Cut a token's background to alpha and deliver it on a square canvas. |
 | `artificer-status` | Key present, models reachable, estimated spend this session. |

@@ -33,10 +33,20 @@ The destination picks the `kind`, and the kind picks the model tier:
 | --- | --- | --- |
 | item / spell / feature icon | `icon` | flash |
 | actor token (top-down, cut to alpha automatically) | `token` | flash |
+| map prop placed as a tile (furniture, barrel, tree) | `prop` | flash |
 | actor sheet portrait | `portrait` | flash; mention Pro is available for a bit extra |
 | journal image page / player handout / location splash | `illustration` | flash; mention Pro is available for a bit extra |
 
 There is no map kind. Battlemaps are bought as UVTT packs; never try to generate one.
+
+**Props** (owner's library: `D:\Workshelf\Assets\FVTT\Props`, mostly Tom Cartos at 300 px per
+grid cell). Refreshing one is `edit-image` `kind: "prop"` with the repaint wording (`repaint this
+prop at much higher quality in a painterly style, with fine painted detail on its materials`);
+the result comes back at the source's exact pixel size with the new art in the original's box,
+so it replaces the file one for one. A new prop is `generate-image` `kind: "prop"` with
+`footprint` from the file-name convention (`TC_Anvil 02_2x1.png` is `"2x1"`). Never run a prop
+as a `token`: the token wording adds people. Name the colours when they matter; an oak drifted
+toward teal once.
 
 If the user named a subject that exists in the world (an NPC, a location with a journal, an
 item), the next two steps are **mandatory** — never prompt from imagination for a named subject.

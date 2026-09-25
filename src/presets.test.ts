@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { KINDS, PRESETS, TOKEN_EDGE, TOKEN_FRAMING, filename, slugify } from './presets.js';
+import {
+  KINDS,
+  PRESETS,
+  PROP_FRAMING,
+  TOKEN_EDGE,
+  TOKEN_FRAMING,
+  filename,
+  nearestAspect,
+  parseFootprint,
+  slugify,
+} from './presets.js';
 
 describe('presets', () => {
   it('locks the tier, aspect, and size per kind as decided 2026-09-19', () => {
@@ -24,8 +34,8 @@ describe('presets', () => {
     });
   });
 
-  it('has exactly four kinds and no map kind', () => {
-    expect([...KINDS].sort()).toEqual(['icon', 'illustration', 'portrait', 'token']);
+  it('has five kinds and no map kind (props are dressing, not map layers)', () => {
+    expect([...KINDS].sort()).toEqual(['icon', 'illustration', 'portrait', 'prop', 'token']);
   });
 
   it('frames tokens top-down and leaves the plate sentence to chroma.ts', () => {
@@ -40,6 +50,32 @@ describe('presets', () => {
   it('never appends framing to portraits or illustrations', () => {
     expect(PRESETS.portrait.suffix).toBe('');
     expect(PRESETS.illustration.suffix).toBe('');
+  });
+});
+
+describe('props', () => {
+  it('frame straight down, object only, never a figure or a face', () => {
+    expect(PRESETS.prop.suffix).toBe(PROP_FRAMING);
+    expect(PROP_FRAMING).toMatch(/directly above.*straight down/);
+    expect(PROP_FRAMING).toMatch(/no people, no creatures, no figures, no faces/);
+    expect(PROP_FRAMING).not.toMatch(/hair|tilts up/);
+    expect(PROP_FRAMING).toMatch(/nothing touches or crosses the edge/);
+  });
+
+  it('parse a footprint and refuse nonsense', () => {
+    expect(parseFootprint('2x1')).toEqual({ w: 2, h: 1 });
+    expect(parseFootprint(' 13X5 ')).toEqual({ w: 13, h: 5 });
+    for (const bad of ['0x1', '2', 'x', '21x1', '2 by 1']) {
+      expect(() => parseFootprint(bad)).toThrow(/footprint/);
+    }
+  });
+
+  it('pick the nearest API aspect for a footprint', () => {
+    expect(nearestAspect(1)).toBe('1:1');
+    expect(nearestAspect(2)).toBe('16:9');
+    expect(nearestAspect(0.5)).toBe('9:16');
+    expect(nearestAspect(1.5)).toBe('3:2');
+    expect(nearestAspect(3 / 4)).toBe('3:4');
   });
 });
 
