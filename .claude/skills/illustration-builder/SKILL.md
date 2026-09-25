@@ -235,18 +235,22 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    **A refresh only works on a good source.** An edit keeps the source's drawing, so a weak
    token (flat shading, stiff pose, clip-art proportions: most of the `_Free & Lower Quality`
    shelf) comes back as the same weak drawing with sharper lines (20-token test, 2026-09-24).
-   **Replace those instead**, from words: `generate-image` `kind: "token"` with **no image
-   attached**, a prompt that describes what the old token shows (species, build, hair, gear,
-   colours, what it is doing) plus the finish in words ("rich painterly fantasy illustration:
-   detailed fur, scales and skin texture, soft painted shading, crisp detail and clean
-   confident edges"). The tool's framing covers both body plans: upright figures face up,
-   four-legged and crawling creatures are seen along the back in a walking stance (cat and
-   gnome, 2026-09-24). **Do not attach the old token when the new one is the same creature.**
-   Every way it was attached, its weak drawing came back: as `character` (guard commander),
-   and even as `role: "pose"` (the cat stayed a lumpy blob, the stegosaurus kept its flat
-   blue shape, the assassin kept its odd ring). A style token beside anything got its subject
-   copied (a wizard and a harpy came back as the drow style token; a bear and a hound given
-   each other as style references swapped bodies).
+   **Fidelity to the original comes first (owner rule 2026-09-24).** A refreshed token keeps
+   the original's pose, silhouette, design, and colours; only the quality of the drawing
+   improves. Too much deviation is unacceptable: a gnome regenerated from a faithful
+   description of his token was rejected because his pose, proportions, and look changed.
+   So an existing token is ALWAYS reworked with `edit-image`, never regenerated from words.
+   For a weak source, push the repaint harder while pinning what must not move:
+   `repaint this token at much higher quality in a painterly style: keep the exact pose,
+   silhouette, design, colours and camera angle, but redraw the anatomy, faces and materials
+   properly with fine painted detail` (untested wording as of 2026-09-24; verify on a small
+   batch before relying on it).
+   **Generate from words only for a creature the library does not have** (a flying sword, a
+   new NPC) or when the owner asks for a redesign. The tool's framing covers both body plans:
+   upright figures face up, four-legged and crawling creatures are seen along the back in a
+   walking stance. **Never attach a second image beside a source**: a style token got its
+   subject copied (a wizard and a harpy came back as the drow style token; a bear and a hound
+   given each other as style references swapped bodies).
    **`role: "pose"` is for a DIFFERENT creature in an existing token's pose**: attach the old
    token alone as the pose and describe the new animal (the rat's token became a red
    squirrel with the rat's exact crouch and tail curve, 2026-09-24). That is the way to fill a
