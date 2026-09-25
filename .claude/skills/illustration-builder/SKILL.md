@@ -235,18 +235,25 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    **A refresh only works on a good source.** An edit keeps the source's drawing, so a weak
    token (flat shading, stiff pose, clip-art proportions: most of the `_Free & Lower Quality`
    shelf) comes back as the same weak drawing with sharper lines (20-token test, 2026-09-24).
-   **Replace those instead**: `generate-image` `kind: "token"`, the old token attached as the
-   ONLY reference with `role: "pose"`, and a prompt that describes what it shows (species,
-   build, hair, gear, colours) plus the finish in words ("rich painterly fantasy illustration:
+   **Replace those instead**, from words: `generate-image` `kind: "token"` with **no image
+   attached**, a prompt that describes what the old token shows (species, build, hair, gear,
+   colours, what it is doing) plus the finish in words ("rich painterly fantasy illustration:
    detailed fur, scales and skin texture, soft painted shading, crisp detail and clean
-   confident edges"). The pose role holds the old token's angle, head direction, and
-   silhouette without its drawing, and drops the tool's own framing text so a beast is not
-   turned to face the camera (bear, hound, troll, 2026-09-24). **One image only.** A second
-   image always confused the model: the old token as `character` pulled its weak drawing back
-   (guard commander); a style token beside it got its subject copied (a wizard and a harpy
-   came back as the drow style token; a bear and a hound given each other as style references
-   swapped bodies). The words carry the identity and the look; the pose image carries the
-   shape. **Read the file name first; it is prompt material.** The owner's token library
+   confident edges"). The tool's framing covers both body plans: upright figures face up,
+   four-legged and crawling creatures are seen along the back in a walking stance (cat and
+   gnome, 2026-09-24). **Do not attach the old token when the new one is the same creature.**
+   Every way it was attached, its weak drawing came back: as `character` (guard commander),
+   and even as `role: "pose"` (the cat stayed a lumpy blob, the stegosaurus kept its flat
+   blue shape, the assassin kept its odd ring). A style token beside anything got its subject
+   copied (a wizard and a harpy came back as the drow style token; a bear and a hound given
+   each other as style references swapped bodies).
+   **`role: "pose"` is for a DIFFERENT creature in an existing token's pose**: attach the old
+   token alone as the pose and describe the new animal (the rat's token became a red
+   squirrel with the rat's exact crouch and tail curve, 2026-09-24). That is the way to fill a
+   gap in the library from a token that has the right shape.
+   **Glow and aura effects are a cutout weak spot**: a soft glow painted over the chroma plate
+   picks up the plate colour (an electric eel's yellow lightning came back fringed pink on a
+   magenta plate). Read the magenta preview hard on anything with lightning, fire, or an aura. **Read the file name first; it is prompt material.** The owner's token library
    (`D:\Workshelf\Assets\FVTT\Tokens\Token Library`) names files `Category - Subject`:
    the category is the creature type ("Fiend -", "Undead -", "Giant -"), `M_` / `F_` is the
    gender, and the words after it are the role or variant ("archer", "Ripper", "Pale_brute",

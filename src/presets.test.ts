@@ -31,6 +31,9 @@ describe('presets', () => {
   it('frames tokens top-down and leaves the plate sentence to chroma.ts', () => {
     expect(PRESETS.token.suffix).toBe(TOKEN_FRAMING);
     expect(PRESETS.token.suffix).toMatch(/top-down/);
+    // Both body plans: humanoids face up, beasts are seen along the back, head not turned up.
+    expect(PRESETS.token.suffix).toMatch(/upright figure.*face tilts up toward the viewer/);
+    expect(PRESETS.token.suffix).toMatch(/four-legged.*spine faces the camera.*not turned up/);
     expect(PRESETS.token.suffix).not.toMatch(/chroma/);
   });
 

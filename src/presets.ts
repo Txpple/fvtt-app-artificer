@@ -21,13 +21,20 @@ export interface Preset {
   suffix: string;
 }
 
+// Two body plans, one sentence each (2026-09-24): an upright figure keeps the face-up pitch the
+// world's humanoid tokens use; a four-legged or crawling creature is seen along its back. The
+// single humanoid wording turned a bear, a hound, and a troll to look up at the camera.
 export const TOKEN_FRAMING =
-  'Virtual tabletop token, top-down: the camera is high above and slightly in front of the ' +
-  'figure, about fifteen degrees off vertical, never straight down and never a three-quarter ' +
-  'view. The top of the head and the shoulders are the largest shapes, the torso is ' +
+  'Virtual tabletop token, top-down. An upright figure: the camera is high above and slightly ' +
+  'in front, about fifteen degrees off vertical, never straight down and never a three-quarter ' +
+  'view; the top of the head and the shoulders are the largest shapes, the torso is ' +
   'foreshortened, the feet are mostly hidden beneath the body, and the face tilts up toward the ' +
-  'viewer. If a token is attached as a style reference, match its camera pitch exactly. A ' +
-  'single figure, centered, filling the frame.';
+  'viewer. A four-legged, crawling, or slithering creature: seen from directly above, looking ' +
+  "straight down on its back; the spine faces the camera, the head is at the leading edge " +
+  'pointing forward and slightly down (not turned up toward the camera), the legs in a natural ' +
+  'walking stance beside the body, and the tail trails behind. If a token is attached as a ' +
+  'style reference, ' +
+  'match its camera pitch exactly. A single figure, centered, filling the frame.';
 
 export const ICON_FRAMING =
   'Inventory icon: a single subject centered and filling the frame, no text, no border, no frame.';
