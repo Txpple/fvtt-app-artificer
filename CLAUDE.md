@@ -77,7 +77,13 @@ default tier, and its post-processing:
 | kind | tier default | API call | post-process | destination |
 |---|---|---|---|---|
 | `icon` | flash | 1:1 at 1K | resize to 512 square | item / spell / feature icons |
-| `token` | flash | 1:1 at 1K, top-down full-body at the pitch of the world's tokens (an existing token attached as the style reference), on a chroma plate whose colour is chosen per subject | cutout to alpha, no shadow, 512 square (1024 with `creatureSize: "large"`, meaning Large or bigger) | actor token |
+| `token` | flash | 1:1 at 1K, top-down full-body at the pitch of the world's tokens (an existing token attached as the style reference), on a chroma plate whose colour is chosen per subject | edge-clip check (subject touching the plate edge ⇒ one re-render, then refuse), cutout to alpha, no shadow, 512 square (1024 with `creatureSize: "large"`, meaning Large or bigger) | actor token |
+
+**Nothing ever clips off a token (owner rule 2026-09-24).** A sword, wing, or foot cut by the
+frame edge makes the token unusable. The framing and the token edit line both demand a margin on
+every side, and `render()` counts subject pixels in the plate's outer 3 px (`src/edge.ts`): over
+20 means clipped, the render is redone once (both calls billed), and a second clip is refused
+with both plates kept for inspection. Never deliver or show a clipped token.
 | `portrait` | flash | 3:4 at 2K | none beyond naming | actor sheet portrait |
 | `illustration` | flash | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
 

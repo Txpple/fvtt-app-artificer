@@ -34,10 +34,13 @@ export const TOKEN_FRAMING =
   'pointing forward and slightly down (not turned up toward the camera), the legs in a natural ' +
   'walking stance beside the body, and the tail trails behind. If a token is attached as a ' +
   'style reference, ' +
-  'match its camera pitch exactly. A single figure, centered, filling the frame.';
+  'match its camera pitch exactly. A single figure, centered, filling the frame, yet the whole ' +
+  'figure, including every weapon, staff, wing, tail, and cloak, sits inside the frame with a ' +
+  'clear margin of background on every side; nothing touches or crosses the edge.';
 
 export const ICON_FRAMING =
-  'Inventory icon: a single subject centered and filling the frame, no text, no border, no frame.';
+  'Inventory icon: a single subject centered and filling the frame, no text, no border, no ' +
+  'frame; the whole subject sits inside the image with a small margin, nothing cut off by the edge.';
 
 export const PRESETS: Record<Kind, Preset> = {
   icon: { tier: 'flash', aspect: '1:1', size: '1K', post: 'icon', suffix: ICON_FRAMING },

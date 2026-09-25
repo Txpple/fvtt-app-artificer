@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { type ChromaKey, chromaSuffix, pickChromaKey } from '../chroma.js';
 import type { CutoutFn, CutoutResult } from '../cutout.js';
 import { Gemini, type InlineImage, PRICE, TIERS, type Tier } from '../gemini.js';
+import { EDGE_BAND, EDGE_LIMIT, edgeContact } from '../edge.js';
 import { dimensions, postProcess } from '../post.js';
 import {
   CREATURE_SIZES,
@@ -167,6 +168,8 @@ export interface RenderOutput {
   chromaKey?: ChromaKey;
   plate?: string;
   cutout?: Omit<CutoutResult, 'file' | 'width' | 'height'>;
+  /** Tokens only: the first render clipped the subject at the edge and was redone. */
+  edgeRetried?: boolean;
 }
 
 /** Render one image through the API, post-process it, write it, meter it; cut tokens. */
@@ -184,23 +187,53 @@ export async function render(deps: ToolDeps, input: RenderInput): Promise<Render
     prompt = `${prompt} ${chromaSuffix(chromaKey)}`;
   }
 
-  const result = await deps.gemini.generate({
-    tier: input.tier,
-    prompt,
-    images: input.images,
-    aspect: preset.aspect,
-    size: preset.size,
-  });
-  const png = await postProcess(result.image.data, preset.post);
   fs.mkdirSync(deps.outputDir, { recursive: true });
   const id = newId();
-  const estimatedUsd = deps.spend.record(input.tool, input.tier, preset.size);
+  const once = async () => {
+    const result = await deps.gemini.generate({
+      tier: input.tier,
+      prompt,
+      images: input.images,
+      aspect: preset.aspect,
+      size: preset.size,
+    });
+    const png = await postProcess(result.image.data, preset.post);
+    return { result, png, usd: deps.spend.record(input.tool, input.tier, preset.size) };
+  };
+
+  let { result, png, usd: estimatedUsd } = await once();
+  let edgeRetried: boolean | undefined;
+  if (input.kind === 'token' && chromaKey) {
+    // Nothing may clip off a token (owner rule 2026-09-24). A subject touching the plate edge
+    // is rendered once more; if that is clipped too, refuse rather than deliver it.
+    const clippedPath = (n: number) =>
+      path.join(deps.outputDir, `token-${slugOf(input.slug)}-${id}-clipped${n}.png`);
+    let contact = await edgeContact(png, chromaKey);
+    if (contact > EDGE_LIMIT) {
+      fs.writeFileSync(clippedPath(1), png);
+      const again = await once();
+      ({ result, png } = again);
+      estimatedUsd += again.usd;
+      edgeRetried = true;
+      contact = await edgeContact(png, chromaKey);
+      if (contact > EDGE_LIMIT) {
+        fs.writeFileSync(clippedPath(2), png);
+        throw new Error(
+          `Both renders clip the subject at the image edge (${contact} subject pixels in the ` +
+            `outer ${EDGE_BAND} px); a clipped token is never delivered. Kept for inspection: ` +
+            `${clippedPath(1)}, ${clippedPath(2)}. Spent about $${estimatedUsd.toFixed(2)}. ` +
+            'Describe a more compact pose (weapon held close, wings folded) and try again.'
+        );
+      }
+    }
+  }
   const base = {
     kind: input.kind,
     tier: input.tier,
     model: result.model,
     estimatedUsd,
     sessionEstimatedUsd: deps.spend.totalUsd,
+    ...(edgeRetried ? { edgeRetried } : {}),
   };
 
   if (input.kind === 'token' && chromaKey) {

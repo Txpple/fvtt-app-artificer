@@ -20,9 +20,12 @@ let cuts: CutoutOptions[];
 function fakeGemini(width = 1024, height = 1024): Gemini {
   sent = [];
   const fakeFetch = (async (url: any, init: any) => {
-    sent.push({ url: String(url), body: JSON.parse(init.body) });
+    const body = JSON.parse(init.body);
+    sent.push({ url: String(url), body });
+    // Answer on the plate colour the prompt asked for, as the real model does.
+    const asked = /chroma-key \w+ \((#[0-9A-F]{6})\)/.exec(body.contents[0].parts.at(-1).text)?.[1];
     const data = (
-      await sharp({ create: { width, height, channels: 3, background: '#00ff00' } })
+      await sharp({ create: { width, height, channels: 3, background: asked ?? '#00ff00' } })
         .jpeg()
         .toBuffer()
     ).toString('base64');
@@ -59,6 +62,38 @@ const fakeCutout: CutoutFn = async opts => {
     height: 512,
   };
 };
+
+/** A Gemini that answers with these plates in turn: 'clean' (flat green) or 'clipped'. */
+function sequenceGemini(plates: Array<'clean' | 'clipped'>): Gemini {
+  sent = [];
+  const fakeFetch = (async (url: any, init: any) => {
+    sent.push({ url: String(url), body: JSON.parse(init.body) });
+    const kind = plates[Math.min(sent.length - 1, plates.length - 1)];
+    const blade =
+      kind === 'clipped' ? '<rect x="480" y="300" width="60" height="760" fill="#c0c0c0"/>' : '';
+    const data = (
+      await sharp(
+        Buffer.from(
+          `<svg width="1024" height="1024"><rect width="1024" height="1024" fill="#00ff00"/>${blade}</svg>`
+        )
+      )
+        .jpeg()
+        .toBuffer()
+    ).toString('base64');
+    return new Response(
+      JSON.stringify({
+        candidates: [
+          {
+            finishReason: 'STOP',
+            content: { parts: [{ inlineData: { mimeType: 'image/jpeg', data } }] },
+          },
+        ],
+      }),
+      { status: 200 }
+    );
+  }) as typeof fetch;
+  return new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
+}
 
 function build(gemini = fakeGemini()) {
   const spend = new SpendMeter();
@@ -206,6 +241,38 @@ describe('generate-image', () => {
     // Without a pose reference the framing is still appended.
     await dispatch('generate-image', { kind: 'token', prompt: 'a bear', slug: 'bear' });
     expect(sent[1].body.contents[0].parts.at(-1).text).toContain(TOKEN_FRAMING);
+  });
+
+  it('tokens: a render that clips at the edge is redone once, and both calls are billed', async () => {
+    const { dispatch, spend } = build(sequenceGemini(['clipped', 'clean']));
+    const r: any = await dispatch('generate-image', { kind: 'token', prompt: 'a knight', slug: 'k' });
+    expect(sent).toHaveLength(2);
+    expect(r.edgeRetried).toBe(true);
+    expect(r.estimatedUsd).toBeCloseTo(0.134);
+    expect(spend.totalUsd).toBeCloseTo(0.134);
+    expect(cuts).toHaveLength(1);
+    expect(fs.readdirSync(tmp).some(f => /^token-k-[0-9a-f]{8}-clipped1\.png$/.test(f))).toBe(true);
+  });
+
+  it('tokens: two clipped renders are refused, never cut or delivered', async () => {
+    const { dispatch } = build(sequenceGemini(['clipped', 'clipped']));
+    await expect(
+      dispatch('generate-image', { kind: 'token', prompt: 'a knight', slug: 'k2' })
+    ).rejects.toThrow(/Both renders clip the subject.*never delivered/);
+    expect(sent).toHaveLength(2);
+    expect(cuts).toHaveLength(0);
+  });
+
+  it('tokens: a clean first render is delivered with no retry', async () => {
+    const { dispatch } = build(sequenceGemini(['clean']));
+    const r: any = await dispatch('generate-image', { kind: 'token', prompt: 'a knight', slug: 'k3' });
+    expect(sent).toHaveLength(1);
+    expect(r.edgeRetried).toBeUndefined();
+  });
+
+  it('tokens: the framing and the edit keep line both forbid clipping at the edge', () => {
+    expect(TOKEN_FRAMING).toMatch(/weapon.*inside the frame.*nothing touches or crosses the edge/);
+    expect(TOKEN_EDIT_KEEP).toMatch(/weapons included, inside the frame/);
   });
 
   it('tokens: switches the plate to magenta when the reference subject is green', async () => {

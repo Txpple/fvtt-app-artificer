@@ -54,7 +54,8 @@ export const EDIT_PREAMBLE =
  * otherwise repaints as part of the figure; one sentence removes it (bronze dragon, same day).
  */
 export const TOKEN_EDIT_KEEP =
-  'Keep the face, hair, and the top-down token angle. Remove any cast shadow.';
+  'Keep the face, hair, and the top-down token angle. Remove any cast shadow. Keep the whole ' +
+  'figure, weapons included, inside the frame with a margin on every side; nothing crosses the edge.';
 
 /** Assemble the edit prompt for a kind. The token plate sentence is appended later by render(). */
 export function editPrompt(kind: Kind, instruction: string, refs: Reference[]): string {

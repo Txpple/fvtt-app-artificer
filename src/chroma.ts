@@ -29,7 +29,7 @@ export function chromaSuffix(key: ChromaKey): string {
  * Channel-dominance tests mirroring the cutout script's own key metrics, so "would be keyed"
  * here means the same thing it does in the script. Threshold 40 ≈ the script's floor.
  */
-function dominance(key: ChromaKey, r: number, g: number, b: number): number {
+export function dominance(key: ChromaKey, r: number, g: number, b: number): number {
   switch (key) {
     case 'green':
       return g - Math.max(r, b);

@@ -253,7 +253,13 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    gap in the library from a token that has the right shape.
    **Glow and aura effects are a cutout weak spot**: a soft glow painted over the chroma plate
    picks up the plate colour (an electric eel's yellow lightning came back fringed pink on a
-   magenta plate). Read the magenta preview hard on anything with lightning, fire, or an aura. **Read the file name first; it is prompt material.** The owner's token library
+   magenta plate). Read the magenta preview hard on anything with lightning, fire, or an aura.
+   **Nothing ever clips off a token (owner rule 2026-09-24).** The tool re-renders a token whose
+   subject touches the frame edge and refuses after a second clip; when it refuses, rewrite the
+   prompt with a compact pose (weapon held close to the body, wings folded, tail curled in)
+   rather than retrying the same words. Check the edge in every flaw pass anyway: a long spear
+   or a whip can reach the margin without crossing it.
+   **Read the file name first; it is prompt material.** The owner's token library
    (`D:\Workshelf\Assets\FVTT\Tokens\Token Library`) names files `Category - Subject`:
    the category is the creature type ("Fiend -", "Undead -", "Giant -"), `M_` / `F_` is the
    gender, and the words after it are the role or variant ("archer", "Ripper", "Pale_brute",
