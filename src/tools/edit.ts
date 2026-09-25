@@ -3,11 +3,12 @@
 
 import { z } from 'zod';
 import { toInputSchema } from '../utils/schema.js';
-import { PRESETS } from '../presets.js';
+import { type Kind, PRESETS } from '../presets.js';
 import {
   confirmProSchema,
   kindSchema,
   loadImage,
+  type Reference,
   referencePreamble,
   referenceSchema,
   render,
@@ -43,6 +44,29 @@ export const EDIT_PREAMBLE =
   'Image 1 is the SOURCE image to edit. Keep the same subject, identity, pose, camera angle, ' +
   'composition, and rendering style exactly. Change ONLY what the instruction says. ';
 
+/**
+ * Token edits go out light, the way the owner prompts the native app: the instruction, one keep
+ * line, the plate. No strict preamble, no re-stated framing (the source already carries the
+ * pitch). Chosen over the full wording in the elf A/B (2026-09-24): it redesigned more boldly
+ * and held face, hair, and angle just as well.
+ */
+export const TOKEN_EDIT_KEEP = 'Keep the face, hair, and the top-down token angle.';
+
+/** Assemble the edit prompt for a kind. The token plate sentence is appended later by render(). */
+export function editPrompt(kind: Kind, instruction: string, refs: Reference[]): string {
+  // Shift reference numbering past the source image.
+  const preamble = referencePreamble(refs).replace(
+    /Image (\d+)/g,
+    (_, n) => `Image ${Number(n) + 1}`
+  );
+  if (kind === 'token') {
+    const source = refs.length ? 'Image 1 is the token to edit. ' : '';
+    return `${source}${preamble}${instruction.trim().replace(/[.\s]+$/, '')}. ${TOKEN_EDIT_KEEP}`;
+  }
+  const suffix = PRESETS[kind].suffix;
+  return `${EDIT_PREAMBLE}${preamble}Instruction: ${instruction.trim()}${suffix ? ` ${suffix}` : ''}`;
+}
+
 export class EditImageTool {
   constructor(private readonly deps: ToolDeps) {}
 
@@ -53,7 +77,9 @@ export class EditImageTool {
         description:
           'Edit an existing image with one instruction while keeping identity, pose, angle, and ' +
           'style. Flash for every kind (pro was no better at fixes and re-cropped once). ' +
-          'Tokens get the chroma plate re-applied so they can be cut again. Returns the new ' +
+          'Tokens are prompted light (your instruction as you would type it in the Gemini app, ' +
+          'plus a keep-face/hair/angle line), put back on a chroma plate keyed to the token\'s ' +
+          'own colours, and cut to alpha on the 512 square in the same call. Returns the new ' +
           'file path, dimensions, and estimated spend.',
         inputSchema: toInputSchema(editImageSchema),
       },
@@ -66,13 +92,7 @@ export class EditImageTool {
     const tier = resolveTier(p.kind, p.tier ?? 'flash', p.confirmPro);
     const refs = (p.references ?? []).map(r => ({ ...r }));
     const images = [loadImage(p.sourceImage), ...refs.map(r => loadImage(r.path))];
-    // Shift reference numbering past the source image.
-    const preamble = referencePreamble(refs).replace(
-      /Image (\d+)/g,
-      (_, n) => `Image ${Number(n) + 1}`
-    );
-    const suffix = PRESETS[p.kind].suffix;
-    const prompt = `${EDIT_PREAMBLE}${preamble}Instruction: ${p.instruction.trim()}${suffix ? ` ${suffix}` : ''}`;
+    const prompt = editPrompt(p.kind, p.instruction, refs);
     return render(this.deps, {
       tool: 'edit-image',
       kind: p.kind,

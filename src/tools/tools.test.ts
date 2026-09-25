@@ -7,7 +7,8 @@ import type { CutoutFn, CutoutOptions } from '../cutout.js';
 import { Gemini } from '../gemini.js';
 import { buildToolRegistry } from '../registry.js';
 import { SpendMeter } from '../spend.js';
-import { EDIT_PREAMBLE } from './edit.js';
+import { TOKEN_FRAMING } from '../presets.js';
+import { EDIT_PREAMBLE, TOKEN_EDIT_KEEP } from './edit.js';
 import { referencePreamble, resolveTier } from './shared.js';
 
 let tmp: string;
@@ -242,13 +243,41 @@ describe('edit-image', () => {
     const parts = sent[0].body.contents[0].parts;
     expect(parts).toHaveLength(3);
     const text = parts[2].text;
-    expect(text.startsWith(EDIT_PREAMBLE)).toBe(true);
-    expect(text).toContain('Image 2 is a STYLE reference');
-    expect(text).toContain('Instruction: swap the sword for a maul');
+    expect(text).toMatch(/^Image 1 is the token to edit\. Image 2 is a STYLE reference/);
+    expect(text).toContain(`swap the sword for a maul. ${TOKEN_EDIT_KEEP}`);
     expect(text).toContain('chroma-key green');
     expect(r.tier).toBe('flash');
     expect(path.basename(r.file)).toMatch(/^token-morgash-[0-9a-f]{8}\.png$/);
     expect(cuts).toHaveLength(1);
+  });
+
+  it('prompts token edits light: instruction, keep line, plate; no strict preamble or framing', async () => {
+    const { dispatch } = build();
+    await dispatch('edit-image', {
+      sourceImage: refPng,
+      instruction: 'give this elf a sword and armor instead.',
+      kind: 'token',
+      slug: 'elf',
+    });
+    const text = sent[0].body.contents[0].parts[1].text;
+    expect(text).toMatch(
+      new RegExp(`^give this elf a sword and armor instead\\. ${TOKEN_EDIT_KEEP} The ENTIRE image background`)
+    );
+    expect(text).not.toContain(EDIT_PREAMBLE);
+    expect(text).not.toContain(TOKEN_FRAMING);
+  });
+
+  it('keeps the strict preamble for non-token edits', async () => {
+    const { dispatch } = build();
+    await dispatch('edit-image', {
+      sourceImage: refPng,
+      instruction: 'remove the second fireball',
+      kind: 'illustration',
+      slug: 'x',
+    });
+    const text = sent[0].body.contents[0].parts[1].text;
+    expect(text.startsWith(EDIT_PREAMBLE)).toBe(true);
+    expect(text).toContain('Instruction: remove the second fireball');
   });
 
   it('samples the SOURCE token for the key: a green source gets a magenta plate', async () => {

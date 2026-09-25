@@ -218,7 +218,10 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    and style (an orc token took new plate armour and a crackling maul in one pass). Re-generate
    only when the composition or the identity is wrong. Editing an existing WORLD token is the
    normal way to change a PC's gear: source the token file, describe the change, and the result
-   is already cut.
+   is already cut. **Write token edits the way the owner types in the Gemini app**: one plain
+   sentence ("give this elf a sword and armor instead"), no "keep everything identical", no
+   angle or background words. The tool adds a keep-face/hair/angle line and a plate keyed to
+   the token's colours; a light prompt beat the strict wording in the elf A/B (2026-09-24).
 6. **Self-review is mandatory before showing portrait or illustration art** (owner rules
    2026-08-26 and 2026-09-19): generate → Read (canon, then the flaw pass) → edit or re-generate
    → Read again. Never show a render whose flaw pass you skipped; the owner found a second
