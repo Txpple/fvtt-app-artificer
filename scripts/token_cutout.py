@@ -17,6 +17,7 @@ RGBA PNG ready to drop on a VTT.
         [--pad PCT]                    # transparent margin around the subject, % of the edge (default 4)
         [--no-trim]                    # letterbox the whole source into the square instead of
                                        #   tightening to the subject's alpha bounding box
+        [--drop-shadow]                # add the world tokens' soft cast shadow under the cut
 
 Always writes a SQUARE 512x512 RGBA PNG (default: INPUT with a .png extension, never
 overwriting the source) plus INPUT_preview.png — the cutout composited over magenta so any
@@ -41,7 +42,7 @@ import argparse
 import os
 import sys
 
-from PIL import Image
+from PIL import Image, ImageFilter
 import numpy as np
 
 
@@ -111,6 +112,42 @@ def via_rembg(src):
     return a[..., :3], a[..., 3] / 255.0
 
 
+# The world tokens' baked shadow, measured off the owner's elf cleric token (2026-09-24): a
+# hard-edged near-black silhouette of the figure at ~38% opacity, cast right and down by about
+# 3.8% / 2.1% of the subject's longer side (18 px / 10 px on a 512 token).
+SHADOW_RGB = (15, 14, 14)
+SHADOW_OPACITY = 0.38
+SHADOW_DX = 0.038
+SHADOW_DY = 0.021
+SHADOW_BLUR = 0.004
+
+
+def add_drop_shadow(img, trim=True):
+    """Composite the house drop shadow under an RGBA cutout.
+
+    Offsets scale with the subject (its alpha bbox when `trim`), so the shadow reads the same at
+    any source resolution. The canvas grows right and down by the offset so the fit that follows
+    keeps the whole shadow in frame instead of clipping it.
+    """
+    box = img.getbbox() if trim else None
+    if box:
+        img = img.crop(box)
+    w, h = img.size
+    m = max(w, h)
+    dx, dy = max(1, round(m * SHADOW_DX)), max(1, round(m * SHADOW_DY))
+    alpha = img.getchannel("A").point(lambda v: round(v * SHADOW_OPACITY))
+    blur = m * SHADOW_BLUR
+    if blur >= 0.5:
+        alpha = alpha.filter(ImageFilter.GaussianBlur(blur))
+    shadow = Image.new("RGBA", (w, h), SHADOW_RGB + (0,))
+    shadow.putalpha(alpha)
+    canvas = Image.new("RGBA", (w + dx, h + dy), (0, 0, 0, 0))
+    canvas.paste(shadow, (dx, dy))
+    subject = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    subject.paste(img, (0, 0))
+    return Image.alpha_composite(canvas, subject)
+
+
 def fit_square(img, edge, pad_pct=4.0, trim=True):
     """Center the cutout on a transparent square canvas of `edge` px, aspect preserved.
 
@@ -152,6 +189,8 @@ def main():
                     help="transparent margin around the subject, %% of the edge (default 4)")
     ap.add_argument("--no-trim", action="store_true",
                     help="letterbox the whole source instead of tightening to the alpha bbox")
+    ap.add_argument("--drop-shadow", action="store_true",
+                    help="composite the world tokens' cast shadow under the cut")
     args = ap.parse_args()
 
     src = Image.open(args.input).convert("RGB")
@@ -188,6 +227,10 @@ def main():
     rgb[alpha <= 0.004] = 0.0            # neutralize fully-keyed pixels (no bleed on scale)
     rgba = np.dstack([rgb, alpha * 255.0]).astype(np.uint8)
     out = Image.fromarray(rgba, "RGBA")
+    if args.drop_shadow:
+        # Before the fit, so the square frames subject + shadow together; the coverage figure
+        # below still reads the matte alone.
+        out = add_drop_shadow(out, trim=not args.no_trim)
     if args.size > 0:
         out = fit_square(out, args.size, pad_pct=args.pad, trim=not args.no_trim)
     out.save(out_path)

@@ -14,6 +14,7 @@ describe('buildArgs', () => {
       method: 'chroma',
       color: 'magenta',
       keepShadow: true,
+      dropShadow: true,
       erode: 2,
       size: 256,
       padPct: 8,
@@ -28,6 +29,7 @@ describe('buildArgs', () => {
       '--color',
       'FF00FF',
       '--keep-shadow',
+      '--drop-shadow',
       '--erode',
       '2',
       '--size',
@@ -114,6 +116,46 @@ describe.skipIf(!havePython)('makeCutout (real script)', () => {
     expect(cut.method).toBe('chroma');
     expect(cut.fellBackToRembg).toBeUndefined();
     expect(cut.coveragePct).toBeGreaterThan(20);
+  });
+
+  it('drops a dark, partly transparent shadow down-right of the subject, inside the square', async () => {
+    const plate = path.join(tmp, 'plate3.png');
+    const disc = Buffer.from(
+      '<svg width="200" height="200"><rect width="200" height="200" fill="#00ff00"/>' +
+        '<circle cx="100" cy="100" r="60" fill="#808080"/></svg>'
+    );
+    fs.writeFileSync(plate, await sharp(disc).png().toBuffer());
+    const cut = await makeCutout('python')({
+      input: plate,
+      output: path.join(tmp, 'cut3.png'),
+      method: 'chroma',
+      color: 'green',
+      dropShadow: true,
+    });
+    // Coverage still measures the matte alone, not matte + shadow.
+    expect(cut.coveragePct).toBeLessThan(40);
+    const { data, info } = await sharp(cut.file).raw().toBuffer({ resolveWithObject: true });
+    const px = (x: number, y: number) => {
+      const i = (y * info.width + x) * 4;
+      return { rgb: Math.max(data[i], data[i + 1], data[i + 2]), a: data[i + 3] };
+    };
+    // Scan the diagonal from the centre toward the bottom-right corner: disc, then shadow, then clear.
+    let shadow = 0;
+    let lastA = 255;
+    for (let t = 256; t < 512; t++) {
+      const p = px(t, t);
+      if (p.a > 40 && p.a < 160 && p.rgb < 40) shadow++;
+      lastA = p.a;
+    }
+    expect(shadow).toBeGreaterThan(3);
+    expect(lastA).toBe(0); // the fit kept the shadow off the canvas edge
+    // Nothing is cast up-left: the opposite diagonal goes disc → clear with no dark band.
+    let upLeft = 0;
+    for (let t = 255; t >= 0; t--) {
+      const p = px(t, t);
+      if (p.a > 40 && p.a < 160 && p.rgb < 40) upLeft++;
+    }
+    expect(upLeft).toBe(0);
   });
 
   it('refuses a missing input before spawning', async () => {

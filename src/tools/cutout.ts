@@ -29,6 +29,14 @@ const cutoutSchema = z.object({
       'Chroma key colour: "green", "magenta", "blue", or #RRGGBB. Omit to sample the corners.'
     ),
   keepShadow: z.boolean().optional().describe('chroma only: keep a cast shadow on the plate.'),
+  dropShadow: z
+    .boolean()
+    .optional()
+    .describe(
+      "Add the world tokens' soft cast shadow (dark silhouette, ~38%, down-right) under the " +
+        'cut. Off by default here since outside art may carry its own; the token kind of ' +
+        'generate-image / edit-image always adds it.'
+    ),
   erode: z
     .number()
     .int()
@@ -86,6 +94,7 @@ export class CutoutImageTool {
       method: p.method ?? 'auto',
       ...(p.color ? { color: p.color } : {}),
       ...(p.keepShadow ? { keepShadow: true } : {}),
+      ...(p.dropShadow ? { dropShadow: true } : {}),
       ...(p.erode !== undefined ? { erode: p.erode } : {}),
       ...(p.size !== undefined ? { size: p.size } : {}),
       ...(p.padPct !== undefined ? { padPct: p.padPct } : {}),

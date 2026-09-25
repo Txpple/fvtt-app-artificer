@@ -25,6 +25,8 @@ export interface CutoutOptions {
   /** Chroma key colour as #RRGGBB or a named key; omitted = the script samples the corners. */
   color?: string | ChromaKey;
   keepShadow?: boolean;
+  /** Composite the world tokens' cast shadow under the cut (before the square fit). */
+  dropShadow?: boolean;
   erode?: number;
   /** Square canvas edge; 0 keeps the source canvas. Default 512 (Foundry scale 1.0). */
   size?: number;
@@ -55,6 +57,7 @@ export function buildArgs(opts: CutoutOptions): string[] {
     args.push('--color', hex.replace(/^#/, ''));
   }
   if (opts.keepShadow) args.push('--keep-shadow');
+  if (opts.dropShadow) args.push('--drop-shadow');
   if (opts.erode && opts.erode > 0) args.push('--erode', String(opts.erode));
   if (opts.size !== undefined) args.push('--size', String(opts.size));
   if (opts.padPct !== undefined) args.push('--pad', String(opts.padPct));

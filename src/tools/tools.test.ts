@@ -154,7 +154,7 @@ describe('generate-image', () => {
     expect(parts[1].text).toContain('chroma-key green (#00FF00)');
     expect(r.chromaKey).toBe('green');
     expect(cuts).toHaveLength(1);
-    expect(cuts[0]).toMatchObject({ color: 'green', size: 512, method: 'auto' });
+    expect(cuts[0]).toMatchObject({ color: 'green', size: 512, method: 'auto', dropShadow: true });
     expect(path.basename(cuts[0].input)).toMatch(/^token-goblin-[0-9a-f]{8}-plate\.png$/);
     expect(path.basename(r.file)).toMatch(/^token-goblin-[0-9a-f]{8}\.png$/);
     expect(r).toMatchObject({
@@ -326,6 +326,7 @@ describe('cutout-image', () => {
       erode: 1,
       padPct: 8,
       trim: false,
+      dropShadow: true,
     });
     expect(r.file).toBe(path.join(tmp, 'ref-cut.png'));
     expect(cuts[0]).toMatchObject({
@@ -335,7 +336,14 @@ describe('cutout-image', () => {
       erode: 1,
       padPct: 8,
       trim: false,
+      dropShadow: true,
     });
+  });
+
+  it('leaves the drop shadow off by default for outside art', async () => {
+    const { dispatch } = build();
+    await dispatch('cutout-image', { sourceImage: refPng });
+    expect(cuts[0].dropShadow).toBeUndefined();
   });
 
   it('rejects an output equal to the source and a bad colour', async () => {
