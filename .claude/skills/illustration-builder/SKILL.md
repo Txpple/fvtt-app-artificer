@@ -232,6 +232,16 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    drifted the palette and lost the glowing eyes), and never ask for rim light, glow, or an
    outline on a token: they come through the cut as a fringe. Do not write "remove shadows" or
    "white background"; the tool appends the shadow line and the chroma plate itself.
+   **A refresh only works on a good source.** An edit keeps the source's drawing, so a weak
+   token (flat shading, stiff pose, clip-art proportions: most of the `_Free & Lower Quality`
+   shelf) comes back as the same weak drawing with sharper lines (20-token test, 2026-09-24).
+   **Replace those instead**: `generate-image` `kind: "token"`, a prompt that describes what the
+   old token shows (species, build, hair, gear, colours, pose), and ONE good world token
+   attached as `role: "style"`. **Do not attach the old token.** As a character reference it
+   either pulled the weak drawing straight back (guard commander) or confused the model into
+   copying the STYLE token's subject instead (a wizard and a harpy both came back with the drow
+   style token's purple skin, gold-trimmed armour, and blade). The words carry the old token's
+   identity; the style token carries the look.
 6. **Self-review is mandatory before showing portrait or illustration art** (owner rules
    2026-08-26 and 2026-09-19): generate → Read (canon, then the flaw pass) → edit or re-generate
    → Read again. Never show a render whose flaw pass you skipped; the owner found a second
