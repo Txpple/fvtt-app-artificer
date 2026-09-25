@@ -222,6 +222,16 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    sentence ("give this elf a sword and armor instead"), no "keep everything identical", no
    angle or background words. The tool adds a keep-face/hair/angle line and a plate keyed to
    the token's colours; a light prompt beat the strict wording in the elf A/B (2026-09-24).
+   **Refreshing an old low-res token** ("upscale this", "give it a painterly pass") is the same
+   call with this instruction shape, proven on the bronze dragon (2026-09-24):
+   `give an updated and upscaled painterly style. Sharpen and refine every detail: <three or
+   four details named for THIS subject>, clean confident edges, no blur or pixelation`.
+   Read the token first and name what it has: scales, claws and spines for a dragon; fabric
+   folds, fingers and facial features for a person; fur and teeth for a beast. Ask for existing
+   detail to be *sharpened*, never for new detail to be *added* ("redraw", "add fine texture"
+   drifted the palette and lost the glowing eyes), and never ask for rim light, glow, or an
+   outline on a token: they come through the cut as a fringe. Do not write "remove shadows" or
+   "white background"; the tool appends the shadow line and the chroma plate itself.
 6. **Self-review is mandatory before showing portrait or illustration art** (owner rules
    2026-08-26 and 2026-09-19): generate → Read (canon, then the flaw pass) → edit or re-generate
    → Read again. Never show a render whose flaw pass you skipped; the owner found a second
