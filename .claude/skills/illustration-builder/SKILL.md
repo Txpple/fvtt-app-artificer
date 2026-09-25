@@ -277,6 +277,12 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    prompt with a compact pose (weapon held close to the body, wings folded, tail curled in)
    rather than retrying the same words. Check the edge in every flaw pass anyway: a long spear
    or a whip can reach the margin without crossing it.
+   **Long thin objects shrink under the margin rule**: "a flying longsword" came back as a small
+   upright dagger (2026-09-24). Say the length and the lay explicitly: "a long two-handed
+   longsword, laid diagonally from one corner of the frame to the other".
+   **Glows**: the tool moves any prompt with a glow word (glowing, fire, lightning, sigil, aura)
+   off the magenta plate; a see-through glow still mixes in some plate colour, so a gold sigil
+   can come back a touch yellower. Name its colour in the instruction.
    **Read the file name first; it is prompt material.** The owner's token library
    (`D:\Workshelf\Assets\FVTT\Tokens\Token Library`) names files `Category - Subject`:
    the category is the creature type ("Fiend -", "Undead -", "Giant -"), `M_` / `F_` is the

@@ -1,6 +1,6 @@
 {
   "name": "fvtt-app-artificer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Foundry-specific image-generation app backed by the Gemini image API, driven by Claude Code.",
   "private": true,
   "type": "module",
