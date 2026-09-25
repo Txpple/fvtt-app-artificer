@@ -31,9 +31,9 @@ describe('scoreKeys / pickChromaKey', () => {
     expect(await pickChromaKey([await solid('#b040c0')])).toBe('green');
   });
 
-  it('defaults to green for neutral subjects and for no samples at all', async () => {
-    expect(await pickChromaKey([await solid('#888888')])).toBe('green');
-    expect(await pickChromaKey([])).toBe('green');
+  it('defaults to magenta for neutral subjects and for no samples at all', async () => {
+    expect(await pickChromaKey([await solid('#888888')])).toBe('magenta');
+    expect(await pickChromaKey([])).toBe('magenta');
   });
 
   it('takes the worst case across several samples', async () => {
@@ -43,11 +43,12 @@ describe('scoreKeys / pickChromaKey', () => {
 
   it('ignores transparent pixels when sampling', async () => {
     const mostlyClear = await sharp({
-      create: { width: 16, height: 16, channels: 4, background: { r: 0, g: 255, b: 0, alpha: 0 } },
+      create: { width: 16, height: 16, channels: 4, background: { r: 255, g: 0, b: 255, alpha: 0 } },
     })
       .png()
       .toBuffer();
-    expect(await pickChromaKey([mostlyClear])).toBe('green');
+    // Invisible magenta must not push the pick off the magenta default.
+    expect(await pickChromaKey([mostlyClear])).toBe('magenta');
   });
 });
 
@@ -76,7 +77,7 @@ describe('scorePrompt / pickChromaKey with a prompt', () => {
   it('argues against each key from the prompt alone', async () => {
     expect(await pickChromaKey([], 'a purple-robed sorcerer')).toBe('green');
     expect(await pickChromaKey([], 'a green goblin in a purple hood')).toBe('blue');
-    expect(await pickChromaKey([], 'green skin, blue cloak, magenta trim')).toBe('green');
+    expect(await pickChromaKey([], 'green skin, blue cloak, magenta trim')).toBe('magenta');
   });
 
   it('combines prompt evidence with sampled evidence, worst case per key', async () => {
@@ -86,7 +87,7 @@ describe('scorePrompt / pickChromaKey with a prompt', () => {
     expect(await pickChromaKey([await solid('#888888')], 'a green cloak')).toBe('magenta');
   });
 
-  it('keeps the green default for a colour-free prompt', async () => {
-    expect(await pickChromaKey([], 'a goblin scout with a rusty dagger')).toBe('green');
+  it('keeps the magenta default for a colour-free prompt', async () => {
+    expect(await pickChromaKey([], 'a goblin scout with a rusty dagger')).toBe('magenta');
   });
 });

@@ -63,18 +63,21 @@ const fakeCutout: CutoutFn = async opts => {
   };
 };
 
-/** A Gemini that answers with these plates in turn: 'clean' (flat green) or 'clipped'. */
+/** A Gemini that answers with these plates in turn: 'clean' (flat plate) or 'clipped'. */
 function sequenceGemini(plates: Array<'clean' | 'clipped'>): Gemini {
   sent = [];
   const fakeFetch = (async (url: any, init: any) => {
-    sent.push({ url: String(url), body: JSON.parse(init.body) });
+    const body = JSON.parse(init.body);
+    sent.push({ url: String(url), body });
     const kind = plates[Math.min(sent.length - 1, plates.length - 1)];
+    const bg =
+      /chroma-key \w+ \((#[0-9A-F]{6})\)/.exec(body.contents[0].parts.at(-1).text)?.[1] ?? '#FF00FF';
     const blade =
       kind === 'clipped' ? '<rect x="480" y="300" width="60" height="760" fill="#c0c0c0"/>' : '';
     const data = (
       await sharp(
         Buffer.from(
-          `<svg width="1024" height="1024"><rect width="1024" height="1024" fill="#00ff00"/>${blade}</svg>`
+          `<svg width="1024" height="1024"><rect width="1024" height="1024" fill="${bg}"/>${blade}</svg>`
         )
       )
         .jpeg()
@@ -180,7 +183,7 @@ describe('generate-image', () => {
     expect(cuts).toHaveLength(0);
   });
 
-  it('tokens: picks green for a neutral reference, appends framing + plate, then cuts to 512', async () => {
+  it('tokens: picks magenta for a neutral reference, appends framing + plate, then cuts to 512', async () => {
     const { dispatch } = build();
     const r: any = await dispatch('generate-image', {
       kind: 'token',
@@ -193,10 +196,10 @@ describe('generate-image', () => {
     expect(parts[0].inline_data.mime_type).toBe('image/png');
     expect(parts[1].text).toMatch(/^Image 1 \(Morgash token\) is a STYLE reference/);
     expect(parts[1].text).toContain('fifteen degrees off vertical');
-    expect(parts[1].text).toContain('chroma-key green (#00FF00)');
-    expect(r.chromaKey).toBe('green');
+    expect(parts[1].text).toContain('chroma-key magenta (#FF00FF)');
+    expect(r.chromaKey).toBe('magenta');
     expect(cuts).toHaveLength(1);
-    expect(cuts[0]).toMatchObject({ color: 'green', size: 512, method: 'auto' });
+    expect(cuts[0]).toMatchObject({ color: 'magenta', size: 512, method: 'auto' });
     expect(cuts[0].dropShadow).toBeUndefined();
     expect(path.basename(cuts[0].input)).toMatch(/^token-goblin-[0-9a-f]{8}-plate\.png$/);
     expect(path.basename(r.file)).toMatch(/^token-goblin-[0-9a-f]{8}\.png$/);
@@ -355,7 +358,7 @@ describe('edit-image', () => {
     const text = parts[2].text;
     expect(text).toMatch(/^Image 1 is the token to edit\. Image 2 is a STYLE reference/);
     expect(text).toContain(`swap the sword for a maul. ${TOKEN_EDIT_KEEP}`);
-    expect(text).toContain('chroma-key green');
+    expect(text).toContain('chroma-key magenta');
     expect(r.tier).toBe('flash');
     expect(path.basename(r.file)).toMatch(/^token-morgash-[0-9a-f]{8}\.png$/);
     expect(cuts).toHaveLength(1);

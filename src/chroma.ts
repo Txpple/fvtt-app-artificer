@@ -14,7 +14,10 @@ export const CHROMA_KEYS = {
 } as const;
 export type ChromaKey = keyof typeof CHROMA_KEYS;
 
-const KEY_ORDER: ChromaKey[] = ['green', 'magenta', 'blue'];
+// Magenta first (owner-approved 2026-09-24): soft edges keep a trace of the plate, and most
+// tokens are warm (skin, hair, fur, leather, wood, gold), where a green fringe reads as olive
+// and a blue one as purple while a magenta one reads as a dark outline. Squirrel, three plates.
+const KEY_ORDER: ChromaKey[] = ['magenta', 'green', 'blue'];
 
 /** The proven plate sentence (M0 spike), parameterised by key. Keep the structure verbatim. */
 export function chromaSuffix(key: ChromaKey): string {
@@ -127,8 +130,8 @@ export async function scoreKeys(image: Buffer): Promise<KeyScore[]> {
 
 /**
  * Pick the safest key across the prompt and all sample images (worst case per key wins). Ties
- * keep the fixed order green → magenta → blue, so green stays the default when nothing argues
- * against it.
+ * keep the fixed order magenta → green → blue, so magenta stays the default when nothing
+ * argues against it.
  */
 export async function pickChromaKey(samples: Buffer[], prompt = ''): Promise<ChromaKey> {
   const worst: Record<ChromaKey, number> = { green: 0, magenta: 0, blue: 0 };
@@ -136,7 +139,7 @@ export async function pickChromaKey(samples: Buffer[], prompt = ''): Promise<Chr
   for (const s of samples) {
     for (const { key, risk } of await scoreKeys(s)) worst[key] = Math.max(worst[key], risk);
   }
-  let best: ChromaKey = 'green';
+  let best: ChromaKey = 'magenta';
   for (const key of KEY_ORDER) if (worst[key] < worst[best]) best = key;
   return best;
 }
