@@ -88,6 +88,56 @@ describe('Gemini client', () => {
     expect((calls[0].init.headers as any)['x-goog-api-key']).toBe('k');
   });
 
+  it('retries an IMAGE_SAFETY finish once and returns the second answer', async () => {
+    let n = 0;
+    const fakeFetch = (async () =>
+      ++n === 1
+        ? okResponse({ candidates: [{ finishReason: 'IMAGE_SAFETY', content: { parts: [] } }] })
+        : okResponse({
+            candidates: [
+              {
+                finishReason: 'STOP',
+                content: { parts: [{ inlineData: { mimeType: 'image/jpeg', data: tinyJpegB64 } }] },
+              },
+            ],
+          })) as typeof fetch;
+    const g = new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
+    const r = await g.generate({ tier: 'flash', prompt: 'a harpy', aspect: '1:1', size: '1K' });
+    expect(r.finishReason).toBe('STOP');
+    expect(n).toBe(2);
+  });
+
+  it('gives up after a second IMAGE_SAFETY and says it retried', async () => {
+    let n = 0;
+    const fakeFetch = (async () => {
+      n++;
+      return okResponse({ candidates: [{ finishReason: 'IMAGE_SAFETY', content: { parts: [] } }] });
+    }) as typeof fetch;
+    const g = new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
+    await expect(
+      g.generate({ tier: 'flash', prompt: 'x', aspect: '1:1', size: '1K' })
+    ).rejects.toThrow(/IMAGE_SAFETY.*blocked twice; retried once/);
+    expect(n).toBe(2);
+  });
+
+  it('does not retry a prompt block or an HTTP error', async () => {
+    for (const body of [
+      okResponse({ promptFeedback: { blockReason: 'SAFETY' } }),
+      okResponse({ error: { message: 'quota' } }, 429),
+    ]) {
+      let n = 0;
+      const fakeFetch = (async () => {
+        n++;
+        return body.clone();
+      }) as typeof fetch;
+      const g = new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
+      await expect(
+        g.generate({ tier: 'flash', prompt: 'x', aspect: '1:1', size: '1K' })
+      ).rejects.toThrow();
+      expect(n).toBe(1);
+    }
+  });
+
   it('reports which of our two models the key can see', async () => {
     const fakeFetch = (async () =>
       okResponse({

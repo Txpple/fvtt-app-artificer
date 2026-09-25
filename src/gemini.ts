@@ -106,7 +106,26 @@ export class Gemini {
     return this.opts.apiKey.length > 0;
   }
 
+  /**
+   * One render. An IMAGE_SAFETY finish is retried once: the filter is not deterministic on the
+   * same input (a harpy token was blocked, then passed on the identical request, 2026-09-24).
+   * Prompt-level blocks and every other failure surface immediately.
+   */
   async generate(req: GenerateRequest): Promise<GenerateResult> {
+    try {
+      return await this.generateOnce(req);
+    } catch (e) {
+      if (!(e instanceof Error) || !/finishReason=IMAGE_SAFETY/.test(e.message)) throw e;
+      try {
+        return await this.generateOnce(req);
+      } catch (e2) {
+        if (e2 instanceof Error) e2.message = `${e2.message} (blocked twice; retried once)`;
+        throw e2;
+      }
+    }
+  }
+
+  private async generateOnce(req: GenerateRequest): Promise<GenerateResult> {
     if (!this.hasKey) throw new Error('GEMINI_API_KEY is not set in .env');
     const model = MODELS[req.tier];
     const res = await this.fetchFn(`${this.baseUrl}/models/${model}:generateContent`, {
