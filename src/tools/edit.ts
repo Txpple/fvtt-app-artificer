@@ -158,7 +158,7 @@ export class EditImageTool {
       const m = await sharp(images[0].data).metadata();
       const plan = padPlan(m.width ?? 1, m.height ?? 1);
       const source = images[0].data;
-      images[0] = { mimeType: 'image/png', data: await padSource(source, plan) };
+      images[0] = { mimeType: 'image/jpeg', data: await padSource(source, plan) };
       propFit = { aspect: plan.aspect, map: { source, plan } };
     } else if (p.kind === 'prop') {
       const m = await sharp(images[0].data).metadata();

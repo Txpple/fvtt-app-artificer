@@ -31,7 +31,9 @@ reference images or multi-turn editing. Only worth a `draft` tier if icon volume
   the same recipe, then the flaw pass on each. The Batch API (half price) fits: a pack can wait.
 - **Maps bigger than the render.** The API tops out at 4K (5504 px on the long side at 16:9), so
   the 9300×4710 Sanguine Dawn exterior or a 4200×14000 Mad Cartographer world tree comes back
-  upsampled and soft. Restyling in overlapping tiles would keep the detail but risks seams and a
+  upsampled and soft, and small details are reinterpreted more (FA's 72×95-cell Tomb of
+  Horrors at 50 px a cell: pews became bookshelves, a cavern a crater). The tool already caps
+  the upload at 4096 px. Restyling in overlapping tiles would keep the detail but risks seams and a
   style that wanders tile to tile; only worth trying when a wanted map is that big.
 - **File format.** A battlemap ships as PNG like every other kind, which is 20 to 40 MB at full
   size, where the bought originals are 1 to 4 MB JPEG or WebP. WebP for this one kind would suit

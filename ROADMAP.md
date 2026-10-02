@@ -131,3 +131,6 @@ style-ref pass or a Flash prefix is enough.
 - v0.4.0 (2026-08-28): house-style LoRA trained and shipped; four party portraits approved.
 - 2026-09-19: direction changed to the Gemini API; ComfyUI and everything local deleted.
 - v1.0.0 (2026-09-19): API rebuild shipped: four tools, per-subject chroma cut, Pro gate.
+- v1.1.0 (2026-09-24): token refreshes, props, the no-clipping guarantee.
+- v1.2.0 (2026-10-02): battlemap restyles with a layout-drift guard; proven on 14 maps from
+  Forgotten Adventures, Tom Cartos, and Mad Cartographer.

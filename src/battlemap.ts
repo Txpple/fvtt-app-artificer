@@ -42,10 +42,22 @@ export function padPlan(width: number, height: number): PadPlan {
   };
 }
 
-/** Pad the source to the plan's canvas with mirrored edges (a natural continuation, not a frame). */
+/**
+ * Long side of the canvas actually sent, in pixels. The model renders 4K at most, so a bigger
+ * upload adds nothing but request size: FA's Tomb of Horrors is 7200×9500 at 100 px per cell
+ * (2026-10-02). Scaling the canvas uniformly is safe because the API's cover-and-trim works in
+ * proportions; sourceRegion() never needs the sent size.
+ */
+export const MAP_UPLOAD_EDGE = 4096;
+
+/**
+ * Pad the source to the plan's canvas with mirrored edges (a natural continuation, not a frame),
+ * scaled down to MAP_UPLOAD_EDGE if bigger, as a high-quality JPEG.
+ */
 export async function padSource(source: Buffer, plan: PadPlan): Promise<Buffer> {
   const { padded, offset, source: s } = plan;
-  return sharp(source)
+  // Two pipelines: within one, sharp resizes before it extends.
+  const canvas = await sharp(source)
     .removeAlpha()
     .extend({
       left: offset.x,
@@ -55,6 +67,10 @@ export async function padSource(source: Buffer, plan: PadPlan): Promise<Buffer> 
       extendWith: 'mirror',
     })
     .png()
+    .toBuffer();
+  return sharp(canvas)
+    .resize(MAP_UPLOAD_EDGE, MAP_UPLOAD_EDGE, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 95 })
     .toBuffer();
 }
 

@@ -76,10 +76,29 @@ one, render again **from the original**, naming what must stay ("the fireplace i
 stone"). Do not edit the restyled result; each pass re-rolls the whole map. A drift refusal
 means the instruction asked for too much change; lighten it rather than retrying it.
 
-A bigger delivery should be fine for Foundry: a scene (v10+) draws its background at the
-scene's own dimensions, so walls still land. When installing, swap the background image only
-and leave the scene's width, height, and grid alone, and check one traced wall against its
-painted wall on the first install (not yet verified in a live world as of 2026-10-02). About 15
+What the 2026-10-02 set of 14 (Forgotten Adventures, Tom Cartos, Mad Cartographer) taught:
+- **Source file.** Use a pack's gridless file (Foundry draws its own grid) at the resolution
+  the scene already uses. FA ships 100 and 200 px-per-cell versions; the 100 one is the one the
+  render can match.
+- **Big and dense maps slip more.** The render tops out around 4800 px, so a 72×95-cell dungeon
+  gets about 50 px a cell, and small details are guessed: on FA's Tomb of Horrors the chapel pews
+  became bookshelves, a misty cavern a crater with a chest, blue pillar orbs orange candles, and
+  a compass rose appeared. For a dense dungeon, name the rooms that matter in the instruction
+  from the start ("the chapel keeps its wooden pews and blue-glowing altar").
+- **Strong source palettes survive.** FA's rainbow-void maps kept most of their colour; the
+  Feywild Throne's purple and teal forest went autumn. If a map's palette is its identity, say
+  so ("the forest stays fey purple and teal").
+- **Without "warm" a snow map barely changes.** Fine if that is the point.
+- **Google sometimes returns no image** (finishReason NO_IMAGE, nothing billed). Run it again
+  once.
+
+**Installing a restyled map** (molten5e): `upload-asset` the PNG to
+`worlds/<world>/assets/maps/<name>.png`, then `manage-scenes` `update` with `sceneIdentifier`
+and `backgroundPath` only. Never pass width, height, or gridSize: the walls are in the scene's
+own coordinates, and a scene (v10+) draws its background at the scene's dimensions, so a bigger
+or smaller file still lines up. Note the old background path first so the swap can be undone,
+and `screenshot-scene` afterwards to check a traced wall against its painted wall (first live
+install not yet done as of 2026-10-02). Only after the owner has approved the map. About 15
 cents a map, 30 with a drift retry.
 
 **Props** (owner's library: `D:\Workshelf\Assets\FVTT\Props`, mostly Tom Cartos at 300 px per

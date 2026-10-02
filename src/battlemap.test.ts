@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   deliveryScale,
   MAP_MARGIN,
+  MAP_UPLOAD_EDGE,
   mapBack,
   padPlan,
   padSource,
@@ -93,6 +94,33 @@ describe('mapBack', () => {
     const back = await mapBack(await apiCover(sent, 896, 1200), plan);
     expect(back.scale).toBe(1);
     expect(await sharp(back.png).metadata()).toMatchObject({ width: 450, height: 600 });
+    expect(await meanAbsDiff(src, back.png)).toBeLessThan(6);
+  });
+
+  it('sends a map bigger than the render scaled down, and still lands it on the source grid', async () => {
+    // A 6000x3600 map: rooms as rectangles and circles, so position errors show in the diff.
+    const shapes = Array.from({ length: 40 }, (_, i) => {
+      const x = (i * 733) % 5600;
+      const y = (i * 419) % 3300;
+      return i % 2
+        ? `<rect x="${x}" y="${y}" width="300" height="200" fill="#${(i * 97 + 300).toString(16).slice(-3)}"/>`
+        : `<circle cx="${x + 150}" cy="${y + 150}" r="140" fill="#${(i * 53 + 200).toString(16).slice(-3)}"/>`;
+    }).join('');
+    const src = await sharp(
+      Buffer.from(
+        `<svg width="6000" height="3600"><rect width="6000" height="3600" fill="#556"/>${shapes}</svg>`
+      )
+    )
+      .png()
+      .toBuffer();
+    const plan = padPlan(6000, 3600);
+    const sent = await padSource(src, plan);
+    const m = await sharp(sent).metadata();
+    expect(Math.max(m.width ?? 0, m.height ?? 0)).toBe(MAP_UPLOAD_EDGE);
+    expect(m.format).toBe('jpeg');
+    const back = await mapBack(await apiCover(sent, 2752, 1536), plan);
+    expect(back.scale).toBe(1);
+    expect(await sharp(back.png).metadata()).toMatchObject({ width: 6000, height: 3600 });
     expect(await meanAbsDiff(src, back.png)).toBeLessThan(6);
   });
 
