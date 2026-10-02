@@ -36,8 +36,51 @@ The destination picks the `kind`, and the kind picks the model tier:
 | map prop placed as a tile (furniture, barrel, tree) | `prop` | flash |
 | actor sheet portrait | `portrait` | flash; mention Pro is available for a bit extra |
 | journal image page / player handout / location splash | `illustration` | flash; mention Pro is available for a bit extra |
+| a bought battlemap, repainted in the house style (scene background) | `battlemap`, `edit-image` only | flash |
 
-There is no map kind. Battlemaps are bought as UVTT packs; never try to generate one.
+Battlemaps are bought as UVTT packs with their walls; never try to generate one (the tool
+refuses). Restyling one is a `battlemap` edit; see **Battlemaps** below.
+
+**Battlemaps** (owner goals 2026-10-02: upscale and improve older art, and give maps from
+different authors one consistent style; Foundry walls and lights are traced over them). The tool
+owns the geometry: it pads the source to an API aspect, maps the render back onto the source's
+pixel grid (a whole-number upscale when the source is small), and refuses a render whose layout
+moved. You own the instruction and the content check. Proven recipe (round 4, 2026-10-02:
+faithful on the garden, the Sanguine Dawn, and the Jade Temple, the three worst offenders
+before it):
+
+`repaint this top-down battlemap as a rich hand-painted fantasy oil painting with confident
+visible brushwork, warm natural colour, rich mid-tones and deep shadows, and crisp fine detail
+on every surface`
+
+Use the same words on every map in a set; that sentence, not a reference image, is what makes a
+Tom Cartos map and a Mad Cartographer map read as one family. "warm" pulls every map toward
+gold and brown (that is most of the family resemblance), and it once turned mossy green stone
+walls to brown wood; drop it for a map whose cold palette is the point (a crypt, an ice cave).
+What did not work, so do not repeat it:
+- **A map as a style reference.** It painted its own layout over the source, on both attempts
+  (the guard refused both, $0.30 gone). Never attach a map beside a map.
+- **An illustration as a style reference.** Safer, but it invented terrain: cliffs and boulders
+  at a tavern's edges, dirt over a plain dark background. Words only.
+- **"visible brushwork" with nothing about detail.** Big Van Gogh swirls on water and grass that
+  smear to mush at full resolution. Keep "crisp fine detail on every surface".
+- **Pinning colours and daylight.** "Same colours, same daylight, only the technique changes"
+  came back as a colour grade, not a repaint.
+
+The drift check guards where things are, not what they are. Read every map (the result, then
+the `check` checkerboard it reports) for the content slips the model makes in place: a roof,
+dome, or glazing over rooms; a cold hearth lit, or glows and string lights added; a material
+swapped (dirt to cobbles, stone stairs to planks, stone walls to wood); an object changed
+identity (an idol became an elephant); something new at the map's edge (a cart, a cliff). To fix
+one, render again **from the original**, naming what must stay ("the fireplace is cold grey
+stone"). Do not edit the restyled result; each pass re-rolls the whole map. A drift refusal
+means the instruction asked for too much change; lighten it rather than retrying it.
+
+A bigger delivery should be fine for Foundry: a scene (v10+) draws its background at the
+scene's own dimensions, so walls still land. When installing, swap the background image only
+and leave the scene's width, height, and grid alone, and check one traced wall against its
+painted wall on the first install (not yet verified in a live world as of 2026-10-02). About 15
+cents a map, 30 with a drift retry.
 
 **Props** (owner's library: `D:\Workshelf\Assets\FVTT\Props`, mostly Tom Cartos at 300 px per
 grid cell). Refreshing one is `edit-image` `kind: "prop"` with the repaint wording (`repaint this

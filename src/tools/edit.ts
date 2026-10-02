@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import { toInputSchema } from '../utils/schema.js';
 import sharp from 'sharp';
+import { padPlan, padSource } from '../battlemap.js';
 import { alphaBox } from '../post.js';
 import { type Kind, nearestAspect, PRESETS } from '../presets.js';
 import {
@@ -69,19 +70,44 @@ export const PROP_EDIT_KEEP =
   'shadow. Keep the whole object inside the frame with a margin on every side; nothing crosses ' +
   'the edge.';
 
+/**
+ * Battlemap edits (owner request 2026-10-02): walls, doors, and lights are traced over the map in
+ * Foundry, so the layout is pinned here and nothing else is. Palette, light, and finish stay with
+ * the instruction: a keep line that also pinned "same colours, same daylight, only the technique
+ * changes" smothered the restyle on the garden test, and the owner preferred the bolder render.
+ * That bolder render roofed the conservatory over in glass, hence the open-interiors sentence.
+ */
+export const BATTLEMAP_EDIT_KEEP =
+  'This is a top-down battle map for a virtual tabletop, and walls, doors and lights are traced ' +
+  'over it, so the layout is locked: every wall, door, window, path, shoreline, cliff edge, ' +
+  'building outline, piece of furniture, tree, rock and object stays exactly where it is, at the ' +
+  'same size and shape, under the same straight-down camera, framed to the same edges. Change ' +
+  'only how the map is painted, never what is in it: every object, statue and surface stays the ' +
+  'same thing in the same material (bare earth stays bare earth, stairs stay stairs, a plain ' +
+  'background stays plain). Rooms are shown as a cutaway floor plan, walls cut at waist height, ' +
+  'every floor and its furnishings visible from above. Light and shadow fall exactly as in the ' +
+  'source.';
+
 /** Transparent margin added around a prop source before it is sent, as a share of its long side. */
 export const PROP_EDIT_PAD = 0.12;
 
 /** Assemble the edit prompt for a kind. The token plate sentence is appended later by render(). */
 export function editPrompt(kind: Kind, instruction: string, refs: Reference[]): string {
   // Shift reference numbering past the source image.
-  const preamble = referencePreamble(refs).replace(
+  const preamble = referencePreamble(refs, kind).replace(
     /Image (\d+)/g,
     (_, n) => `Image ${Number(n) + 1}`
   );
-  if (kind === 'token' || kind === 'prop') {
-    const source = refs.length ? `Image 1 is the ${kind} to edit. ` : '';
-    const keep = kind === 'prop' ? PROP_EDIT_KEEP : TOKEN_EDIT_KEEP;
+  if (kind === 'token' || kind === 'prop' || kind === 'battlemap') {
+    const source = refs.length
+      ? `Image 1 is the ${kind === 'battlemap' ? 'map' : kind} to edit. `
+      : '';
+    const keep =
+      kind === 'prop'
+        ? PROP_EDIT_KEEP
+        : kind === 'battlemap'
+          ? BATTLEMAP_EDIT_KEEP
+          : TOKEN_EDIT_KEEP;
     return `${source}${preamble}${instruction.trim().replace(/[.\s]+$/, '')}. ${keep}`;
   }
   const suffix = PRESETS[kind].suffix;
@@ -100,10 +126,14 @@ export class EditImageTool {
           'style. Flash for every kind (pro was no better at fixes and re-cropped once). ' +
           'Tokens are prompted light (your instruction as you would type it in the Gemini app, ' +
           'plus a keep-face/hair/angle line and "remove any cast shadow"), put back on a chroma ' +
-          'plate keyed to the token\'s own colours, and cut to alpha on the 512 square in the ' +
+          "plate keyed to the token's own colours, and cut to alpha on the 512 square in the " +
           'same call. "give this an updated painterly style" restyles a world token in place. ' +
           'Props (kind "prop") get object-only wording (no figures added) and come back cut at ' +
-          'the source file\'s exact pixel size, ready for the same tile slot. Returns the new ' +
+          "the source file's exact pixel size, ready for the same tile slot. Battlemaps " +
+          '(kind "battlemap") restyle a bought map with the layout locked: the result lands on ' +
+          "the source's pixel grid (a whole-number upscale when the source is small), is checked " +
+          'for drift against the source (a drifted render is redone once, then refused), and ' +
+          'comes with a checkerboard image of source and result to eyeball. Returns the new ' +
           'file path, dimensions, and estimated spend.',
         inputSchema: toInputSchema(editImageSchema),
       },
@@ -122,7 +152,15 @@ export class EditImageTool {
     // source with a transparent margin: a crate drawn edge to edge on its tile was otherwise
     // repainted edge to edge and refused twice by the clip guard (2026-09-24).
     let propFit = {};
-    if (p.kind === 'prop') {
+    if (p.kind === 'battlemap') {
+      // The API renders fixed aspects only: send the map padded to the nearest one, and map the
+      // render back onto the source's own grid afterwards (battlemap.ts).
+      const m = await sharp(images[0].data).metadata();
+      const plan = padPlan(m.width ?? 1, m.height ?? 1);
+      const source = images[0].data;
+      images[0] = { mimeType: 'image/png', data: await padSource(source, plan) };
+      propFit = { aspect: plan.aspect, map: { source, plan } };
+    } else if (p.kind === 'prop') {
       const m = await sharp(images[0].data).metadata();
       const width = m.width ?? 300;
       const height = m.height ?? 300;

@@ -25,7 +25,9 @@ export async function postProcess(input: Buffer, post: Post): Promise<Buffer> {
     case 'token':
     case 'prop':
     case 'portrait':
-      // Native size; format only. Tokens go on to cutout (M2) which owns the 512 square.
+    case 'battlemap':
+      // Native size; format only. Tokens go on to cutout (M2) which owns the 512 square; a
+      // battlemap is mapped back onto its source's pixel grid by render() (battlemap.ts).
       return sharp(input).png().toBuffer();
   }
 }

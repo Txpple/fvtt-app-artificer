@@ -8,13 +8,14 @@ import { Gemini } from '../gemini.js';
 import { buildToolRegistry } from '../registry.js';
 import { SpendMeter } from '../spend.js';
 import { PROP_FRAMING, TOKEN_FRAMING } from '../presets.js';
-import { EDIT_PREAMBLE, PROP_EDIT_KEEP, TOKEN_EDIT_KEEP } from './edit.js';
+import { BATTLEMAP_EDIT_KEEP, EDIT_PREAMBLE, PROP_EDIT_KEEP, TOKEN_EDIT_KEEP } from './edit.js';
 import { referencePreamble, resolveTier } from './shared.js';
 
 let tmp: string;
 let refPng: string;
 let greenRef: string;
 let propSrc: string;
+let mapSrc: string;
 let sent: Array<{ url: string; body: any }>;
 let cuts: CutoutOptions[];
 
@@ -53,7 +54,9 @@ const fakeCutout: CutoutFn = async opts => {
     await sharp({ create: { width: 512, height: 512, channels: 4, background: '#0000' } })
       .composite([
         {
-          input: await sharp({ create: { width: 200, height: 100, channels: 4, background: '#8a5a2bff' } })
+          input: await sharp({
+            create: { width: 200, height: 100, channels: 4, background: '#8a5a2bff' },
+          })
             .png()
             .toBuffer(),
           left: 156,
@@ -82,7 +85,8 @@ function sequenceGemini(plates: Array<'clean' | 'clipped'>): Gemini {
     sent.push({ url: String(url), body });
     const kind = plates[Math.min(sent.length - 1, plates.length - 1)];
     const bg =
-      /chroma-key \w+ \((#[0-9A-F]{6})\)/.exec(body.contents[0].parts.at(-1).text)?.[1] ?? '#FF00FF';
+      /chroma-key \w+ \((#[0-9A-F]{6})\)/.exec(body.contents[0].parts.at(-1).text)?.[1] ??
+      '#FF00FF';
     const blade =
       kind === 'clipped' ? '<rect x="480" y="300" width="60" height="760" fill="#c0c0c0"/>' : '';
     const data = (
@@ -94,6 +98,54 @@ function sequenceGemini(plates: Array<'clean' | 'clipped'>): Gemini {
         .jpeg()
         .toBuffer()
     ).toString('base64');
+    return new Response(
+      JSON.stringify({
+        candidates: [
+          {
+            finishReason: 'STOP',
+            content: { parts: [{ inlineData: { mimeType: 'image/jpeg', data } }] },
+          },
+        ],
+      }),
+      { status: 200 }
+    );
+  }) as typeof fetch;
+  return new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
+}
+
+/** The API's real 1K sizes per aspect: not exactly the nominal ratios (3:4 is 896x1200). */
+const API_1K: Record<string, [number, number]> = {
+  '1:1': [1024, 1024],
+  '3:4': [896, 1200],
+  '4:3': [1200, 896],
+  '2:3': [848, 1264],
+  '3:2': [1264, 848],
+  '9:16': [768, 1376],
+  '16:9': [1376, 768],
+};
+
+/**
+ * A Gemini that answers a map edit the way the API does (measured 2026-10-02): the source image
+ * scaled to cover the output and centre-trimmed. 'slid' renders shift the whole layout 40 px,
+ * the way a drifted restyle moves walls.
+ */
+function mapGemini(renders: Array<'faithful' | 'slid'>): Gemini {
+  sent = [];
+  const fakeFetch = (async (url: any, init: any) => {
+    const body = JSON.parse(init.body);
+    sent.push({ url: String(url), body });
+    const how = renders[Math.min(sent.length - 1, renders.length - 1)];
+    const [w, h] = API_1K[body.generationConfig.imageConfig.aspectRatio];
+    const input = Buffer.from(body.contents[0].parts[0].inline_data.data, 'base64');
+    let out = await sharp(input)
+      .resize(w, h, { fit: 'cover', position: 'centre' })
+      .png()
+      .toBuffer();
+    if (how === 'slid') {
+      const wide = await sharp(out).extend({ left: 40, extendWith: 'mirror' }).png().toBuffer();
+      out = await sharp(wide).extract({ left: 0, top: 0, width: w, height: h }).png().toBuffer();
+    }
+    const data = (await sharp(out).jpeg({ quality: 95 }).toBuffer()).toString('base64');
     return new Response(
       JSON.stringify({
         candidates: [
@@ -131,7 +183,9 @@ beforeAll(async () => {
     await sharp({ create: { width: 600, height: 300, channels: 4, background: '#0000' } })
       .composite([
         {
-          input: await sharp({ create: { width: 400, height: 200, channels: 4, background: '#444444ff' } })
+          input: await sharp({
+            create: { width: 400, height: 200, channels: 4, background: '#444444ff' },
+          })
             .png()
             .toBuffer(),
           left: 100,
@@ -141,6 +195,23 @@ beforeAll(async () => {
       .png()
       .toBuffer()
   );
+  // A 400x300 textured map: deterministic noise, softened, so the drift check has edges to lock on.
+  mapSrc = path.join(tmp, 'tavern.jpg');
+  {
+    let seed = 7;
+    const px = Buffer.alloc(400 * 300 * 3);
+    for (let i = 0; i < px.length; i++) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      px[i] = seed >> 23;
+    }
+    fs.writeFileSync(
+      mapSrc,
+      await sharp(px, { raw: { width: 400, height: 300, channels: 3 } })
+        .blur(1.5)
+        .jpeg({ quality: 95 })
+        .toBuffer()
+    );
+  }
   greenRef = path.join(tmp, 'green.png');
   fs.writeFileSync(
     greenRef,
@@ -241,8 +312,18 @@ describe('generate-image', () => {
 
   it('tokens: creatureSize large cuts to a 1024 square; medium and unset stay 512', async () => {
     const { dispatch } = build();
-    await dispatch('generate-image', { kind: 'token', prompt: 'a dragon', slug: 'd', creatureSize: 'large' });
-    await dispatch('generate-image', { kind: 'token', prompt: 'a cat', slug: 'c', creatureSize: 'medium' });
+    await dispatch('generate-image', {
+      kind: 'token',
+      prompt: 'a dragon',
+      slug: 'd',
+      creatureSize: 'large',
+    });
+    await dispatch('generate-image', {
+      kind: 'token',
+      prompt: 'a cat',
+      slug: 'c',
+      creatureSize: 'medium',
+    });
     await dispatch('edit-image', {
       sourceImage: refPng,
       instruction: 'painterly',
@@ -276,7 +357,11 @@ describe('generate-image', () => {
 
   it('tokens: a render that clips at the edge is redone once, and both calls are billed', async () => {
     const { dispatch, spend } = build(sequenceGemini(['clipped', 'clean']));
-    const r: any = await dispatch('generate-image', { kind: 'token', prompt: 'a knight', slug: 'k' });
+    const r: any = await dispatch('generate-image', {
+      kind: 'token',
+      prompt: 'a knight',
+      slug: 'k',
+    });
     expect(sent).toHaveLength(2);
     expect(r.edgeRetried).toBe(true);
     expect(r.estimatedUsd).toBeCloseTo(0.134);
@@ -296,7 +381,11 @@ describe('generate-image', () => {
 
   it('tokens: a clean first render is delivered with no retry', async () => {
     const { dispatch } = build(sequenceGemini(['clean']));
-    const r: any = await dispatch('generate-image', { kind: 'token', prompt: 'a knight', slug: 'k3' });
+    const r: any = await dispatch('generate-image', {
+      kind: 'token',
+      prompt: 'a knight',
+      slug: 'k3',
+    });
     expect(sent).toHaveLength(1);
     expect(r.edgeRetried).toBeUndefined();
   });
@@ -402,7 +491,9 @@ describe('edit-image', () => {
     });
     const text = sent[0].body.contents[0].parts[1].text;
     expect(text).toMatch(
-      new RegExp(`^give this elf a sword and armor instead\\. ${TOKEN_EDIT_KEEP} The ENTIRE image background`)
+      new RegExp(
+        `^give this elf a sword and armor instead\\. ${TOKEN_EDIT_KEEP} The ENTIRE image background`
+      )
     );
     expect(text).not.toContain(EDIT_PREAMBLE);
     expect(text).not.toContain(TOKEN_FRAMING);
@@ -482,7 +573,11 @@ describe('props', () => {
 
   it('generate: a prop with no footprint is one cell, 300 square', async () => {
     const { dispatch } = build();
-    const r: any = await dispatch('generate-image', { kind: 'prop', prompt: 'a barrel', slug: 'barrel' });
+    const r: any = await dispatch('generate-image', {
+      kind: 'prop',
+      prompt: 'a barrel',
+      slug: 'barrel',
+    });
     expect(sent[0].body.generationConfig.imageConfig.aspectRatio).toBe('1:1');
     expect(r).toMatchObject({ width: 300, height: 300 });
   });
@@ -519,6 +614,109 @@ describe('props', () => {
     expect(alpha(300, 150)).toBe(255);
     expect(alpha(40, 150)).toBe(0);
     expect(alpha(560, 150)).toBe(0);
+  });
+});
+
+describe('battlemaps', () => {
+  it('edit: pads to the API aspect, pins the layout, and lands on the source grid, upscaled', async () => {
+    const { dispatch, spend } = build(mapGemini(['faithful']));
+    const r: any = await dispatch('edit-image', {
+      sourceImage: mapSrc,
+      instruction: 'repaint this battlemap as a hand-painted oil painting.',
+      kind: 'battlemap',
+      slug: 'tavern',
+    });
+    const cfg = sent[0].body.generationConfig.imageConfig;
+    expect(cfg).toEqual({ aspectRatio: '4:3', imageSize: '4K' });
+    const text = sent[0].body.contents[0].parts.at(-1).text;
+    expect(text).toBe(
+      `repaint this battlemap as a hand-painted oil painting. ${BATTLEMAP_EDIT_KEEP}`
+    );
+    expect(text).not.toContain(EDIT_PREAMBLE);
+    // The model saw the source with a mirrored margin, at exactly the API aspect.
+    const seen = await sharp(
+      Buffer.from(sent[0].body.contents[0].parts[0].inline_data.data, 'base64')
+    ).metadata();
+    expect(seen.width).toBeGreaterThan(400);
+    expect(Math.abs((seen.width ?? 0) * 3 - (seen.height ?? 0) * 4)).toBeLessThanOrEqual(4);
+    // 1200x896 has room for 2x the 400x300 source: delivered at exactly 800x600.
+    expect(r).toMatchObject({
+      kind: 'battlemap',
+      tier: 'flash',
+      source: { width: 400, height: 300 },
+      scale: 2,
+    });
+    expect(await sharp(r.file).metadata()).toMatchObject({ width: 800, height: 600 });
+    expect(path.basename(r.file)).toMatch(/^battlemap-tavern-[0-9a-f]{8}\.png$/);
+    expect(r.drift.failed).toBe(false);
+    expect(r.driftRetried).toBeUndefined();
+    expect(fs.existsSync(r.check)).toBe(true);
+    expect(spend.calls).toBe(1);
+    expect(r.estimatedUsd).toBe(0.151);
+  });
+
+  it('edit: a drifted render is redone once, both billed, and the clean one delivered', async () => {
+    const { dispatch, spend } = build(mapGemini(['slid', 'faithful']));
+    const r: any = await dispatch('edit-image', {
+      sourceImage: mapSrc,
+      instruction: 'repaint',
+      kind: 'battlemap',
+      slug: 'tavern2',
+    });
+    expect(sent).toHaveLength(2);
+    expect(r.driftRetried).toBe(true);
+    expect(r.drift.failed).toBe(false);
+    expect(spend.calls).toBe(2);
+    expect(r.estimatedUsd).toBeCloseTo(0.302);
+    expect(
+      fs.readdirSync(tmp).some(f => /^battlemap-tavern2-[0-9a-f]{8}-drifted1\.png$/.test(f))
+    ).toBe(true);
+  });
+
+  it('edit: two drifted renders are refused, kept for inspection, never delivered', async () => {
+    const { dispatch } = build(mapGemini(['slid', 'slid']));
+    await expect(
+      dispatch('edit-image', {
+        sourceImage: mapSrc,
+        instruction: 'repaint',
+        kind: 'battlemap',
+        slug: 'tavern3',
+      })
+    ).rejects.toThrow(/Both renders moved the map's layout.*never delivered/);
+    expect(sent).toHaveLength(2);
+    const files = fs.readdirSync(tmp).filter(f => f.startsWith('battlemap-tavern3-'));
+    expect(files.some(f => f.endsWith('-drifted2.png'))).toBe(true);
+    expect(files.some(f => /^battlemap-tavern3-[0-9a-f]{8}\.png$/.test(f))).toBe(false);
+  });
+
+  it('edit: a style reference lends finish only, never camera angle or layout', async () => {
+    const { dispatch } = build(mapGemini(['faithful']));
+    await dispatch('edit-image', {
+      sourceImage: mapSrc,
+      instruction: 'repaint',
+      kind: 'battlemap',
+      slug: 'tavern4',
+      references: [{ path: refPng, role: 'style' }],
+    });
+    const text = sent[0].body.contents[0].parts.at(-1).text;
+    expect(text).toMatch(/^Image 1 is the map to edit\. Image 2 is a STYLE reference only/);
+    expect(text).toMatch(/no layout, no objects/);
+    expect(text).not.toMatch(/camera angle; do not copy/);
+  });
+
+  it('generate: refuses a battlemap before any network call (maps are bought, with walls)', async () => {
+    const { dispatch } = build(mapGemini(['faithful']));
+    await expect(
+      dispatch('generate-image', { kind: 'battlemap', prompt: 'a tavern', slug: 'x' })
+    ).rejects.toThrow(/edit-image.*sourceImage/);
+    expect(sent).toHaveLength(0);
+  });
+
+  it('edit: the keep line locks the layout and the contents, and leaves palette to the instruction', () => {
+    expect(BATTLEMAP_EDIT_KEEP).toMatch(/walls, doors and lights are traced/);
+    expect(BATTLEMAP_EDIT_KEEP).toMatch(/never what is in it/);
+    expect(BATTLEMAP_EDIT_KEEP).toMatch(/cutaway floor plan/);
+    expect(BATTLEMAP_EDIT_KEEP).not.toMatch(/same colou?rs/);
   });
 });
 

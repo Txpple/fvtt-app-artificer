@@ -4,10 +4,10 @@
 
 import { ASPECTS, type Aspect, type ImageSize, type Tier } from './gemini.js';
 
-export const KINDS = ['icon', 'token', 'prop', 'portrait', 'illustration'] as const;
+export const KINDS = ['icon', 'token', 'prop', 'portrait', 'illustration', 'battlemap'] as const;
 export type Kind = (typeof KINDS)[number];
 
-export type Post = 'icon' | 'token' | 'prop' | 'portrait' | 'illustration';
+export type Post = 'icon' | 'token' | 'prop' | 'portrait' | 'illustration' | 'battlemap';
 
 export interface Preset {
   tier: Tier;
@@ -30,7 +30,7 @@ export const TOKEN_FRAMING =
   'view; the top of the head and the shoulders are the largest shapes, the torso is ' +
   'foreshortened, the feet are mostly hidden beneath the body, and the face tilts up toward the ' +
   'viewer. A four-legged, crawling, or slithering creature: seen from directly above, looking ' +
-  "straight down on its back; the spine faces the camera, the head is at the leading edge " +
+  'straight down on its back; the spine faces the camera, the head is at the leading edge ' +
   'pointing forward and slightly down (not turned up toward the camera), the legs in a natural ' +
   'walking stance beside the body, and the tail trails behind. If a token is attached as a ' +
   'style reference, ' +
@@ -65,7 +65,9 @@ export function parseFootprint(raw: string): Footprint {
   const w = Number(m?.[1]);
   const h = Number(m?.[2]);
   if (!m || w < 1 || h < 1 || w > 20 || h > 20) {
-    throw new Error(`footprint ${JSON.stringify(raw)} must be <cells wide>x<cells tall>, e.g. "2x1"`);
+    throw new Error(
+      `footprint ${JSON.stringify(raw)} must be <cells wide>x<cells tall>, e.g. "2x1"`
+    );
   }
   return { w, h };
 }
@@ -89,6 +91,9 @@ export const PRESETS: Record<Kind, Preset> = {
   // Flash for every kind (owner rule 2026-09-19). Pro is opt-in via tier + confirmPro.
   portrait: { tier: 'flash', aspect: '3:4', size: '2K', post: 'portrait', suffix: '' },
   illustration: { tier: 'flash', aspect: '16:9', size: '4K', post: 'illustration', suffix: '' },
+  // Restyles of bought maps, edit-image only (owner request 2026-10-02). The aspect is replaced
+  // per call from the source; 4K always, since a map is zoomed in on at the table.
+  battlemap: { tier: 'flash', aspect: '4:3', size: '4K', post: 'battlemap', suffix: '' },
 };
 
 /** Finished pixel sizes the post-processors guarantee. */

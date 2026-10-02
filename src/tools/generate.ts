@@ -71,6 +71,13 @@ export class GenerateImageTool {
 
   async handleGenerateImage(args: unknown) {
     const p = generateImageSchema.parse(args);
+    if (p.kind === 'battlemap') {
+      // Maps are bought as UVTT packs with their walls; a map made from words has none.
+      throw new Error(
+        'battlemap is a restyle of an existing map: call edit-image with the map file as ' +
+          'sourceImage. This server does not paint maps from scratch.'
+      );
+    }
     const tier = resolveTier(p.kind, p.tier, p.confirmPro);
     const refs = p.references ?? [];
     const images = refs.map(r => loadImage(r.path));

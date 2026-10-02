@@ -45,7 +45,7 @@ Claude ──MCP──> fvtt-app-artificer ──HTTPS──> Gemini image API
 
 - Tools return absolute file paths; Claude reads the PNGs directly to curate.
 - Small server: `generate-image`, `edit-image`, `cutout-image`, `artificer-status`. Resist tool
-  sprawl.
+  sprawl. New work arrives as a `kind`, not a tool (props 2026-09-24, battlemaps 2026-10-02).
 
 ## Models and tiers
 
@@ -81,6 +81,7 @@ default tier, and its post-processing:
 | `prop` | flash | nearest API aspect to the footprint (generate) or the source (edit), object-only wording, chroma plate | edge-clip check, cutout, fitted to the exact tile size: 300 px per cell for a new prop, the source's own pixel size and subject box for an edit | map dressing tile (furniture, barrels, trees) |
 | `portrait` | flash | 3:4 at 2K | none beyond naming | actor sheet portrait |
 | `illustration` | flash | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
+| `battlemap` | flash, **edit-image only** | the source padded (mirrored margin) to the nearest API aspect, at 4K, layout-locking keep line | mapped back onto the source's pixel grid at a whole-number scale (1 for an HD source, more for a small one), drift check (layout moved ⇒ one re-render, then refuse), checkerboard of source and result written beside it | restyled scene background for a bought map |
 
 **Nothing ever clips off a token or a prop (owner rule 2026-09-24).** A sword, wing, or foot
 cut by the frame edge makes the token unusable. The framing and the token edit line both demand a margin on
@@ -88,9 +89,32 @@ every side, and `render()` counts subject pixels in the plate's outer 3 px (`src
 20 means clipped, the render is redone once (both calls billed), and a second clip is refused
 with both plates kept for inspection. Never deliver or show a clipped token or prop.
 
-There is no `scene-background` kind. Battlemaps are bought as UVTT packs from vendors and
-imported; this server never makes map layers or backgrounds. Props are the exception the owner
-asked for (2026-09-24): single objects placed on a map as tiles. They are never tokens: the token
+**Nothing moves on a battlemap (owner rule 2026-10-02).** Battlemaps are bought as UVTT packs
+and imported with their walls; this server never paints a map from scratch (`generate-image`
+refuses `kind: "battlemap"`). What it does is restyle a bought map in place, for the owner's two
+goals: upscale and improve older art, and give art from different authors (Tom Cartos, Mad
+Cartographer) one consistent style. Foundry walls, doors, and lights are traced over the map, so
+the layout must not move. The API scales its input to cover the output and trims the excess (a
+"3:4" render is 1792×2400), so the source goes out padded to the API aspect and comes back
+mapped onto its own grid (`src/battlemap.ts`). Then `src/drift.ts` phase-correlates edge
+strength tile by tile: more than 3% of tiles displaced by over 0.4% of the long side, or under
+half the textured tiles locking on, is drift. The render is redone once (both billed), and a
+second drift is refused with both kept. Calibrated on 24 live renders across 8 maps (2026-10-02):
+passes sit at a median of 0.1‰ with 0 to 3 outlier tiles, all of them repainted texture (grass
+strokes, floor grain), never moved structure. The two kinds of real failure (reshaped cliffs on
+one render; a map used as a style reference swapping in its whole layout, twice) scored 8% and
+50 to 90%.
+
+The drift check guards geometry, not content. The model reinterprets things in place: dirt
+became cobblestones, a dome or glass roof appeared over a conservatory, an unlit hearth was lit,
+an idol became an elephant, stone walls became wood. The keep line's "change only how the map
+is painted, never what is in it" and "cutaway floor plan" sentences cut that sharply (round 4
+was clean on all three of the worst offenders), but the flaw pass still reads every map. A
+keep line that also pinned colours and daylight smothered the restyle; the owner preferred the
+bolder render, so palette and finish stay with the instruction (the skill).
+
+Props are the exception the owner asked for (2026-09-24): single objects placed on a map as
+tiles. They are never tokens: the token
 wording ("keep the face, hair") grew a man on an armchair, a dryad on an oak, and a dwarf on a
 crate, so props have their own object-only wording. A prop edit pads the source with a margin
 before sending (a tile-filling crate otherwise came back clipped twice) and puts the new art in

@@ -27,6 +27,12 @@ wrong, and the finished file lands on disk ready to upload into Foundry.
   down, object only, cut to transparency at the tile size (300 px per grid cell, from a
   `footprint` like `"2x1"`). Refreshing an existing prop returns it at the file's exact pixel
   size in the same spot on its canvas, so it replaces the old one one for one.
+- **Battlemap restyles.** Repaint a map you bought (Tom Cartos, Mad Cartographer, anything) in
+  one consistent painted style, with every wall, door, and object exactly where it was, so the
+  walls and lights already traced over it in Foundry still fit. The result lands on the
+  source's own pixel grid. An old low-res map comes back at a whole-number upscale (a
+  1125×1500 map at 3375×4500). Every render is checked against the original, and one whose
+  layout moved is redone once, then refused. About 15 cents a map.
 - **Portraits.** Actor sheet art at 3:4. Hand it a previous portrait or two as style
   references and the new one matches your table's look.
 - **Illustrations.** Player handouts and scene splashes at 2560×1600. Hand it your party's
@@ -40,7 +46,7 @@ wrong, and the finished file lands on disk ready to upload into Foundry.
 | tool | what it does |
 | --- | --- |
 | `generate-image` | Render one asset from a prompt. `kind` is `icon`, `token`, `prop`, `portrait`, or `illustration`; it picks the model, aspect, size, framing, and post-processing for you. Optional `references` (character, style, or pose) and, for tokens, `creatureSize` (`medium` or `large`); for props, `footprint` (`"2x1"`). |
-| `edit-image` | Apply one instruction to an existing image and keep everything else. Token edits are prompted the way you would type in the Gemini app and re-cut automatically. Takes `creatureSize` too. |
+| `edit-image` | Apply one instruction to an existing image and keep everything else. Token edits are prompted the way you would type in the Gemini app and re-cut automatically. Takes `creatureSize` too. `kind: "battlemap"` restyles a bought map with its layout locked (edit only; `generate-image` refuses it, since a map painted from words has no walls). |
 | `cutout-image` | Cut a token's background to alpha and deliver it on a square canvas. |
 | `artificer-status` | Key present, models reachable, estimated spend this session. |
 
@@ -151,6 +157,13 @@ Claude ──MCP──> fvtt-app-artificer ──HTTPS──> Gemini image API
   every cut so the edge can be checked.
 - Before a token is cut, the server checks the plate's outer edge for subject pixels. A clipped
   render is redone once and refused if it clips again.
+- A battlemap is sent padded to the nearest aspect the API renders (a mirrored margin), and
+  the render is mapped back onto the source's pixel grid. The API scales its input to cover the
+  output and trims the excess, so a "3:4" render is 1792×2400, not 1800×2400. Then both images
+  are reduced to edge strength and compared tile by tile (phase correlation): a restyle changes
+  colour and texture, edges stay put. More than 3% of tiles moved by over 0.4% of the long
+  side means the layout drifted. A checkerboard of source and result is written beside every
+  map for the eye.
 - A render the image safety filter blocks is retried once; the filter is not consistent on the
   same input.
 - No local models, no fine-tuning, no ComfyUI. Style comes from reference images you attach.

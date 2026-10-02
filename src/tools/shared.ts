@@ -5,10 +5,13 @@
 import { randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import sharp from 'sharp';
 import { z } from 'zod';
+import { mapBack, type PadPlan } from '../battlemap.js';
 import { type ChromaKey, chromaSuffix, pickChromaKey } from '../chroma.js';
 import type { CutoutFn, CutoutResult } from '../cutout.js';
 import { type Aspect, Gemini, type InlineImage, PRICE, TIERS, type Tier } from '../gemini.js';
+import { type DriftReport, measureDrift } from '../drift.js';
 import { EDGE_BAND, EDGE_LIMIT, edgeContact } from '../edge.js';
 import { type Box, type Dimensions, dimensions, fitRect, postProcess } from '../post.js';
 import {
@@ -37,8 +40,10 @@ export const kindSchema = z
       'an edit keeps the source size). token: 1:1 flash, top-down full body on a ' +
       'chroma plate, cut to alpha on a 512 square (1024 for creatureSize: "large"), no shadow ' +
       '(framing, plate, and cut are done for you). ' +
-      'portrait: 3:4 at 2K. illustration: 16:9 at 4K → 2560×1600 (16:10 crop). Every kind ' +
-      'defaults to flash; tier: "pro" is opt-in and needs confirmPro.'
+      'portrait: 3:4 at 2K. illustration: 16:9 at 4K → 2560×1600 (16:10 crop). ' +
+      'battlemap (edit-image only): restyle a bought map with its layout locked, delivered on ' +
+      "the source's pixel grid (a whole-number upscale for a small source), drift-checked. " +
+      'Every kind defaults to flash; tier: "pro" is opt-in and needs confirmPro.'
   );
 
 export const tierSchema = z
@@ -116,8 +121,10 @@ export function loadImage(p: string): InlineImage {
 /**
  * Build the reference preamble. Images are attached in the order given; the preamble tells the
  * model which is which by 1-based index, so the caller's prompt can say "Morgash" and be bound.
+ * A battlemap's style reference lends its finish only: "match its camera angle" would tilt a
+ * straight-down map, and its subject is another map whose layout must not leak in.
  */
-export function referencePreamble(refs: Reference[]): string {
+export function referencePreamble(refs: Reference[], kind?: Kind): string {
   if (refs.length === 0) return '';
   const lines: string[] = [];
   refs.forEach((r, i) => {
@@ -134,6 +141,11 @@ export function referencePreamble(refs: Reference[]): string {
         `Image ${n}${who} is a POSE reference only: match its exact pose, body position, head ` +
           'direction, camera angle, and silhouette. Do not copy its drawing, colours, rendering, ' +
           'or level of detail; it is an old low-quality image being replaced.'
+      );
+    } else if (kind === 'battlemap') {
+      lines.push(
+        `Image ${n}${who} is a STYLE reference only: match its palette, brushwork, and painted ` +
+          'finish. Copy nothing else from it: no layout, no objects, no rooms, no shapes.'
       );
     } else {
       lines.push(
@@ -161,6 +173,8 @@ export interface RenderInput {
   canvas?: Dimensions;
   /** Props only: where the subject goes on that canvas (an edit: where the original sat). */
   box?: Box;
+  /** Battlemaps only: the unpadded source and how it was padded for the API. */
+  map?: { source: Buffer; plan: PadPlan };
 }
 
 /** Kinds rendered on a chroma plate, edge-checked, and cut to alpha. */
@@ -181,6 +195,15 @@ export interface RenderOutput {
   cutout?: Omit<CutoutResult, 'file' | 'width' | 'height'>;
   /** Tokens and props: the first render clipped the subject at the edge and was redone. */
   edgeRetried?: boolean;
+  /** Battlemaps: the source's pixel size and the whole-number scale the map was delivered at. */
+  source?: { width: number; height: number };
+  scale?: number;
+  /** Battlemaps: how far the layout moved against the source (per-mille of the long side). */
+  drift?: DriftReport;
+  /** Battlemaps: the first render drifted and was redone. */
+  driftRetried?: boolean;
+  /** Battlemaps: source and result in alternating squares, for the eye to check alignment. */
+  check?: string;
 }
 
 /** Render one image through the API, post-process it, write it, meter it; cut tokens and props. */
@@ -201,6 +224,7 @@ export async function render(deps: ToolDeps, input: RenderInput): Promise<Render
 
   fs.mkdirSync(deps.outputDir, { recursive: true });
   const id = newId();
+  if (input.kind === 'battlemap') return renderMap(deps, input, id);
   const once = async () => {
     const result = await deps.gemini.generate({
       tier: input.tier,
@@ -278,6 +302,117 @@ export async function render(deps: ToolDeps, input: RenderInput): Promise<Render
   const file = path.join(deps.outputDir, filename(input.kind, input.slug, id));
   fs.writeFileSync(file, png);
   return { ...base, file, width: dims.width, height: dims.height };
+}
+
+/** Display copy of a drift report: shares as per-mille of the long side, rounded. */
+function driftSummary(d: DriftReport): DriftReport {
+  const pm = (v: number) => Math.round(v * 10000) / 10;
+  return {
+    ...d,
+    median: pm(d.median),
+    p95: pm(d.p95),
+    max: pm(d.max),
+    structure: Math.round(d.structure * 1000) / 1000,
+  };
+}
+
+/**
+ * A battlemap: render the padded source, map the result back onto the source's pixel grid, and
+ * check the layout did not move (owner rule 2026-10-02: Foundry walls and lights are traced over
+ * it). A drifted render is redone once (both billed); a second drift is refused, both kept.
+ */
+async function renderMap(deps: ToolDeps, input: RenderInput, id: string): Promise<RenderOutput> {
+  const preset = PRESETS.battlemap;
+  const map = input.map;
+  if (!map) throw new Error('battlemap render needs its source and pad plan');
+  const once = async () => {
+    const result = await deps.gemini.generate({
+      tier: input.tier,
+      prompt: input.prompt,
+      images: input.images,
+      aspect: input.aspect ?? preset.aspect,
+      size: preset.size,
+    });
+    const usd = deps.spend.record(input.tool, input.tier, preset.size);
+    const back = await mapBack(result.image.data, map.plan);
+    const drift = await measureDrift(map.source, back.png);
+    return { result, ...back, drift, usd };
+  };
+  const stem = path.join(deps.outputDir, `battlemap-${slugOf(input.slug)}-${id}`);
+  let r = await once();
+  let estimatedUsd = r.usd;
+  let driftRetried: boolean | undefined;
+  if (r.drift.failed) {
+    fs.writeFileSync(`${stem}-drifted1.png`, r.png);
+    const first = driftSummary(r.drift);
+    r = await once();
+    estimatedUsd += r.usd;
+    driftRetried = true;
+    if (r.drift.failed) {
+      fs.writeFileSync(`${stem}-drifted2.png`, r.png);
+      const d = driftSummary(r.drift);
+      throw new Error(
+        `Both renders moved the map's layout (${first.drifted} of ${first.tiles} and ` +
+          `${d.drifted} of ${d.tiles} measured tiles drifted, worst ${d.max}‰ of the long ` +
+          'side); a drifted battlemap is never delivered, since walls and lights are traced ' +
+          `over it. Kept for inspection: ${stem}-drifted1.png, ${stem}-drifted2.png. Spent ` +
+          `about $${estimatedUsd.toFixed(2)}. Ask for a lighter change and try again.`
+      );
+    }
+  }
+  const file = path.join(deps.outputDir, filename('battlemap', input.slug, id));
+  fs.writeFileSync(file, r.png);
+  const check = `${stem}-check.jpg`;
+  fs.writeFileSync(check, await checkerboard(map.source, r.png));
+  return {
+    file,
+    kind: 'battlemap',
+    tier: input.tier,
+    model: r.result.model,
+    width: r.width,
+    height: r.height,
+    estimatedUsd,
+    sessionEstimatedUsd: deps.spend.totalUsd,
+    source: { ...map.plan.source },
+    scale: r.scale,
+    drift: driftSummary(r.drift),
+    ...(driftRetried ? { driftRetried } : {}),
+    check,
+  };
+}
+
+/** Squares across the short side of the alignment check image. */
+const CHECK_SQUARES = 8;
+
+/**
+ * Source and result in alternating squares at up to 2048 px: a moved wall or path breaks at every
+ * square boundary it crosses, which the eye catches at once. JPEG: it is for looking at, and a
+ * PNG of it ran to 8 MB.
+ */
+async function checkerboard(source: Buffer, result: Buffer): Promise<Buffer> {
+  const m = await sharp(result).metadata();
+  const k = Math.min(1, 2048 / Math.max(m.width ?? 1, m.height ?? 1));
+  const w = Math.max(1, Math.round((m.width ?? 1) * k));
+  const h = Math.max(1, Math.round((m.height ?? 1) * k));
+  const [a, b] = await Promise.all(
+    [source, result].map(img =>
+      sharp(img).removeAlpha().resize(w, h, { fit: 'fill' }).raw().toBuffer()
+    )
+  );
+  const cell = Math.max(1, Math.round(Math.min(w, h) / CHECK_SQUARES));
+  const out = Buffer.alloc(w * h * 3);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 3;
+      const from = (Math.floor(x / cell) + Math.floor(y / cell)) % 2 === 0 ? a : b;
+      out[i] = from[i];
+      out[i + 1] = from[i + 1];
+      out[i + 2] = from[i + 2];
+    }
+  }
+  return sharp(out, { raw: { width: w, height: h, channels: 3 } })
+    .jpeg({ quality: 85 })
+    .toBuffer();
 }
 
 function slugOf(slug: string): string {

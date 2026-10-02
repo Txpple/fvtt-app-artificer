@@ -34,8 +34,16 @@ describe('presets', () => {
     });
   });
 
-  it('has five kinds and no map kind (props are dressing, not map layers)', () => {
-    expect([...KINDS].sort()).toEqual(['icon', 'illustration', 'portrait', 'prop', 'token']);
+  it('has six kinds; battlemap restyles a bought map at 4K on flash', () => {
+    expect([...KINDS].sort()).toEqual([
+      'battlemap',
+      'icon',
+      'illustration',
+      'portrait',
+      'prop',
+      'token',
+    ]);
+    expect(PRESETS.battlemap).toMatchObject({ tier: 'flash', size: '4K', post: 'battlemap' });
   });
 
   it('frames tokens top-down and leaves the plate sentence to chroma.ts', () => {
