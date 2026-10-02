@@ -97,8 +97,11 @@ What the 2026-10-02 set of 14 (Forgotten Adventures, Tom Cartos, Mad Cartographe
 and `backgroundPath` only. Never pass width, height, or gridSize: the walls are in the scene's
 own coordinates, and a scene (v10+) draws its background at the scene's dimensions, so a bigger
 or smaller file still lines up. Note the old background path first so the swap can be undone,
-and `screenshot-scene` afterwards to check a traced wall against its painted wall (first live
-install not yet done as of 2026-10-02). Only after the owner has approved the map. About 15
+and `screenshot-scene` afterwards. Before the swap, draw the scene's walls over the restyle
+(the walls are in the campaign repo's scene export, in canvas pixels: subtract `sceneX` /
+`sceneY` from `get-scene-dimensions`) and look: proven on Bramblemaw's Lair, live on Molten
+2026-10-02, all 934 walls and doors on their painted edges. Only after the owner has approved
+the map. About 15
 cents a map, 30 with a drift retry.
 
 **Props** (owner's library: `D:\Workshelf\Assets\FVTT\Props`, mostly Tom Cartos at 300 px per
