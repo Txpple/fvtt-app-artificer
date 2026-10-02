@@ -81,7 +81,7 @@ default tier, and its post-processing:
 | `prop` | flash | nearest API aspect to the footprint (generate) or the source (edit), object-only wording, chroma plate | edge-clip check, cutout, fitted to the exact tile size: 300 px per cell for a new prop, the source's own pixel size and subject box for an edit | map dressing tile (furniture, barrels, trees) |
 | `portrait` | flash | 3:4 at 2K | none beyond naming | actor sheet portrait |
 | `illustration` | flash | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
-| `battlemap` | flash, **edit-image only** | the source padded (mirrored margin) to the nearest API aspect, sent at most 4096 px on the long side, rendered at 4K, layout-locking keep line | mapped back onto the source's pixel grid at a whole-number scale (1 for an HD source, more for a small one), drift check (layout moved ⇒ one re-render, then refuse), checkerboard of source and result written beside it | restyled scene background for a bought map |
+| `battlemap` | flash, **edit-image only** | the source padded (mirrored margin) to the nearest API aspect, sent at most 4096 px on the long side, rendered at 4K, layout-locking keep line | mapped back onto the source's pixel grid at a whole-number scale (1 for an HD source, more for a small one), shipped as WebP, drift check (layout moved ⇒ one re-render, then refuse), checkerboard of source and result written beside it | restyled scene background for a bought map |
 
 **Nothing ever clips off a token or a prop (owner rule 2026-09-24).** A sword, wing, or foot
 cut by the frame edge makes the token unusable. The framing and the token edit line both demand a margin on
@@ -147,6 +147,9 @@ reports it. Tools enforce, skills ask.
 - Commit direct to `main`.
 - Kernel-grade quality bar: tools are tested and own correctness; no judgment in tools.
 - Output filenames: `<kind>-<slug>-<id>.png`, kebab-case, kind-prefixed, matching the campaign
-  repos' `art/` shelf, so generate → curate → upload needs no glue.
+  repos' `art/` shelf, so generate → curate → upload needs no glue. Battlemaps are the one
+  exception (owner 2026-10-02): `.webp`, since a restyled map is 20 to 70 MB as PNG and about
+  4 MB as WebP, and players download it on every scene load. A map past WebP's 16383 px
+  limit falls back to PNG.
 - The API key lives in `.env` (gitignored), never in a skill, a prompt, or a commit.
 - Register the server at **user scope**.

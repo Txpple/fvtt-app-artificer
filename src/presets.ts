@@ -117,8 +117,8 @@ export const TOKEN_EDGE: Record<CreatureSize, number> = { medium: 512, large: 10
  * Output filename: `<kind>-<slug>-<id>.png` (kebab-case, kind-prefixed, matching the campaign
  * repos' `art/` shelf — locked with the owner 2026-08-26, id replaces the old seed).
  */
-export function filename(kind: Kind, slug: string, id: string): string {
-  return `${kind}-${slugify(slug)}-${id}.png`;
+export function filename(kind: Kind, slug: string, id: string, ext = 'png'): string {
+  return `${kind}-${slugify(slug)}-${id}.${ext}`;
 }
 
 /** Kebab-case sanitizer: lowercase, alphanumerics and hyphens only, collapsed, trimmed. */

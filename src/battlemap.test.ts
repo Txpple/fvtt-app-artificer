@@ -2,12 +2,15 @@ import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 import {
   deliveryScale,
+  encodeMap,
   MAP_MARGIN,
   MAP_UPLOAD_EDGE,
   mapBack,
+  mapFormat,
   padPlan,
   padSource,
   sourceRegion,
+  WEBP_MAX_EDGE,
 } from './battlemap.js';
 
 /** A textured test map: deterministic noise, softened, so every region is distinct. */
@@ -81,6 +84,24 @@ describe('sourceRegion / deliveryScale', () => {
     expect(deliveryScale(small, sourceRegion(small, 3584, 4800))).toBe(3);
     const hd = padPlan(3220, 2520);
     expect(deliveryScale(hd, sourceRegion(hd, 4800, 3584))).toBe(1);
+  });
+});
+
+describe('mapFormat / encodeMap', () => {
+  it('ships maps as WebP, and as PNG past WebP 16383 px limit', () => {
+    expect(mapFormat(3000, 4000)).toBe('webp');
+    expect(mapFormat(WEBP_MAX_EDGE, 9000)).toBe('webp');
+    expect(mapFormat(14400, 19000)).toBe('png');
+    expect(mapFormat(16384, 100)).toBe('png');
+  });
+
+  it('encodes a map smaller as WebP than as PNG (real restyles: 38.6 MB to 3.7, 70.8 to 3.9)', async () => {
+    const img = await noiseMap(600, 400);
+    const webp = await encodeMap(img, 'webp');
+    const png = await encodeMap(img, 'png');
+    expect((await sharp(webp).metadata()).format).toBe('webp');
+    expect((await sharp(png).metadata()).format).toBe('png');
+    expect(webp.length).toBeLessThan(png.length);
   });
 });
 

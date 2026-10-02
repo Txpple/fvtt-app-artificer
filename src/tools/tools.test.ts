@@ -646,8 +646,12 @@ describe('battlemaps', () => {
       source: { width: 400, height: 300 },
       scale: 2,
     });
-    expect(await sharp(r.file).metadata()).toMatchObject({ width: 800, height: 600 });
-    expect(path.basename(r.file)).toMatch(/^battlemap-tavern-[0-9a-f]{8}\.png$/);
+    expect(await sharp(r.file).metadata()).toMatchObject({
+      width: 800,
+      height: 600,
+      format: 'webp',
+    });
+    expect(path.basename(r.file)).toMatch(/^battlemap-tavern-[0-9a-f]{8}\.webp$/);
     expect(r.drift.failed).toBe(false);
     expect(r.driftRetried).toBeUndefined();
     expect(fs.existsSync(r.check)).toBe(true);
@@ -669,7 +673,7 @@ describe('battlemaps', () => {
     expect(spend.calls).toBe(2);
     expect(r.estimatedUsd).toBeCloseTo(0.302);
     expect(
-      fs.readdirSync(tmp).some(f => /^battlemap-tavern2-[0-9a-f]{8}-drifted1\.png$/.test(f))
+      fs.readdirSync(tmp).some(f => /^battlemap-tavern2-[0-9a-f]{8}-drifted1\.webp$/.test(f))
     ).toBe(true);
   });
 
@@ -685,8 +689,8 @@ describe('battlemaps', () => {
     ).rejects.toThrow(/Both renders moved the map's layout.*never delivered/);
     expect(sent).toHaveLength(2);
     const files = fs.readdirSync(tmp).filter(f => f.startsWith('battlemap-tavern3-'));
-    expect(files.some(f => f.endsWith('-drifted2.png'))).toBe(true);
-    expect(files.some(f => /^battlemap-tavern3-[0-9a-f]{8}\.png$/.test(f))).toBe(false);
+    expect(files.some(f => f.endsWith('-drifted2.webp'))).toBe(true);
+    expect(files.some(f => /^battlemap-tavern3-[0-9a-f]{8}\.(webp|png)$/.test(f))).toBe(false);
   });
 
   it('edit: a style reference lends finish only, never camera angle or layout', async () => {

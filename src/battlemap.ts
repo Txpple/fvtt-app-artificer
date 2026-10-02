@@ -98,6 +98,25 @@ export function sourceRegion(
   };
 }
 
+/** WebP's hard limit on either side, in pixels. */
+export const WEBP_MAX_EDGE = 16383;
+
+/**
+ * The file format a finished map ships in. WebP (owner decision 2026-10-02): a restyled map is
+ * 20 to 40 MB as PNG (the 3375×4500 garden was 38.6 MB) against 1 to 4 MB for the bought
+ * originals, and players download the background on every scene load. A map past WebP's size
+ * limit (FA's 200 px-per-cell Tomb of Horrors is 14400×19000) ships as PNG instead.
+ */
+export function mapFormat(width: number, height: number): 'webp' | 'png' {
+  return Math.max(width, height) <= WEBP_MAX_EDGE ? 'webp' : 'png';
+}
+
+/** Encode a finished map in its format. Quality 90 is indistinguishable on painted maps. */
+export async function encodeMap(img: Buffer, format: 'webp' | 'png'): Promise<Buffer> {
+  const s = sharp(img);
+  return (format === 'webp' ? s.webp({ quality: 90 }) : s.png()).toBuffer();
+}
+
 /**
  * The whole-number scale a map is delivered at: 1 for a source the render cannot beat, more for
  * an old low-resolution map the render has the pixels to improve (owner goal 2026-10-02: upscale

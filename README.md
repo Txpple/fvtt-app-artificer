@@ -32,7 +32,8 @@ wrong, and the finished file lands on disk ready to upload into Foundry.
   walls and lights already traced over it in Foundry still fit. The result lands on the
   source's own pixel grid. An old low-res map comes back at a whole-number upscale (a
   1125×1500 map at 3375×4500). Every render is checked against the original, and one whose
-  layout moved is redone once, then refused. About 15 cents a map.
+  layout moved is redone once, then refused. Maps ship as WebP, about 4 MB where a PNG would
+  be 40 to 70. About 15 cents a map.
 - **Portraits.** Actor sheet art at 3:4. Hand it a previous portrait or two as style
   references and the new one matches your table's look.
 - **Illustrations.** Player handouts and scene splashes at 2560×1600. Hand it your party's

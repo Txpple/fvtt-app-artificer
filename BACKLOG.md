@@ -35,10 +35,6 @@ reference images or multi-turn editing. Only worth a `draft` tier if icon volume
   Horrors at 50 px a cell: pews became bookshelves, a cavern a crater). The tool already caps
   the upload at 4096 px. Restyling in overlapping tiles would keep the detail but risks seams and a
   style that wanders tile to tile; only worth trying when a wanted map is that big.
-- **File format.** A battlemap ships as PNG like every other kind, which is 20 to 40 MB at full
-  size, where the bought originals are 1 to 4 MB JPEG or WebP. WebP for this one kind would suit
-  Foundry and the campaign repo; the PNG rule was set for icons and the `art/` shelf, so it is
-  the owner's call.
 - **The house map look.** The recipe makes maps from different authors read as one family; an
   owner-approved anchor map would pin it harder, but a map attached as a style reference swaps
   its layout in (refused twice by the drift guard). If one is ever tried again, it needs a
@@ -61,8 +57,9 @@ reference images or multi-turn editing. Only worth a `draft` tier if icon volume
 
 - **Battlemap restyles** (2026-10-02). `edit-image` `kind: "battlemap"`: a bought map repainted
   with its layout locked, mapped back onto the source's pixel grid (a whole-number upscale for a
-  small source), drift-checked tile by tile and refused after two drifted renders. 24 live
-  renders across 8 Tom Cartos and Mad Cartographer maps, about $4.10 in all.
+  small source), drift-checked tile by tile and refused after two drifted renders. Shipped as
+  WebP (owner's call the same day): 38.6 MB to 3.7 MB on the garden. Proven on 14 maps from
+  Forgotten Adventures, Tom Cartos, and Mad Cartographer, about $6.25 of renders in all.
 
 - **Key colour from the prompt, not only from samples** (found and fixed 2026-09-19). The first
   Bramblemaw token, a green dragon prompted against a grey reference token, went out on a green

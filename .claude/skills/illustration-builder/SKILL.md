@@ -92,8 +92,8 @@ What the 2026-10-02 set of 14 (Forgotten Adventures, Tom Cartos, Mad Cartographe
 - **Google sometimes returns no image** (finishReason NO_IMAGE, nothing billed). Run it again
   once.
 
-**Installing a restyled map** (molten5e): `upload-asset` the PNG to
-`worlds/<world>/assets/maps/<name>.png`, then `manage-scenes` `update` with `sceneIdentifier`
+**Installing a restyled map** (molten5e): `upload-asset` the WebP the tool wrote to
+`worlds/<world>/assets/maps/<name>.webp`, then `manage-scenes` `update` with `sceneIdentifier`
 and `backgroundPath` only. Never pass width, height, or gridSize: the walls are in the scene's
 own coordinates, and a scene (v10+) draws its background at the scene's dimensions, so a bigger
 or smaller file still lines up. Note the old background path first so the swap can be undone,

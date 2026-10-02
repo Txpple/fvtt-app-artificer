@@ -7,7 +7,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import sharp from 'sharp';
 import { z } from 'zod';
-import { mapBack, type PadPlan } from '../battlemap.js';
+import { encodeMap, mapBack, mapFormat, type PadPlan } from '../battlemap.js';
 import { type ChromaKey, chromaSuffix, pickChromaKey } from '../chroma.js';
 import type { CutoutFn, CutoutResult } from '../cutout.js';
 import { type Aspect, Gemini, type InlineImage, PRICE, TIERS, type Tier } from '../gemini.js';
@@ -340,28 +340,35 @@ async function renderMap(deps: ToolDeps, input: RenderInput, id: string): Promis
   };
   const stem = path.join(deps.outputDir, `battlemap-${slugOf(input.slug)}-${id}`);
   let r = await once();
+  // Every render of one map has the same size, so one format serves the drifted copies too.
+  const format = mapFormat(r.width, r.height);
+  const keep = async (n: number) => {
+    const kept = `${stem}-drifted${n}.${format}`;
+    fs.writeFileSync(kept, await encodeMap(r.png, format));
+    return kept;
+  };
   let estimatedUsd = r.usd;
   let driftRetried: boolean | undefined;
   if (r.drift.failed) {
-    fs.writeFileSync(`${stem}-drifted1.png`, r.png);
+    const kept1 = await keep(1);
     const first = driftSummary(r.drift);
     r = await once();
     estimatedUsd += r.usd;
     driftRetried = true;
     if (r.drift.failed) {
-      fs.writeFileSync(`${stem}-drifted2.png`, r.png);
+      const kept2 = await keep(2);
       const d = driftSummary(r.drift);
       throw new Error(
         `Both renders moved the map's layout (${first.drifted} of ${first.tiles} and ` +
           `${d.drifted} of ${d.tiles} measured tiles drifted, worst ${d.max}‰ of the long ` +
           'side); a drifted battlemap is never delivered, since walls and lights are traced ' +
-          `over it. Kept for inspection: ${stem}-drifted1.png, ${stem}-drifted2.png. Spent ` +
+          `over it. Kept for inspection: ${kept1}, ${kept2}. Spent ` +
           `about $${estimatedUsd.toFixed(2)}. Ask for a lighter change and try again.`
       );
     }
   }
-  const file = path.join(deps.outputDir, filename('battlemap', input.slug, id));
-  fs.writeFileSync(file, r.png);
+  const file = path.join(deps.outputDir, filename('battlemap', input.slug, id, format));
+  fs.writeFileSync(file, await encodeMap(r.png, format));
   const check = `${stem}-check.jpg`;
   fs.writeFileSync(check, await checkerboard(map.source, r.png));
   return {
