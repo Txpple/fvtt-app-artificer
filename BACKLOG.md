@@ -25,22 +25,7 @@ without re-uploading.
 Gemini 3.1 Flash Lite Image is about half the price of Flash at 1K but is not optimized for
 reference images or multi-turn editing. Only worth a `draft` tier if icon volume gets large.
 
-## 4 · Battlemap follow-ups (from the 2026-10-02 build)
-
-- **Whole packs in one pass.** Restyle every map of a pack (or every floor of one building) with
-  the same recipe, then the flaw pass on each. The Batch API (half price) fits: a pack can wait.
-- **Maps bigger than the render.** The API tops out at 4K (5504 px on the long side at 16:9), so
-  the 9300×4710 Sanguine Dawn exterior or a 4200×14000 Mad Cartographer world tree comes back
-  upsampled and soft, and small details are reinterpreted more (FA's 72×95-cell Tomb of
-  Horrors at 50 px a cell: pews became bookshelves, a cavern a crater). The tool already caps
-  the upload at 4096 px. Restyling in overlapping tiles would keep the detail but risks seams and a
-  style that wanders tile to tile; only worth trying when a wanted map is that big.
-- **The house map look.** The recipe makes maps from different authors read as one family; an
-  owner-approved anchor map would pin it harder, but a map attached as a style reference swaps
-  its layout in (refused twice by the drift guard). If one is ever tried again, it needs a
-  different binding than "STYLE reference", and the guard stays the backstop.
-
-## 5 · Parked
+## 4 · Parked
 
 - **Text-heavy props** (wanted posters, letters, signs): Pro renders text well, so this needs no
   new model, only a skill recipe and maybe a `handout-text` preset if 3:4 or 2:3 suits better
