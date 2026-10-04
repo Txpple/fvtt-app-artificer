@@ -60,7 +60,15 @@ re-garbles it (Faerûn, 2026-10-03, two passes). Clean the source locally first:
 about 600 px wide, median filter, scale back, light blur, which kills the micro-text and keeps
 coastlines and region colours. Run the overland edit on that soft sketch (comes back bare but
 soft), then one more overland edit on the result with the sibling regional map attached as
-`role: "style"` to sharpen it to the same finish. Three renders, about 45 cents, zero drift.
+`role: "style"` to sharpen it to the same finish. Three renders, about 45 cents, zero drift. **Read the source map's legend into the
+instruction** (2026-10-03): the model takes cartographic symbols literally. On the 3.5e
+Halruaa map it painted every round tufted hill symbol as forest, turned dotted plains bare
+green, and put a swamp on a mountain massif; a cross-check against the source found seven
+wrong regions. Say what each symbol is ("round tufted bumps are rolling hills, never trees;
+hatched ridges are mountains; dotted lowlands are farmland; the only forest is ...") and name
+any region the model gets wrong. Then cross-check the result against the source quadrant by
+quadrant, side by side, before calling it done. Give the label erase its own pass: bundled
+with other changes in one instruction it was ignored entirely.
 
 **Battlemaps** (owner goals 2026-10-02: upscale and improve older art, and give maps from
 different authors one consistent style; Foundry walls and lights are traced over them). The tool
