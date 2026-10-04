@@ -48,7 +48,13 @@ bar itself, so the instruction is only the finish. Names and symbols go on after
 (PIL text on the bare map, positions read off the source), exact and re-placeable. The drift
 check is advisory below gross drift: a repainted coastline passes, a swapped geography is
 refused. First use: Halruaa from the 3.5e sourcebook map, 2026-10-03; with labels left in, the
-model misspelled three of thirty names, which is why the bare map is the rule.
+model misspelled three of thirty names, which is why the bare map is the rule. **The model will
+not drop all the lettering in one pass**, keep line or not: the Halruaa map took three. Pass
+one removed the markers, compass and scale bar but kept (and respelled) most names; pass two,
+an edit of pass one asking to erase "every word, letter by letter", left the eleven small
+settlement names; pass three, naming those eleven words outright, came back clean with zero
+drift. So: run the overland edit, Read it, then edit the result again naming every word still
+visible, until it is bare. Each pass is about 15 cents.
 
 **Battlemaps** (owner goals 2026-10-02: upscale and improve older art, and give maps from
 different authors one consistent style; Foundry walls and lights are traced over them). The tool
