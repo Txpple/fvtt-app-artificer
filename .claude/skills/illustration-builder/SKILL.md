@@ -54,7 +54,13 @@ one removed the markers, compass and scale bar but kept (and respelled) most nam
 an edit of pass one asking to erase "every word, letter by letter", left the eleven small
 settlement names; pass three, naming those eleven words outright, came back clean with zero
 drift. So: run the overland edit, Read it, then edit the result again naming every word still
-visible, until it is bare. Each pass is about 15 cents.
+visible, until it is bare. Each pass is about 15 cents. **A busy map (hundreds of labels and icons,
+e.g. a fan continent map) never comes clean that way**: the model traces the clutter and
+re-garbles it (Faerûn, 2026-10-03, two passes). Clean the source locally first: downscale to
+about 600 px wide, median filter, scale back, light blur, which kills the micro-text and keeps
+coastlines and region colours. Run the overland edit on that soft sketch (comes back bare but
+soft), then one more overland edit on the result with the sibling regional map attached as
+`role: "style"` to sharpen it to the same finish. Three renders, about 45 cents, zero drift.
 
 **Battlemaps** (owner goals 2026-10-02: upscale and improve older art, and give maps from
 different authors one consistent style; Foundry walls and lights are traced over them). The tool
