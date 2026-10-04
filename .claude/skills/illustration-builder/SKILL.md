@@ -41,6 +41,15 @@ The destination picks the `kind`, and the kind picks the model tier:
 Battlemaps are bought as UVTT packs with their walls; never try to generate one (the tool
 refuses). Restyling one is a `battlemap` edit; see **Battlemaps** below.
 
+**Overland maps** (owner rule 2026-10-03: a map never carries names or symbols from the model).
+A regional or world map is an `overland` edit of an existing map (a sourcebook map, a sketch):
+the tool locks the geography and paints out every label, marker, road, compass rose and scale
+bar itself, so the instruction is only the finish. Names and symbols go on afterwards by script
+(PIL text on the bare map, positions read off the source), exact and re-placeable. The drift
+check is advisory below gross drift: a repainted coastline passes, a swapped geography is
+refused. First use: Halruaa from the 3.5e sourcebook map, 2026-10-03; with labels left in, the
+model misspelled three of thirty names, which is why the bare map is the rule.
+
 **Battlemaps** (owner goals 2026-10-02: upscale and improve older art, and give maps from
 different authors one consistent style; Foundry walls and lights are traced over them). The tool
 owns the geometry: it pads the source to an API aspect, maps the render back onto the source's

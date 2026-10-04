@@ -4,10 +4,25 @@
 
 import { ASPECTS, type Aspect, type ImageSize, type Tier } from './gemini.js';
 
-export const KINDS = ['icon', 'token', 'prop', 'portrait', 'illustration', 'battlemap'] as const;
+export const KINDS = [
+  'icon',
+  'token',
+  'prop',
+  'portrait',
+  'illustration',
+  'battlemap',
+  'overland',
+] as const;
 export type Kind = (typeof KINDS)[number];
 
-export type Post = 'icon' | 'token' | 'prop' | 'portrait' | 'illustration' | 'battlemap';
+export type Post =
+  | 'icon'
+  | 'token'
+  | 'prop'
+  | 'portrait'
+  | 'illustration'
+  | 'battlemap'
+  | 'overland';
 
 export interface Preset {
   tier: Tier;
@@ -94,6 +109,9 @@ export const PRESETS: Record<Kind, Preset> = {
   // Restyles of bought maps, edit-image only (owner request 2026-10-02). The aspect is replaced
   // per call from the source; 4K always, since a map is zoomed in on at the table.
   battlemap: { tier: 'flash', aspect: '4:3', size: '4K', post: 'battlemap', suffix: '' },
+  // Repaints of a regional or world map, edit-image only (owner request 2026-10-03): the same
+  // geometry as a battlemap, painted bare of names and symbols, which are lettered on afterwards.
+  overland: { tier: 'flash', aspect: '4:3', size: '4K', post: 'overland', suffix: '' },
 };
 
 /** Finished pixel sizes the post-processors guarantee. */

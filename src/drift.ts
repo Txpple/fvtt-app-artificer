@@ -33,6 +33,22 @@ export const DRIFT_SHARE_LIMIT = 0.03;
  */
 export const DRIFT_LOCK_MIN = 0.5;
 
+/**
+ * An overland map is checked looser (owner request 2026-10-03): nothing is traced over it, and
+ * the names and markers it is painted bare of are themselves edges, so some tiles always move.
+ * The check is there to catch a swapped or reshaped geography, not a repainted coastline: the
+ * first two renders of the Halruaa map drifted on 18% and 9% of tiles and were both faithful.
+ */
+export const OVERLAND_DRIFT_SHARE_LIMIT = 0.25;
+/** Lettering removed from a textured tile can stop it locking on; half is too strict here. */
+export const OVERLAND_LOCK_MIN = 0.25;
+
+/** True when an overland map's geography moved grossly: swapped, reshaped, or unmatched. */
+export function overlandDrifted(d: DriftReport): boolean {
+  const lockedOn = d.textured === 0 || d.tiles / d.textured >= OVERLAND_LOCK_MIN;
+  return !lockedOn || (d.tiles > 0 && d.drifted / d.tiles > OVERLAND_DRIFT_SHARE_LIMIT);
+}
+
 export interface DriftReport {
   /** Tiles with enough texture in the source to measure. */
   textured: number;

@@ -11,7 +11,7 @@ import { encodeMap, mapBack, mapFormat, type PadPlan } from '../battlemap.js';
 import { type ChromaKey, chromaSuffix, pickChromaKey } from '../chroma.js';
 import type { CutoutFn, CutoutResult } from '../cutout.js';
 import { type Aspect, Gemini, type InlineImage, PRICE, TIERS, type Tier } from '../gemini.js';
-import { type DriftReport, measureDrift } from '../drift.js';
+import { type DriftReport, measureDrift, overlandDrifted } from '../drift.js';
 import { EDGE_BAND, EDGE_LIMIT, edgeContact } from '../edge.js';
 import { type Box, type Dimensions, dimensions, fitRect, postProcess } from '../post.js';
 import {
@@ -43,6 +43,8 @@ export const kindSchema = z
       'portrait: 3:4 at 2K. illustration: 16:9 at 4K → 2560×1600 (16:10 crop). ' +
       'battlemap (edit-image only): restyle a bought map with its layout locked, delivered on ' +
       "the source's pixel grid (a whole-number upscale for a small source), drift-checked. " +
+      'overland (edit-image only): repaint a regional or world map on the same grid, bare of ' +
+      'every name and symbol, with a looser drift check. ' +
       'Every kind defaults to flash; tier: "pro" is opt-in and needs confirmPro.'
   );
 
@@ -142,7 +144,7 @@ export function referencePreamble(refs: Reference[], kind?: Kind): string {
           'direction, camera angle, and silhouette. Do not copy its drawing, colours, rendering, ' +
           'or level of detail; it is an old low-quality image being replaced.'
       );
-    } else if (kind === 'battlemap') {
+    } else if (kind === 'battlemap' || kind === 'overland') {
       lines.push(
         `Image ${n}${who} is a STYLE reference only: match its palette, brushwork, and painted ` +
           'finish. Copy nothing else from it: no layout, no objects, no rooms, no shapes.'
@@ -224,7 +226,7 @@ export async function render(deps: ToolDeps, input: RenderInput): Promise<Render
 
   fs.mkdirSync(deps.outputDir, { recursive: true });
   const id = newId();
-  if (input.kind === 'battlemap') return renderMap(deps, input, id);
+  if (input.kind === 'battlemap' || input.kind === 'overland') return renderMap(deps, input, id);
   const once = async () => {
     const result = await deps.gemini.generate({
       tier: input.tier,
@@ -322,9 +324,10 @@ function driftSummary(d: DriftReport): DriftReport {
  * it). A drifted render is redone once (both billed); a second drift is refused, both kept.
  */
 async function renderMap(deps: ToolDeps, input: RenderInput, id: string): Promise<RenderOutput> {
-  const preset = PRESETS.battlemap;
+  const kind = input.kind;
+  const preset = PRESETS[kind];
   const map = input.map;
-  if (!map) throw new Error('battlemap render needs its source and pad plan');
+  if (!map) throw new Error(`${kind} render needs its source and pad plan`);
   const once = async () => {
     const result = await deps.gemini.generate({
       tier: input.tier,
@@ -335,10 +338,13 @@ async function renderMap(deps: ToolDeps, input: RenderInput, id: string): Promis
     });
     const usd = deps.spend.record(input.tool, input.tier, preset.size);
     const back = await mapBack(result.image.data, map.plan);
-    const drift = await measureDrift(map.source, back.png);
+    const measured = await measureDrift(map.source, back.png);
+    // An overland map has nothing traced over it: only a grossly moved geography fails.
+    const drift =
+      kind === 'overland' ? { ...measured, failed: overlandDrifted(measured) } : measured;
     return { result, ...back, drift, usd };
   };
-  const stem = path.join(deps.outputDir, `battlemap-${slugOf(input.slug)}-${id}`);
+  const stem = path.join(deps.outputDir, `${kind}-${slugOf(input.slug)}-${id}`);
   let r = await once();
   // Every render of one map has the same size, so one format serves the drifted copies too.
   const format = mapFormat(r.width, r.height);
@@ -361,19 +367,22 @@ async function renderMap(deps: ToolDeps, input: RenderInput, id: string): Promis
       throw new Error(
         `Both renders moved the map's layout (${first.drifted} of ${first.tiles} and ` +
           `${d.drifted} of ${d.tiles} measured tiles drifted, worst ${d.max}‰ of the long ` +
-          'side); a drifted battlemap is never delivered, since walls and lights are traced ' +
-          `over it. Kept for inspection: ${kept1}, ${kept2}. Spent ` +
+          (kind === 'overland'
+            ? 'side); the geography moved too far to be the same map. '
+            : 'side); a drifted battlemap is never delivered, since walls and lights are traced ' +
+              'over it. ') +
+          `Kept for inspection: ${kept1}, ${kept2}. Spent ` +
           `about $${estimatedUsd.toFixed(2)}. Ask for a lighter change and try again.`
       );
     }
   }
-  const file = path.join(deps.outputDir, filename('battlemap', input.slug, id, format));
+  const file = path.join(deps.outputDir, filename(kind, input.slug, id, format));
   fs.writeFileSync(file, await encodeMap(r.png, format));
   const check = `${stem}-check.jpg`;
   fs.writeFileSync(check, await checkerboard(map.source, r.png));
   return {
     file,
-    kind: 'battlemap',
+    kind,
     tier: input.tier,
     model: r.result.model,
     width: r.width,

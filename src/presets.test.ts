@@ -34,16 +34,18 @@ describe('presets', () => {
     });
   });
 
-  it('has six kinds; battlemap restyles a bought map at 4K on flash', () => {
+  it('has seven kinds; battlemap and overland repaint an existing map at 4K on flash', () => {
     expect([...KINDS].sort()).toEqual([
       'battlemap',
       'icon',
       'illustration',
+      'overland',
       'portrait',
       'prop',
       'token',
     ]);
     expect(PRESETS.battlemap).toMatchObject({ tier: 'flash', size: '4K', post: 'battlemap' });
+    expect(PRESETS.overland).toMatchObject({ tier: 'flash', size: '4K', post: 'overland' });
   });
 
   it('frames tokens top-down and leaves the plate sentence to chroma.ts', () => {

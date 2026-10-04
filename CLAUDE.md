@@ -45,7 +45,8 @@ Claude ──MCP──> fvtt-app-artificer ──HTTPS──> Gemini image API
 
 - Tools return absolute file paths; Claude reads the PNGs directly to curate.
 - Small server: `generate-image`, `edit-image`, `cutout-image`, `artificer-status`. Resist tool
-  sprawl. New work arrives as a `kind`, not a tool (props 2026-09-24, battlemaps 2026-10-02).
+  sprawl. New work arrives as a `kind`, not a tool (props 2026-09-24, battlemaps 2026-10-02, overland
+  maps 2026-10-03).
 
 ## Models and tiers
 
@@ -82,6 +83,7 @@ default tier, and its post-processing:
 | `portrait` | flash | 3:4 at 2K | none beyond naming | actor sheet portrait |
 | `illustration` | flash | 16:9 at 4K, style refs attached | crop to 16:10, downsample to 2560×1600 | journal image / player handout |
 | `battlemap` | flash, **edit-image only** | the source padded (mirrored margin) to the nearest API aspect, sent at most 4096 px on the long side, rendered at 4K, layout-locking keep line | mapped back onto the source's pixel grid at a whole-number scale (1 for an HD source, more for a small one), shipped as WebP, drift check (layout moved ⇒ one re-render, then refuse), checkerboard of source and result written beside it | restyled scene background for a bought map |
+| `overland` | flash, **edit-image only** | the battlemap geometry, with a keep line that locks the geography and paints out every name, marker, road, compass rose and scale bar | as battlemap, but the drift check refuses only gross drift (over 25% of tiles, or under a quarter locking on) | a regional or world map, painted bare; names are lettered on afterwards by script |
 
 **Nothing ever clips off a token or a prop (owner rule 2026-09-24).** A sword, wing, or foot
 cut by the frame edge makes the token unusable. The framing and the token edit line both demand a margin on

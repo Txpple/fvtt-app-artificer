@@ -71,10 +71,11 @@ export class GenerateImageTool {
 
   async handleGenerateImage(args: unknown) {
     const p = generateImageSchema.parse(args);
-    if (p.kind === 'battlemap') {
-      // Maps are bought as UVTT packs with their walls; a map made from words has none.
+    if (p.kind === 'battlemap' || p.kind === 'overland') {
+      // Maps are bought as UVTT packs with their walls; a map made from words has none. An
+      // overland map keeps a real map's geography, so it starts from one too.
       throw new Error(
-        'battlemap is a restyle of an existing map: call edit-image with the map file as ' +
+        `${p.kind} is a repaint of an existing map: call edit-image with the map file as ` +
           'sourceImage. This server does not paint maps from scratch.'
       );
     }

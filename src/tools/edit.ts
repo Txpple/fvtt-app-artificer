@@ -88,6 +88,22 @@ export const BATTLEMAP_EDIT_KEEP =
   'every floor and its furnishings visible from above. Light and shadow fall exactly as in the ' +
   'source.';
 
+/**
+ * Overland maps (owner request 2026-10-03): a regional or world map repainted in the house style
+ * and painted bare. Names, markers, and roads are lettered on afterwards by script, exactly, so
+ * the model never draws text (it misspelled three of thirty labels on the first Halruaa render).
+ * The bare map is the tool's promise, so the removal lives here, not in the instruction.
+ */
+export const OVERLAND_EDIT_KEEP =
+  'This is an overland map of a region seen from directly above, and its place names, roads ' +
+  'and markers are lettered on afterwards by hand, so the geography is locked and the map is ' +
+  'painted bare: every coastline, river, lake, mountain range, pass, forest, swamp, desert and ' +
+  'island stays exactly where it is, at the same size and shape, framed to the same edges. ' +
+  'Change only how the land and sea are painted. Paint over every piece of lettering, every ' +
+  'label and place name, every town or city marker, road, dashed line, border, compass rose, ' +
+  'scale bar and frame with the land or sea that lies beneath it, so the finished map is pure ' +
+  'painted terrain and water, with no text and no symbols anywhere on it.';
+
 /** Transparent margin added around a prop source before it is sent, as a share of its long side. */
 export const PROP_EDIT_PAD = 0.12;
 
@@ -98,16 +114,17 @@ export function editPrompt(kind: Kind, instruction: string, refs: Reference[]): 
     /Image (\d+)/g,
     (_, n) => `Image ${Number(n) + 1}`
   );
-  if (kind === 'token' || kind === 'prop' || kind === 'battlemap') {
-    const source = refs.length
-      ? `Image 1 is the ${kind === 'battlemap' ? 'map' : kind} to edit. `
-      : '';
+  const map = kind === 'battlemap' || kind === 'overland';
+  if (kind === 'token' || kind === 'prop' || map) {
+    const source = refs.length ? `Image 1 is the ${map ? 'map' : kind} to edit. ` : '';
     const keep =
       kind === 'prop'
         ? PROP_EDIT_KEEP
         : kind === 'battlemap'
           ? BATTLEMAP_EDIT_KEEP
-          : TOKEN_EDIT_KEEP;
+          : kind === 'overland'
+            ? OVERLAND_EDIT_KEEP
+            : TOKEN_EDIT_KEEP;
     return `${source}${preamble}${instruction.trim().replace(/[.\s]+$/, '')}. ${keep}`;
   }
   const suffix = PRESETS[kind].suffix;
@@ -133,7 +150,10 @@ export class EditImageTool {
           '(kind "battlemap") restyle a bought map with the layout locked: the result lands on ' +
           "the source's pixel grid (a whole-number upscale when the source is small), is checked " +
           'for drift against the source (a drifted render is redone once, then refused), and ' +
-          'comes with a checkerboard image of source and result to eyeball. Returns the new ' +
+          'comes with a checkerboard image of source and result to eyeball. Overland maps ' +
+          '(kind "overland") repaint a regional or world map the same way, painted bare of every ' +
+          'name, marker, road, compass rose and scale bar (letter them on afterwards), with a ' +
+          'looser drift check that refuses only a grossly moved geography. Returns the new ' +
           'file path, dimensions, and estimated spend.',
         inputSchema: toInputSchema(editImageSchema),
       },
@@ -152,7 +172,7 @@ export class EditImageTool {
     // source with a transparent margin: a crate drawn edge to edge on its tile was otherwise
     // repainted edge to edge and refused twice by the clip guard (2026-09-24).
     let propFit = {};
-    if (p.kind === 'battlemap') {
+    if (p.kind === 'battlemap' || p.kind === 'overland') {
       // The API renders fixed aspects only: send the map padded to the nearest one, and map the
       // render back onto the source's own grid afterwards (battlemap.ts).
       const m = await sharp(images[0].data).metadata();

@@ -8,7 +8,13 @@ import { Gemini } from '../gemini.js';
 import { buildToolRegistry } from '../registry.js';
 import { SpendMeter } from '../spend.js';
 import { PROP_FRAMING, TOKEN_FRAMING } from '../presets.js';
-import { BATTLEMAP_EDIT_KEEP, EDIT_PREAMBLE, PROP_EDIT_KEEP, TOKEN_EDIT_KEEP } from './edit.js';
+import {
+  BATTLEMAP_EDIT_KEEP,
+  EDIT_PREAMBLE,
+  OVERLAND_EDIT_KEEP,
+  PROP_EDIT_KEEP,
+  TOKEN_EDIT_KEEP,
+} from './edit.js';
 import { referencePreamble, resolveTier } from './shared.js';
 
 let tmp: string;
@@ -129,7 +135,7 @@ const API_1K: Record<string, [number, number]> = {
  * scaled to cover the output and centre-trimmed. 'slid' renders shift the whole layout 40 px,
  * the way a drifted restyle moves walls.
  */
-function mapGemini(renders: Array<'faithful' | 'slid'>): Gemini {
+function mapGemini(renders: Array<'faithful' | 'slid' | 'nudged'>): Gemini {
   sent = [];
   const fakeFetch = (async (url: any, init: any) => {
     const body = JSON.parse(init.body);
@@ -144,6 +150,18 @@ function mapGemini(renders: Array<'faithful' | 'slid'>): Gemini {
     if (how === 'slid') {
       const wide = await sharp(out).extend({ left: 40, extendWith: 'mirror' }).png().toBuffer();
       out = await sharp(wide).extract({ left: 0, top: 0, width: w, height: h }).png().toBuffer();
+    }
+    if (how === 'nudged') {
+      // Only the left fifth of the map slides down 40 px: a repainted coastline, not a new map.
+      const strip = Math.round(w / 5);
+      const moved = await sharp(out)
+        .extract({ left: 0, top: 0, width: strip, height: h - 40 })
+        .png()
+        .toBuffer();
+      out = await sharp(out)
+        .composite([{ input: moved, left: 0, top: 40 }])
+        .png()
+        .toBuffer();
     }
     const data = (await sharp(out).jpeg({ quality: 95 }).toBuffer()).toString('base64');
     return new Response(
@@ -716,6 +734,18 @@ describe('battlemaps', () => {
     expect(sent).toHaveLength(0);
   });
 
+  it('edit: a partly nudged render is battlemap drift (walls would miss)', async () => {
+    const { dispatch } = build(mapGemini(['nudged', 'nudged']));
+    await expect(
+      dispatch('edit-image', {
+        sourceImage: mapSrc,
+        instruction: 'repaint',
+        kind: 'battlemap',
+        slug: 'tavern5',
+      })
+    ).rejects.toThrow(/never delivered/);
+  });
+
   it('edit: the keep line locks the layout and the contents, and leaves palette to the instruction', () => {
     expect(BATTLEMAP_EDIT_KEEP).toMatch(/walls, doors and lights are traced/);
     expect(BATTLEMAP_EDIT_KEEP).toMatch(/never what is in it/);
@@ -787,5 +817,72 @@ describe('artificer-status', () => {
     const s: any = await dispatch('artificer-status', {});
     expect(s.keyPresent).toBe(false);
     expect(s.models).toEqual({});
+  });
+});
+
+describe('overland maps', () => {
+  it('edit: lands on the source grid, painted bare, with the overland keep line', async () => {
+    const { dispatch, spend } = build(mapGemini(['faithful']));
+    const r: any = await dispatch('edit-image', {
+      sourceImage: mapSrc,
+      instruction: 'repaint this map as an antique hand-painted atlas.',
+      kind: 'overland',
+      slug: 'halruaa',
+    });
+    const text = sent[0].body.contents[0].parts.at(-1).text;
+    expect(text).toBe(`repaint this map as an antique hand-painted atlas. ${OVERLAND_EDIT_KEEP}`);
+    expect(text).not.toContain(BATTLEMAP_EDIT_KEEP);
+    expect(sent[0].body.generationConfig.imageConfig).toEqual({
+      aspectRatio: '4:3',
+      imageSize: '4K',
+    });
+    expect(r).toMatchObject({ kind: 'overland', source: { width: 400, height: 300 }, scale: 2 });
+    expect(path.basename(r.file)).toMatch(/^overland-halruaa-[0-9a-f]{8}\.webp$/);
+    expect(fs.existsSync(r.check)).toBe(true);
+    expect(spend.calls).toBe(1);
+  });
+
+  it('edit: a partly nudged geography is delivered (the check is advisory below gross drift)', async () => {
+    const { dispatch, spend } = build(mapGemini(['nudged']));
+    const r: any = await dispatch('edit-image', {
+      sourceImage: mapSrc,
+      instruction: 'repaint',
+      kind: 'overland',
+      slug: 'halruaa2',
+    });
+    expect(r.drift.drifted).toBeGreaterThan(0);
+    expect(r.drift.failed).toBe(false);
+    expect(r.driftRetried).toBeUndefined();
+    expect(spend.calls).toBe(1);
+  });
+
+  it('edit: a wholly moved geography is redone, then refused, both kept', async () => {
+    const { dispatch } = build(mapGemini(['slid', 'slid']));
+    await expect(
+      dispatch('edit-image', {
+        sourceImage: mapSrc,
+        instruction: 'repaint',
+        kind: 'overland',
+        slug: 'halruaa3',
+      })
+    ).rejects.toThrow(/geography moved too far/);
+    expect(sent).toHaveLength(2);
+    const files = fs.readdirSync(tmp).filter(f => f.startsWith('overland-halruaa3-'));
+    expect(files.some(f => f.endsWith('-drifted2.webp'))).toBe(true);
+  });
+
+  it('generate: refuses an overland map before any network call (it starts from a real map)', async () => {
+    const { dispatch } = build(mapGemini(['faithful']));
+    await expect(
+      dispatch('generate-image', { kind: 'overland', prompt: 'a kingdom', slug: 'x' })
+    ).rejects.toThrow(/overland is a repaint.*edit-image.*sourceImage/);
+    expect(sent).toHaveLength(0);
+  });
+
+  it('the keep line locks the geography and paints out every name and symbol', () => {
+    expect(OVERLAND_EDIT_KEEP).toMatch(/geography is locked/);
+    expect(OVERLAND_EDIT_KEEP).toMatch(/Paint over every piece of lettering/);
+    expect(OVERLAND_EDIT_KEEP).toMatch(/compass rose, scale bar/);
+    expect(OVERLAND_EDIT_KEEP).not.toMatch(/walls, doors/);
   });
 });
