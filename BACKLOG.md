@@ -4,6 +4,13 @@ Candidates after v1.0.0, in rough priority order. The planned work lives in
 [ROADMAP.md](ROADMAP.md). Two items that used to live here, AI token edits and the cutout port,
 are now core roadmap milestones (M1 `edit-image`, M2 `cutout-image`).
 
+## 0 · Linked battlemaps from map libraries (next up)
+
+Kitbash library maps and props into a series of linked scenes, repaint them into one style,
+fit walls and lights, and hand the LLM `.uvtt` / scene JSON plus teleporter pairs to place
+through fvtt-mcp. Plan, lessons and proof-of-concept code in
+[notes/map-builder/PLAN.md](notes/map-builder/PLAN.md) (2026-10-05).
+
 ## 1 · Icon sets as a first-class workflow
 
 A homebrew item, spell, or feature set with matching icons is a bigger visual upgrade to a
