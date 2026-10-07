@@ -158,6 +158,22 @@ plus a kitbash; full write-up in `notes/map-builder/PLAN.md`):
   scene's sidecar or the fit's glow pass. Water is terrain, not dressing: Clean keeps pools,
   and only a Dry variant (Caves 02) removes them. Use the standard map only when its dressing
   is the point (a plain restyle for a better look).
+- **No creatures on a battlemap (owner rule 2026-10-07).** Goats, fish, people, anything the
+  plot says lives there: never prompt it into the map. Creatures are tokens, made separately,
+  so they can move. Prompt the pen, the hay rack and the drying rack; leave the goats and the
+  fish out. The 2026-10-07 goat ledges and deep pools both painted the animals in and will be
+  redone.
+- **Doors read like the Hearth Door, not like a flag (owner, 2026-10-07).** The map is a
+  cutaway seen from above; a door slab painted from words should show the way the Hearth's
+  Door slab did (the slab's face foreshortened in the cutaway convention, standing in its
+  opening). Several second-pass doors came back as a flat upright flag at right angles to the
+  map. Say "a door standing in its opening, seen the same way as the walls" and compare
+  against the Door render before accepting.
+- **A stitched super map needs a blend pass at the seams (owner, 2026-10-07).** Tiles
+  repainted separately join with a colour ramp only: one tile's water meets another's as two
+  kinds of water, and cave rock changes grain at the line. After stitching, the seam band
+  gets its own pass that makes the two halves one continuous painting (water one water, rock
+  one rock), fitted again afterwards. Until that pass exists, call the stitch a draft.
 
 **Installing a restyled map** (molten5e): `upload-asset` the WebP the tool wrote to
 `worlds/<world>/assets/maps/<name>.webp`, then `manage-scenes` `update` with `sceneIdentifier`

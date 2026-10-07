@@ -255,6 +255,20 @@ the pass, 15 renders where the drift gate fired twice.
 - **Nits for the pass after this:** gibberish lettering on name-stones and cloths; a stray
   daylight glow on the goat ledges' east wall; the Great Hall's flagstone platform lost its
   two plinths; the Door slab needs its wall.
+- **Owner rules from the review (2026-10-07):** no creatures painted into a map (goats, fish:
+  tokens instead); painted doors must sit in their openings the way the Hearth Door did, not
+  as a flat upright flag; a super map needs a seam-blend pass. The three are in the skill.
+
+### Next for stitch: the seam-blend pass
+
+The colour ramp is not enough: water meets water as two kinds of water, rock changes grain at
+the line. Plan: cut a band about 4 squares wide along each seam out of the stitched map, send
+it through `edit-image` `battlemap` with a keep line plus "the two halves are one continuous
+painting: the water is one body of water, the rock one rock, the floor one floor", map it
+back onto the band (the tool already lands a render on its source grid), feather it into the
+sheet over half a square, and re-run fit on the whole sheet. One render per seam, so about
+$0.15 a seam. The band must carry a margin on both sides so the model sees what it is
+matching.
 
 ## Decisions
 
