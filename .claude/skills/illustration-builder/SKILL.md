@@ -121,6 +121,35 @@ What the 2026-10-02 set of 14 (Forgotten Adventures, Tom Cartos, Mad Cartographe
 - **Google sometimes returns no image** (finishReason NO_IMAGE, nothing billed). Run it again
   once.
 
+What the 2026-10-05 Hearth set taught (12 Tom Cartos caves re-themed as one campaign's home,
+plus a kitbash; full write-up in `notes/map-builder/PLAN.md`):
+- **Content changes re-theme a map well, and they move it.** "The curved stone structure is a
+  forge hearth; the stone block is an anvil" turned a Cartos shrine into a forge the owner
+  loved, but 10 of 12 such renders drifted 3–5% and were refused (both drafts are kept as
+  `-drifted1/2.webp`). When the owner says walls don't matter yet, the drafts are deliverable:
+  pick by eye. When walls matter, keep the instruction to paint only.
+- **One call at a time.** Four `edit-image` calls in parallel all came back Gemini HTTP 500.
+  A timeout happens now and then; retry it once.
+- **A repaint is only as rich as its input.** Our own drawn geometry (procedural sketches)
+  repainted as clip art, clearly inferior to repainted Cartos maps. A kitbash of real pack art
+  (a Clean variant as the base, props lifted from other maps) repainted at Cartos quality.
+  Never draw our own geometry for a final map.
+- **The drift check misfires on composed or sketched input.** It refused renders that kept
+  96–98% of the source's floor. For those, compare floor masks (void threshold after a light
+  blur) and accept at about 0.95 overlap; read both drafts.
+- **The model adds and grows.** Extra braziers and crates appeared; a painted-in door slab grew
+  two squares. Keep painted-in pieces prop-sized, and fit walls after the repaint, not before.
+- **Name the void.** Some renders painted textured rock into the black around a cave; add "the
+  surrounding void stays pure black" when walls will be traced.
+- **Regular patterns come back as a printed grid.** Grid-aligned flagstone joints in the input
+  repainted as a baked grid that fights Foundry's.
+- **A campaign shelf beats the recipe.** Where a campaign's `art/SHELF.md` bans "visible
+  brushwork" (it turns Van Gogh), swap the recipe's phrase for "smooth, refined, controlled
+  brushwork"; the rest of the recipe holds.
+- **Clean variants are a prop library.** A Cartos map minus its Clean twin lifts every prop
+  with alpha (fill the contours so pale props keep no holes). Combined sheets show which tiles
+  the author designed to join.
+
 **Installing a restyled map** (molten5e): `upload-asset` the WebP the tool wrote to
 `worlds/<world>/assets/maps/<name>.webp`, then `manage-scenes` `update` with `sceneIdentifier`
 and `backgroundPath` only. Never pass width, height, or gridSize: the walls are in the scene's
