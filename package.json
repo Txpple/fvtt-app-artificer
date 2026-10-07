@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
+    "@foundryvtt/foundryvtt-cli": "^3.0.4",
     "@types/node": "^26.0.0",
     "knip": "^5.64.0",
     "typescript": "^6.0.3",

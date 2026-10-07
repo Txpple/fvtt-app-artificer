@@ -189,6 +189,44 @@ Checkpoints: (a) the pick, (b) painted + overlay, (c) placed.
 6. **Compose**: the Door kitbash reproduced from a manifest; through B, C, D unchanged.
 7. **The skill.**
 
+## Run 1 at home (2026-10-07): catalogue + fit on six Hearth maps
+
+Built: `scripts/map_library.py` (A, the catalogue; `scripts/unpack_leveldb.mjs` reads LevelDB
+packs through foundryvtt-cli in a child) and `scripts/map_fit.py` (B + C: walls scaled by the
+delivery scale, located in the repaint by normalised cross-correlation of edge-strength patches,
+snapped, movers flagged, glows found, overlay drawn). Tests: `scripts/test_map_tools.py`.
+Catalogue of the three Caves packs: 14 families, 5 Combined sheets, every tile matched.
+
+Findings that change the plan:
+
+- **Pack wall coordinates include Foundry's padding.** Not image pixels. The image sits at
+  `ceil(width·padding/grid)·grid` per side (840, 700 on a 22×17 Cartos map). The catalogue
+  translates sidecars onto image pixels and records `origin`; placement adds the target scene's
+  origin back. Without this every wall is six squares off.
+- **The floor-mask edge is not the wall line.** Only 4% of pack vertices sit within 6 px of the
+  void boundary: Cartos walls run along the inner rock line, and nearly half the vertices are
+  interior (props, pillars). So fit snaps by local structure, not by mask edge: an edge-strength
+  patch around each vertex is located in the repaint by cross-correlation; small wall loops (a
+  prop) move rigidly; a rim vertex that disagrees with its neighbours takes their median.
+  Self-test (source against itself): 0 px everywhere.
+- **Content swaps drift 3–11% of tiles and the tool refuses every one** (5 of 6 maps). The
+  drafts are kept on disk, and fit handles them: floor IoU 0.97–0.99, median snap 1 px, p90
+  1–27 px (under 0.2 squares), 0–15% of walls flagged as movers, almost all on a cave rim the
+  paint pushed out a little. These are deliverable with walls.
+- **The renders are the best Hearth set yet**: Great Hall (Forgotten Temple), forge (Wall of
+  Power), terraces (Fungal Pools), deep tunnels (Twisting Tunnels), the Door (Chapel Ruins;
+  the slab, the postern and glowing chalk were painted from words alone), family chambers
+  (Storage Room). $1.36 for 6 maps, two renders where the drift gate fired.
+- **A painted-in door needs a wall.** The Door render closed the cave mouth with the slab, but
+  the carried walls still leave the mouth open. Doors that exist only in the prompt need a
+  `markPiece`-style wall from the manifest (stage E) or a hand-placed door after fit.
+- **The glow pass over-finds on busy maps.** Bright orange mushrooms read as fire. Found
+  lights are a review list, not a result, until the pass checks for a halo around the blob.
+- **Super map by script works.** Caves 04's Combined 06 layout, tiles replaced by the Great
+  Hall and deep tunnels repaints, a colour ramp over 1.5 squares each side of the seam, and
+  the sheet's own 894 walls fitted (median 1 px). The seam is visible only as a slight tonal
+  change in the rock. The Combined sheets are the cheap route to the owner's "super map" ask.
+
 ## Decisions
 
 - **Drift tolerance:** a few percent is acceptable; fit corrects, only gross failure refuses
