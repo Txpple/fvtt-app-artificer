@@ -227,6 +227,35 @@ Findings that change the plan:
   the sheet's own 894 walls fitted (median 1 px). The seam is visible only as a slight tonal
   change in the rock. The Combined sheets are the cheap route to the owner's "super map" ask.
 
+## Run 2 at home (2026-10-07, same day): the full Hearth from Clean variants
+
+Ten maps, all re-themed from the packs' Clean variants with the dressing named in the prompt,
+walls from the Clean scene and lights from the standard scene: Great Hall, forge, terraces,
+deep tunnels, the Door, family chambers, goat ledges (the session-zero grimlock raid through a
+seal cracked from below), the Seal (the Catacomb-door gallery, the brood-mother's lair),
+burial galleries (the Ledger of Names' sealed galleries), deep pools. Three super maps by
+`map_stitch.py --variant clean`: chambers + forge, hall + tunnels, and the four-tile lower
+Hearth from Caves 01's sheet (6160×4760, 1485 walls fitted at a median of 1 px). $4.23 for
+the pass, 15 renders where the drift gate fired twice.
+
+- **Clean sources fit better.** Floor IoU 0.98–0.996 and movers under 3% on nine of ten,
+  against 0.97–0.99 and up to 15% from standard sources. The rock rim barely moves when the
+  model has no dressing to re-interpret.
+- **The drift gate fires on dressing, not drift.** Nine of fourteen single renders were
+  refused; the fit accepted all but three drafts, and those three (a reshaped cave, a lost
+  passage, an extended cave) scored IoU 0.86–0.89 with a missing-floor blob over 10 squares.
+  That pair of numbers is the gross-failure gate for the battlemap kind.
+- **Dressing from words works.** Benches, a fire pit, bookshelves, a forge with anvil and
+  grindstone, mushroom beds with kerbs and carts, a goat fold with goats, coracles and drying
+  racks, grave rows with name-stones, a Catacomb door on a platform, a cracked seal wall with
+  chalk marks: all placed by the model where the prompt said, at Cartos quality, on a bare
+  Clean floor. Props from the library were not needed for any of it.
+- **Two renders is still the norm.** One draft in two invents something (a brick ring, a
+  lost passage, a stray white glow at a map edge).
+- **Nits for the pass after this:** gibberish lettering on name-stones and cloths; a stray
+  daylight glow on the goat ledges' east wall; the Great Hall's flagstone platform lost its
+  two plinths; the Door slab needs its wall.
+
 ## Decisions
 
 - **Drift tolerance:** a few percent is acceptable; fit corrects, only gross failure refuses

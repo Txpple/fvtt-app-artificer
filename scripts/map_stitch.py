@@ -53,6 +53,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("combined")
     ap.add_argument("out_stem", type=Path)
     ap.add_argument("renders", nargs="+", help="family=path of that family's repaint")
+    ap.add_argument("--variant", default="standard", choices=["standard", "clean", "simple"],
+                    help="which sheet variant's walls to fit (clean when the tiles were repainted from Clean)")
+    ap.add_argument("--lights-from", default="standard", choices=["standard", "clean", "simple"],
+                    help="which sheet variant's lights to carry")
     a = ap.parse_args(argv)
 
     with open(a.catalogue / f"{a.module}.json", encoding="utf-8") as f:
@@ -67,9 +71,20 @@ def main(argv: list[str] | None = None) -> int:
     if missing:
         print(f"no render given for tiles: {missing}", file=sys.stderr)
         return 2
-    std = next((s for s in fam["scenes"] if s["role"] == "standard"), fam["scenes"][0])
+    std = next((s for s in fam["scenes"] if s["role"] == a.variant), fam["scenes"][0])
+    lit = next((s for s in fam["scenes"] if s["role"] == a.lights_from), std)
     grid = std["grid"]
     module_dir = Path(rec["path"])
+    # The sidecar to fit: the chosen variant's walls, the chosen variant's lights.
+    with open(a.catalogue / std["sidecar"], encoding="utf-8") as f:
+        sidecar = json.load(f)
+    if lit is not std:
+        with open(a.catalogue / lit["sidecar"], encoding="utf-8") as f:
+            sidecar["lights"] = json.load(f)["lights"]
+    sidecar_path = Path(f"{a.out_stem}.sidecar.json")
+    sidecar_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(sidecar_path, "w", encoding="utf-8") as f:
+        json.dump(sidecar, f)
 
     tiles = {(t["col"], t["row"]): np.asarray(Image.open(renders[t["family"]]).convert("RGB")).astype(np.float32)
              for t in comb["tiles"]}
@@ -101,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"stitched {out.shape[1]}x{out.shape[0]} -> {stitched}")
 
     r = subprocess.run([sys.executable, str(HERE / "map_fit.py"), str(module_dir / std["image"]),
-                        str(a.catalogue / std["sidecar"]), str(stitched), str(a.out_stem)],
+                        str(sidecar_path), str(stitched), str(a.out_stem)],
                        capture_output=True, text=True)
     if r.returncode:
         print(r.stderr, file=sys.stderr)
