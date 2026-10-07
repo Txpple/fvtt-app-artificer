@@ -149,6 +149,15 @@ plus a kitbash; full write-up in `notes/map-builder/PLAN.md`):
 - **Clean variants are a prop library.** A Cartos map minus its Clean twin lifts every prop
   with alpha (fill the contours so pale props keep no holes). Combined sheets show which tiles
   the author designed to join.
+- **Start from the Clean variant when the map is being re-themed (owner rule 2026-10-07).**
+  The standard map's dressing is the pack's story, and the keep line makes the model keep it:
+  a predator's gore-strewn lair in Twisting Tunnels came through into the Hearth's deep
+  tunnels untouched. Clean is the walled blank slate: it ships as its own scene with the
+  structural walls (cave rim, rooms, doors) and none of the prop loops or lights. Name the
+  dressing you want in the instruction, carry Clean's walls, and take lights from the standard
+  scene's sidecar or the fit's glow pass. Water is terrain, not dressing: Clean keeps pools,
+  and only a Dry variant (Caves 02) removes them. Use the standard map only when its dressing
+  is the point (a plain restyle for a better look).
 
 **Installing a restyled map** (molten5e): `upload-asset` the WebP the tool wrote to
 `worlds/<world>/assets/maps/<name>.webp`, then `manage-scenes` `update` with `sceneIdentifier`
