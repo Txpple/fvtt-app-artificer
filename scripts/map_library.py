@@ -342,6 +342,27 @@ def edge_exits(mask: np.ndarray, grid: int) -> list[Exit]:
     return out
 
 
+def walkable_exits(mask: np.ndarray, walls: list[dict], grid: int) -> list[Exit]:
+    """Exits a token could walk through: the walled-in interior floor where it touches the map
+    edge. Walls (doors excluded) are drawn as barriers on the floor mask, the biggest connected
+    floor region is the interior, and only its contact with the edge counts. The rock rim that
+    the painting carries to the map edge is outside the walls and so never reads as an exit."""
+    m = (mask > 0).astype(np.uint8)
+    for w in walls:
+        if w.get("door"):
+            continue
+        c = w["c"]
+        cv2.line(m, (int(c[0]), int(c[1])), (int(c[2]), int(c[3])), 0, 5)
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(m)
+    if n < 2:
+        return []
+    # Interior = the floor regions big enough to matter (at least 4 squares); a map can have
+    # more than one walled-in area, each with its own exits.
+    keep = {i for i in range(1, n) if stats[i, cv2.CC_STAT_AREA] >= 4 * grid * grid}
+    interior = np.isin(labels, list(keep)).astype(np.uint8) * 255
+    return edge_exits(interior, grid)
+
+
 def lift_props(std: np.ndarray, clean: np.ndarray, grid: int, dest: Path, slug: str) -> list[Prop]:
     """Props are what the standard map has and the Clean one hasn't. Filled contours, so pale
     props don't get holes. Each is saved RGBA with a feathered alpha."""
