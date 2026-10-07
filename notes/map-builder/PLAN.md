@@ -290,6 +290,22 @@ sheet over half a square, and re-run fit on the whole sheet. One render per seam
 $0.15 a seam. The band must carry a margin on both sides so the model sees what it is
 matching.
 
+### Run 4 (2026-10-07): the final set and the atlas
+
+Desktop `TheHearth-final`: five scenes (the Door, Great Hall over deep tunnels, family
+chambers over forge, deep pools, the 44x34 lower Hearth), walls and lights per scene, an
+atlas (`scripts/map_atlas.py`) with eight proposed connectors as teleporter pairs, the Door
+opening to an OUTSIDE node, `links.json`, and a README. Session spend $6.49.
+
+- **The Door slab's wall** is a door segment joining the two wall ends that flank the cave
+  mouth (12.3 to 17.0 squares along y = 2.0), added by script to the fitted sidecar.
+- **The goat ledges' glow was the pack's "Open" entrance light.** Re-rendered from the
+  Closed variant; the glow is gone and the walls are the Closed scene's.
+- **Exits from the floor mask are too generous for a graph.** The rock rim reaches the map
+  edge and reads as floor. `walkable_exits()` draws the walls as barriers first, which
+  helps, but the connectors in the atlas were still chosen by eye from the renders and the
+  plot. A trustworthy automatic exit list needs the rock rim classified, not thresholded.
+
 ## Decisions
 
 - **Drift tolerance:** a few percent is acceptable; fit corrects, only gross failure refuses
