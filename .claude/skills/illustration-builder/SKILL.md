@@ -158,11 +158,14 @@ plus a kitbash; full write-up in `notes/map-builder/PLAN.md`):
   scene's sidecar or the fit's glow pass. Water is terrain, not dressing: Clean keeps pools,
   and only a Dry variant (Caves 02) removes them. Use the standard map only when its dressing
   is the point (a plain restyle for a better look).
-- **No creatures on a battlemap (owner rule 2026-10-07).** Goats, fish, people, anything the
-  plot says lives there: never prompt it into the map. Creatures are tokens, made separately,
-  so they can move. Prompt the pen, the hay rack and the drying rack; leave the goats and the
-  fish out. The 2026-10-07 goat ledges and deep pools both painted the animals in and will be
-  redone.
+- **No interactable creatures on a battlemap (owner rule 2026-10-07).** Anything the party
+  could fight, talk to, herd, buy or rescue is a token, made separately, so it can move: the
+  goats on the ledges, the people at the fire, a guard at the Door. Prompt the pen, the hay
+  rack and the stool; leave the goats out. Critters are the exception and should be painted:
+  minor, non-interactable life that is set dressing, such as the blind fish in the pool, bats
+  in the roof, rats at a spoil heap, moths at a lamp. The test is whether a player would ever
+  click on it. The 2026-10-07 goat ledges painted the goats in and will be redone; the deep
+  pools' fish stay.
 - **Doors read like the Hearth Door, not like a flag (owner, 2026-10-07).** The map is a
   cutaway seen from above; a door slab painted from words should show the way the Hearth's
   Door slab did (the slab's face foreshortened in the cutaway convention, standing in its
