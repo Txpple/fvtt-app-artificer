@@ -259,7 +259,27 @@ the pass, 15 renders where the drift gate fired twice.
   tokens instead); painted doors must sit in their openings the way the Hearth Door did, not
   as a flat upright flag; a super map needs a seam-blend pass. The three are in the skill.
 
-### Next for stitch: the seam-blend pass
+### Run 3 (2026-10-07): goat ledges without goats, chambers without a door, seams blended
+
+`scripts/map_seam.py` (cut / paste) is the seam-blend pass, run on all three super maps: a
+6-square band per seam through `edit-image` `battlemap`, feathered back over half a square,
+then refit. Four seams, five renders ($0.15 each; one seam was redone). Results: the tonal
+line and the grain change are gone on every seam; walls refit at a median of 1 px.
+
+- **Name the void in a seam prompt.** The first seam render painted a blue river through the
+  black between the tiles ("any water is one body of water" plus a black band equals a
+  river). "The black areas are solid void and stay pure black" fixed it.
+- **The seam band shape is fine for the API.** A 3080×840 or 840×4760 band pads to 16:9 or
+  9:16 and comes back on its own grid at scale 1; a 6160×840 band comes back downsampled
+  then upsized, with no visible loss at the seam.
+- **A door that is not in the source wanders.** The Storage Room Clean has no door; "the
+  wooden door stays a wooden door" made the model invent one somewhere new each time, twice
+  as a flat upright face. Prompt doors only where the sidecar has a door wall, or add the door
+  by manifest. The chambers were rendered with "no door anywhere" and fit at IoU 0.994.
+- **The planked floor in the chambers is Tom Cartos's.** The Clean Storage Room has a wooden
+  floor in its west cave; it is not a model slip.
+
+### The seam-blend pass (as built)
 
 The colour ramp is not enough: water meets water as two kinds of water, rock changes grain at
 the line. Plan: cut a band about 4 squares wide along each seam out of the stitched map, send
