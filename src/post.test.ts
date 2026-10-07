@@ -37,7 +37,9 @@ describe('fitRect', () => {
     })
       .composite([
         {
-          input: await sharp({ create: { width: 100, height: 40, channels: 4, background: '#8a5a2bff' } })
+          input: await sharp({
+            create: { width: 100, height: 40, channels: 4, background: '#8a5a2bff' },
+          })
             .png()
             .toBuffer(),
           left: 30,
@@ -57,11 +59,19 @@ describe('fitRect', () => {
 });
 
 describe('alphaBox and fitRect into a box', () => {
-  async function onCanvas(w: number, h: number, box: { left: number; top: number; width: number; height: number }) {
-    return sharp({ create: { width: w, height: h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+  async function onCanvas(
+    w: number,
+    h: number,
+    box: { left: number; top: number; width: number; height: number }
+  ) {
+    return sharp({
+      create: { width: w, height: h, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+    })
       .composite([
         {
-          input: await sharp({ create: { width: box.width, height: box.height, channels: 4, background: '#8a5a2bff' } })
+          input: await sharp({
+            create: { width: box.width, height: box.height, channels: 4, background: '#8a5a2bff' },
+          })
             .png()
             .toBuffer(),
           left: box.left,
@@ -75,7 +85,9 @@ describe('alphaBox and fitRect into a box', () => {
   it('finds where the visible subject sits, or the whole canvas when there is nothing to trim', async () => {
     const box = { left: 100, top: 50, width: 400, height: 200 };
     expect(await alphaBox(await onCanvas(600, 300, box))).toEqual(box);
-    const opaque = await sharp({ create: { width: 30, height: 20, channels: 3, background: '#333' } })
+    const opaque = await sharp({
+      create: { width: 30, height: 20, channels: 3, background: '#333' },
+    })
       .png()
       .toBuffer();
     expect(await alphaBox(opaque)).toEqual({ left: 0, top: 0, width: 30, height: 20 });
@@ -96,10 +108,19 @@ describe('alphaBox and fitRect into a box', () => {
 
   it('ignores the faint specks a cut leaves behind when trimming and measuring', async () => {
     const box = { left: 100, top: 50, width: 400, height: 200 };
-    const speck = await sharp({ create: { width: 2, height: 2, channels: 4, background: { r: 200, g: 0, b: 200, alpha: 0.04 } } })
+    const speck = await sharp({
+      create: {
+        width: 2,
+        height: 2,
+        channels: 4,
+        background: { r: 200, g: 0, b: 200, alpha: 0.04 },
+      },
+    })
       .png()
       .toBuffer();
-    const art = await sharp(await onCanvas(512, 512, { left: 56, top: 206, width: 400, height: 100 }))
+    const art = await sharp(
+      await onCanvas(512, 512, { left: 56, top: 206, width: 400, height: 100 })
+    )
       .composite([
         { input: speck, left: 0, top: 0 },
         { input: speck, left: 510, top: 510 },
@@ -114,14 +135,22 @@ describe('alphaBox and fitRect into a box', () => {
   });
 
   it('ignores a lone opaque-ish corner pixel, the artefact that shrank the anvil', async () => {
-    const dot = await sharp({ create: { width: 1, height: 1, channels: 4, background: { r: 250, g: 10, b: 247, alpha: 0.15 } } })
+    const dot = await sharp({
+      create: {
+        width: 1,
+        height: 1,
+        channels: 4,
+        background: { r: 250, g: 10, b: 247, alpha: 0.15 },
+      },
+    })
       .png()
       .toBuffer();
-    const art = await sharp(await onCanvas(512, 512, { left: 56, top: 206, width: 400, height: 100 }))
+    const art = await sharp(
+      await onCanvas(512, 512, { left: 56, top: 206, width: 400, height: 100 })
+    )
       .composite([{ input: dot, left: 511, top: 511 }])
       .png()
       .toBuffer();
     expect(await alphaBox(art)).toEqual({ left: 56, top: 206, width: 400, height: 100 });
   });
 });
-

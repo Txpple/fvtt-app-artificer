@@ -26,7 +26,10 @@ describe('edgeContact', () => {
   });
 
   it('reads the key it is told: a green subject on magenta touching the left edge', async () => {
-    const png = await plate('<rect x="0" y="80" width="60" height="40" fill="#20a020"/>', '#ff00ff');
+    const png = await plate(
+      '<rect x="0" y="80" width="60" height="40" fill="#20a020"/>',
+      '#ff00ff'
+    );
     expect(await edgeContact(png, 'magenta')).toBeGreaterThan(EDGE_LIMIT);
     expect(await edgeContact(await plate('', '#ff00ff'), 'magenta')).toBe(0);
   });

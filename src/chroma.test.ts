@@ -43,7 +43,12 @@ describe('scoreKeys / pickChromaKey', () => {
 
   it('ignores transparent pixels when sampling', async () => {
     const mostlyClear = await sharp({
-      create: { width: 16, height: 16, channels: 4, background: { r: 255, g: 0, b: 255, alpha: 0 } },
+      create: {
+        width: 16,
+        height: 16,
+        channels: 4,
+        background: { r: 255, g: 0, b: 255, alpha: 0 },
+      },
     })
       .png()
       .toBuffer();
@@ -88,7 +93,9 @@ describe('scorePrompt / pickChromaKey with a prompt', () => {
   });
 
   it('moves a glowing subject off magenta, where a gold glow turns pink', async () => {
-    expect(await pickChromaKey([], 'a warmage with a glowing gold sigil under her hand')).toBe('green');
+    expect(await pickChromaKey([], 'a warmage with a glowing gold sigil under her hand')).toBe(
+      'green'
+    );
     expect(await pickChromaKey([], 'an eel wreathed in crackling lightning')).toBe('green');
     // The warmage that tied all three plates on colour words: the glow now decides.
     expect(
