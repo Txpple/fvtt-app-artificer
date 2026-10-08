@@ -7,7 +7,7 @@ pastel storybook, airbrushed digital, comic whimsy — and the LoRA learned the 
 hand-picked 65 from the 858-plate pool; joint review cut it to **46** (comic/whimsical plates,
 book covers, a rules diagram, an undersized plate, pastel outliers, and two per-plate calls).
 
-- **Canonical location: `D:\Workbench\LOCAL\LocalAI\lora-corpus-dnd24art\prepared\`** (46 PNG +
+- **Canonical location: `<local-ai>\lora-corpus-dnd24art\prepared\`** (46 PNG +
   46 caption .txt). The Desktop working folders and `Z:\Shared\TableArt` are gone — this is the
   only copy. The old Desktop corpus path in configs A–C is dead.
 - **12 artist signatures found** (11 by corner-sheet review + `phb-ranger` caught by the owner).

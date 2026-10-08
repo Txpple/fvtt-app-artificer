@@ -93,7 +93,7 @@ style-ref pass or a Flash prefix is enough.
 
 - Any call resolving to `pro` without `confirmPro: true` refuses with the estimated cost and the
   two ways out. Tested for every kind and tier combination.
-- Session spend counter, estimated from the price table; `artificer-status` reports key present,
+- Session spend counter, estimated from the price table; `imagegen-status` reports key present,
   models reachable, spend so far.
 - Exit gate: the refusal message reads well in the chat, and a confirmed Pro call goes through.
 

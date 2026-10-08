@@ -65,7 +65,7 @@ Final state: min 4 words, median 20, mean 19; zero sparse captions, zero style-w
 
 ## Environment
 
-- Trainer: `D:\Workbench\LOCAL\LocalAI\ai-toolkit` (ostris/ai-toolkit), venv at `ai-toolkit\venv`.
+- Trainer: `<local-ai>\ai-toolkit` (ostris/ai-toolkit), venv at `ai-toolkit\venv`.
 - Base weights: `black-forest-labs/FLUX.1-dev`, diffusers format, ~32 GB, in the HF cache.
   License-gated: the owner accepted the FLUX.1-dev Non-Commercial License and ran `hf auth login`
   themselves (weights are non-commercial; **outputs** are explicitly fine for personal and

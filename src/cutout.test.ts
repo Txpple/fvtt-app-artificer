@@ -73,7 +73,7 @@ const havePython = (() => {
 describe.skipIf(!havePython)('makeCutout (real script)', () => {
   let tmp: string;
   beforeAll(() => {
-    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'artificer-cutout-'));
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'imagegen-cutout-'));
   });
   afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 

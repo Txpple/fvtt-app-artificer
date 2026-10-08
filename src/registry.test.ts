@@ -13,10 +13,10 @@ describe('tool registry', () => {
   it('advertises exactly the four-tool surface, one definition per handler', () => {
     const { tools, handlers } = build();
     expect(tools.map(t => t.name).sort()).toEqual([
-      'artificer-status',
       'cutout-image',
       'edit-image',
       'generate-image',
+      'imagegen-status',
     ]);
     expect(Object.keys(handlers).sort()).toEqual(tools.map(t => t.name).sort());
   });

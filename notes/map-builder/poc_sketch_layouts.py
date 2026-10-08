@@ -1,7 +1,7 @@
 """Draw the Hearth battlemap layouts (POC: Great Hall, Goat ledges, the Door).
 
 Each map is 22x17 squares at 140 px (3080x2380), the Tom Cartos sheet size, drawn as a
-half-painted sketch (shaded floor, black void, rock rim, glow halo) for artificer to restyle.
+half-painted sketch (shaded floor, black void, rock rim, glow halo) for imagegen to restyle.
 Exits sit at fixed grid positions so linked maps line up for teleporter regions; they are
 written to exits.json.
 

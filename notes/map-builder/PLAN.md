@@ -80,9 +80,9 @@ Other details worth keeping:
 - Pack art is licensed: **the catalogue cache lives outside git**, in Workshelf beside the
   packs; only scripts and tests are committed.
 
-## Architecture (respecting artificer's scope)
+## Architecture (respecting imagegen's scope)
 
-Artificer never talks to Foundry (CLAUDE.md, binding). The split:
+Imagegen never talks to Foundry (CLAUDE.md, binding). The split:
 
 ```
 catalogue (script, no API cost) ─┐
@@ -90,9 +90,9 @@ catalogue (script, no API cost) ─┐
 owner's ask ─────────────────────┘   conforming instruction, shows the pick before spending
                                               │  source image + walls/lights sidecar
                                               ▼
-            [artificer: edit-image battlemap, walls in → walls out]   painted.webp + walls mapped
+            [imagegen: edit-image battlemap, walls in → walls out]   painted.webp + walls mapped
                                               ▼
-            [artificer: fit]  walls snapped to the paint, movers flagged, glows found,
+            [imagegen: fit]  walls snapped to the paint, movers flagged, glows found,
                               overlay preview → .uvtt + scene.json                   (deterministic)
                                               ▼  files on disk
             [fvtt-mcp skill]  upload-asset → create scene → walls / lights → teleporters → screenshot
@@ -122,14 +122,14 @@ one JSON index per pack:
 - **Tags:** Claude reads a contact sheet once and writes short tags ("built halls in a cave",
   "pillared temple, four exits"). Cached in the index.
 
-### B · Walls in, walls out (artificer: `edit-image` `battlemap`)
+### B · Walls in, walls out (imagegen: `edit-image` `battlemap`)
 
 `edit-image kind: "battlemap"` accepts an optional `sidecar` (walls, doors, lights in Foundry
 shape, as the pack ships them). The same padding, scaling and crop-back applied to the image
 (`src/battlemap.ts`) is applied to every coordinate, and the sidecar comes back mapped onto the
 output grid. Pure geometry, tested on fixtures. Nothing re-derives a wall.
 
-### C · Fit (artificer: deterministic, OpenCV)
+### C · Fit (imagegen: deterministic, OpenCV)
 
 - **Walls:** for each carried vertex, snap to the painted floor's edge within 0.3 squares.
   Report every segment whose endpoints moved by more than that as a **mover**; do not refuse.
@@ -145,13 +145,13 @@ output grid. Pure geometry, tested on fixtures. Nothing re-derives a wall.
 - **Overlay preview:** walls white, doors orange, movers red, lights as circles, exits as blue
   bands, drawn on the painting. The owner's one-glance check.
 
-### D · Package (artificer)
+### D · Package (imagegen)
 
 Per map: `<slug>.webp`, `<slug>.uvtt` (pixels_per_grid, line_of_sight, portals, lights, image
 embedded) and `<slug>.scene.json` (Foundry-native walls/lights/regions, which the bridge takes
 directly). Per series: `links.json` with every exit pair. Write both; place from the Foundry JSON.
 
-### E · Compose (artificer, fallback path)
+### E · Compose (imagegen, fallback path)
 
 Takes a manifest, returns `composite.png` + a sidecar. Ops from `poc_kitbash_door.py`:
 

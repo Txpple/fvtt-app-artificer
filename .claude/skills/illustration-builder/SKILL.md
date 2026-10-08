@@ -1,13 +1,13 @@
 ---
 name: illustration-builder
 description: >-
-  Generate campaign art with the artificer tools, grounded in what the world already says and shows.
+  Generate campaign art with the imagegen tools, grounded in what the world already says and shows.
   Use when the user wants art for the table: "make a portrait for <NPC>", "generate art for this
   scene/journal/handout", "this actor needs a token", "icons for these items", "illustrate this
   location", "give the inn a picture", "change this token's cloak". Reads the ACTUAL descriptions
   (actor bios, journals, scene notes, campaign repo) to build prompts, studies existing art in the
   Foundry data files for precedent and style, runs the generate → look → edit loop, and wires the
-  winner into the world. The artificer tools own correctness (model per kind, dimensions, cutout,
+  winner into the world. The imagegen tools own correctness (model per kind, dimensions, cutout,
   file naming, the Pro cost gate); this skill owns the judgment: what to prompt, which references
   to attach, what to reject, when to pay for Pro, where the art goes.
 ---
@@ -17,10 +17,10 @@ description: >-
 The judgment layer over `generate-image` / `edit-image` / `cutout-image`. Its whole job is to make
 sure the prompt comes from **canon**, the style comes from **precedent**, Pro money is never
 spent without the owner opting in, and nothing lands in the world uncurated. It adds no mechanics — the
-artificer server owns model selection, dimensions, cutout, and file conventions; molten5e owns
+imagegen server owns model selection, dimensions, cutout, and file conventions; the dnd5e MCP owns
 delivery (`upload-asset`, `set-actor-art`, `add-journal-image`).
 
-Tools used: `artificer-status`, `generate-image`, `edit-image`, `cutout-image` (artificer);
+Tools used: `imagegen-status`, `generate-image`, `edit-image`, `cutout-image` (imagegen);
 `manage-actors` `get`, `search-journals`, `manage-journals` (`list` / `get`), `manage-scenes` (`list`), `list-assets`, `download-asset`,
 `upload-asset`, `set-actor-art`, `add-journal-image` (molten5e).
 
@@ -339,7 +339,7 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
 0. **The chat IS the gallery (owner preference — browser-pane previews don't work for them).**
    Reading a PNG renders it inline, so curating by reading doubles as showing the owner every
    candidate. Finals additionally go out via `SendUserFile` so they get a card.
-1. Cold start? `artificer-status` first: key present, models reachable, spend so far.
+1. Cold start? `imagegen-status` first: key present, models reachable, spend so far.
 2. **Flash by default, Pro on request (owner rule 2026-09-19).** Every kind runs on Flash
    with no confirm. When the owner asks for a portrait or an illustration, say once, in one
    line, that Pro is available for a bit extra (about double: 13 cents at 2K, 24 cents at 4K)
@@ -348,7 +348,7 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    `confirmPro: true`, which you pass only after the owner said yes.
 3. `generate-image` with the canon prompt and the references. Two or three candidates for
    portraits and illustrations, one for icons and tokens (they one-shot well; re-roll on a miss).
-   Every result reports `estimatedUsd` and `sessionEstimatedUsd`; `artificer-status` totals by
+   Every result reports `estimatedUsd` and `sessionEstimatedUsd`; `imagegen-status` totals by
    tier. The API has no balance call, so these are estimates from the price table.
 4. **Read every PNG, twice.** First against canon, not against "is it pretty": wrong gender,
    wrong species, wrong props, wrong mood are **rejections** even on beautiful renders. Then

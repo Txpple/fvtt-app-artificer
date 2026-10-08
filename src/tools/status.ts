@@ -1,4 +1,4 @@
-// artificer-status — cold-start diagnosability: is the key set, can it see both models, where do
+// imagegen-status — cold-start diagnosability: is the key set, can it see both models, where do
 // files land, and what has this session spent so far (estimated; the API has no balance call).
 
 import { z } from 'zod';
@@ -14,7 +14,7 @@ export class StatusTool {
   getToolDefinitions() {
     return [
       {
-        name: 'artificer-status',
+        name: 'imagegen-status',
         description:
           'Health check: API key present, which image models the key can reach, the output ' +
           'directory, and estimated session spend by tier. Call this first on a cold start.',

@@ -12,7 +12,7 @@ For the next context window. Everything below is committed; this note is the ori
   Six pinned workflows under `workflows/` (contract in its README). 22 unit tests + gated live
   suite; typecheck/biome/knip clean.
 - **ComfyUI 0.34.0 headless** on `127.0.0.1:8188` (`scripts/launch-comfyui.ps1`; install at
-  `D:\Workbench\LOCAL\LocalAI`). Models (~87 GB): klein-4B + qwen TE (drafts), FLUX.1-dev fp8
+  `<local-ai>`). Models (~87 GB): klein-4B + qwen TE (drafts), FLUX.1-dev fp8
   (final/refine), FLUX.2-dev fp8 + mistral TE (scene), flux2 VAE, 4x-UltraSharp, turbo LoRA
   (on disk but **retired from scene.json** — owner wants full 24-step quality, ~80 s/scene).
   If ComfyUI is down, `artificer-status` says so; relaunch via the script.

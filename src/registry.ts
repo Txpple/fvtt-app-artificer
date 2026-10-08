@@ -25,7 +25,7 @@ export function buildToolRegistry(deps: ToolDeps): ToolRegistry {
     'generate-image': args => generate.handleGenerateImage(args),
     'edit-image': args => edit.handleEditImage(args),
     'cutout-image': args => cutout.handleCutoutImage(args),
-    'artificer-status': args => status.handleStatus(args),
+    'imagegen-status': args => status.handleStatus(args),
   };
 
   const definitions = [

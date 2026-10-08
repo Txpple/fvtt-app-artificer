@@ -5,7 +5,7 @@
 
 SOURCE   the original map image the repaint was made from
 SIDECAR  its walls/lights JSON from map_library.py (image pixel coordinates)
-RESULT   the repaint, on the source's pixel grid at a whole-number scale (artificer battlemap)
+RESULT   the repaint, on the source's pixel grid at a whole-number scale (imagegen battlemap)
 OUT_STEM writes OUT_STEM.fitted.json, OUT_STEM.overlay.jpg, OUT_STEM.report.json
 
 What it does, deterministically:

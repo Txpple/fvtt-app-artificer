@@ -8,9 +8,9 @@ orientation page for the next context window.
 - **fvtt-mcp-artificer v0.3.1** — unchanged this session. Three tools (`generate-image` with
   draft/scene/final/refine, `upscale-image`, `artificer-status`), six pinned workflows.
 - **ComfyUI 0.34.0** headless on 127.0.0.1:8188. Relaunch:
-  `powershell -NoProfile -ExecutionPolicy Bypass -File D:\Workbench\LOCAL\LocalAI\launch-comfyui.ps1`
+  `powershell -NoProfile -ExecutionPolicy Bypass -File <local-ai>\launch-comfyui.ps1`
   (the `-ExecutionPolicy Bypass` is required — worth baking into the script).
-- **NEW: ai-toolkit** at `D:\Workbench\LOCAL\LocalAI\ai-toolkit` with a working venv, plus
+- **NEW: ai-toolkit** at `<local-ai>\ai-toolkit` with a working venv, plus
   FLUX.1-dev base weights (~32 GB) in the HF cache. See `notes/lora-house-style.md` for the full
   build log, benchmarks and install traps. Rebuild with `training/setup-venv.sh`.
 - **The illustration-builder skill** — gained two rules this session (house portrait finish;

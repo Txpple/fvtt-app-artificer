@@ -3,7 +3,7 @@
 An [MCP](https://modelcontextprotocol.io) server that lets Claude make art for your Foundry VTT
 table using Google's Gemini image models (Nano Banana). Four tools, one API key, no GPU.
 
-[Claude Code](https://claude.com/claude-code) drives it. The server is registered as `artificer`,
+[Claude Code](https://claude.com/claude-code) drives it. The server is registered as `imagegen`,
 and its `illustration-builder` skill grounds every piece in what your world already says and
 shows. Claude writes the prompt, the server renders it, Claude looks at the result and fixes what
 is wrong, and the finished file lands on disk ready to upload into Foundry.
@@ -70,7 +70,7 @@ is wrong, and the finished file lands on disk ready to upload into Foundry.
 | `generate-image` | Render one asset from a prompt. `kind` is `icon`, `token`, `prop`, `portrait`, or `illustration`; it picks the model, aspect, size, framing, and post-processing for you. Optional `references` (character, style, or pose) and, for tokens, `creatureSize` (`medium` or `large`); for props, `footprint` (`"2x1"`). |
 | `edit-image` | Apply one instruction to an existing image and keep everything else. Token edits are prompted the way you would type in the Gemini app and re-cut automatically. Takes `creatureSize` too. `kind: "battlemap"` restyles a bought map with its layout locked (edit only; `generate-image` refuses it, since a map painted from words has no walls). `kind: "overland"` does the same for a regional map and paints the lettering out. |
 | `cutout-image` | Cut a token's background to alpha and deliver it on a square canvas. |
-| `artificer-status` | Key present, models reachable, estimated spend this session. |
+| `imagegen-status` | Key present, models reachable, estimated spend this session. |
 
 Every call returns the file path, the pixel size, and an estimated cost.
 
@@ -115,7 +115,7 @@ Register the server with Claude Code (user scope, so it is available in every pr
 restart Claude Code:
 
 ```bash
-claude mcp add -s user artificer -- node /absolute/path/to/fvtt-mcp-imagegen/dist/index.js
+claude mcp add -s user imagegen -- node /absolute/path/to/fvtt-mcp-imagegen/dist/index.js
 ```
 
 Or copy [`.mcp.json.example`](.mcp.json.example) and set absolute paths.
@@ -140,7 +140,7 @@ straight into a Foundry asset folder.
 
 ## With a Foundry MCP server: art grounded in your world
 
-The artificer only makes pictures. Pair it with a Foundry MCP server such as
+This server only makes pictures. Pair it with a Foundry MCP server such as
 [`fvtt-mcp-dnd5e`](https://github.com/Txpple/fvtt-mcp-dnd5e) and Claude can read your
 world before it prompts and put the result back when it is done. Then you can ask for things
 like:

@@ -1,7 +1,7 @@
 {
-  "_comment": "Copy this to a .mcp.json that Claude Code reads (project root, or merge into ~/.claude.json mcpServers), then set ABSOLUTE paths. House convention registers this server at USER scope: claude mcp add -s user artificer -- node <abs path>/dist/index.js",
+  "_comment": "Copy this to a .mcp.json that Claude Code reads (project root, or merge into ~/.claude.json mcpServers), then set ABSOLUTE paths. House convention registers this server at USER scope: claude mcp add -s user imagegen -- node <abs path>/dist/index.js",
   "mcpServers": {
-    "artificer": {
+    "imagegen": {
       "command": "node",
       "args": ["<abs path>/fvtt-mcp-imagegen/dist/index.js"]
     }

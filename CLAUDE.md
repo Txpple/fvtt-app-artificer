@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # fvtt-mcp-imagegen
 
 An MCP server that makes D&D table art with the **Gemini image API** (the Nano Banana
-models). Claude Code drives it (the server is registered as `artificer`); it exposes
+models). Claude Code drives it (the server is registered as `imagegen`); it exposes
 a small set of **Foundry-specific** tools so Claude can author prompts, generate art, edit existing art, cut tokens to alpha, curate the results by actually looking at
 them, and hand the winners to the Foundry pipeline (`upload-asset` → `set-actor-art` /
 `add-journal-image` in `fvtt-mcp-dnd5e`).
@@ -44,7 +44,7 @@ Claude ──MCP──> fvtt-mcp-imagegen ──HTTPS──> Gemini image API
 ```
 
 - Tools return absolute file paths; Claude reads the PNGs directly to curate.
-- Small server: `generate-image`, `edit-image`, `cutout-image`, `artificer-status`. Resist tool
+- Small server: `generate-image`, `edit-image`, `cutout-image`, `imagegen-status`. Resist tool
   sprawl. New work arrives as a `kind`, not a tool (props 2026-09-24, battlemaps 2026-10-02, overland
   maps 2026-10-03).
 
@@ -125,7 +125,7 @@ the box the original occupied, so it drops into the same tile slot at the same s
 **The Pro cost gate (owner rule 2026-09-19, revised the same day):** every kind defaults to
 flash. `tier: "pro"` refuses unless `confirmPro: true` is passed, and the refusal states the
 estimated cost. The skill mentions once that Pro is available for a bit extra when the owner
-asks for a portrait or illustration, and passes the confirm only after they say yes. The server keeps a running estimated-spend counter per session; `artificer-status`
+asks for a portrait or illustration, and passes the confirm only after they say yes. The server keeps a running estimated-spend counter per session; `imagegen-status`
 reports it. Tools enforce, skills ask.
 
 ## Setup order (done 2026-09-19; kept as the record)

@@ -42,7 +42,7 @@ async function main(): Promise<void> {
       };
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
-      console.error(`[artificer] tool ${name} failed: ${message}`);
+      console.error(`[imagegen] tool ${name} failed: ${message}`);
       return { content: [{ type: 'text', text: `Error: ${message}` }], isError: true };
     }
   });
@@ -54,12 +54,12 @@ async function main(): Promise<void> {
 
   // stdout is the JSON-RPC channel; diagnostics go to stderr only.
   process.on('unhandledRejection', (reason: unknown) => {
-    console.error('[artificer] unhandled rejection:', reason);
+    console.error('[imagegen] unhandled rejection:', reason);
   });
 
   const transport = new StdioServerTransport();
   await mcp.connect(transport);
-  console.error(`[artificer] MCP server v${config.server.version} connected over stdio`);
+  console.error(`[imagegen] MCP server v${config.server.version} connected over stdio`);
 }
 
 main().catch(err => {

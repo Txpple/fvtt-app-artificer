@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Moved here from fvtt-mcp-molten5e/.claude/skills/token-cutout/ on 2026-09-19 (roadmap M2).
-# The artificer `cutout-image` tool is the only caller; run it by hand only to debug a cut.
+# The imagegen `cutout-image` tool is the only caller; run it by hand only to debug a cut.
 """Knock a token image's solid / green / blue / white background out to alpha.
 
 Turns a background-baked token (a green- or blue-screen render, a flat white or

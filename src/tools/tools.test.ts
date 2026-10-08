@@ -186,7 +186,7 @@ function build(gemini = fakeGemini()) {
 }
 
 beforeAll(async () => {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'artificer-test-'));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'imagegen-test-'));
   refPng = path.join(tmp, 'ref.png');
   fs.writeFileSync(
     refPng,
@@ -795,7 +795,7 @@ describe('cutout-image', () => {
   });
 });
 
-describe('artificer-status', () => {
+describe('imagegen-status', () => {
   it('reports key presence, model reachability, output dir, and spend', async () => {
     const fakeFetch = (async () =>
       new Response(JSON.stringify({ models: [{ name: 'models/gemini-3.1-flash-image' }] }), {
@@ -803,7 +803,7 @@ describe('artificer-status', () => {
       })) as typeof fetch;
     const gemini = new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
     const { dispatch } = build(gemini);
-    const s: any = await dispatch('artificer-status', {});
+    const s: any = await dispatch('imagegen-status', {});
     expect(s).toMatchObject({
       keyPresent: true,
       models: { flash: true, pro: false },
@@ -814,7 +814,7 @@ describe('artificer-status', () => {
 
   it('says so when the key is missing without calling out', async () => {
     const { dispatch } = build(new Gemini({ apiKey: '', timeoutMs: 1 }));
-    const s: any = await dispatch('artificer-status', {});
+    const s: any = await dispatch('imagegen-status', {});
     expect(s.keyPresent).toBe(false);
     expect(s.models).toEqual({});
   });

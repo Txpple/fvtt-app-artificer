@@ -5,12 +5,12 @@ Environment proven per [ROADMAP.md](../ROADMAP.md) M0. All exit-gate checks pass
 ## Install
 
 - **ComfyUI v0.34.0** portable (`ComfyUI_windows_portable_nvidia.7z`, 2.0 GB, GitHub
-  Comfy-Org/ComfyUI releases) → `D:\Workbench\LOCAL\LocalAI\ComfyUI_windows_portable`
+  Comfy-Org/ComfyUI releases) → `<local-ai>\ComfyUI_windows_portable`
 - Embedded Python 3.13.14, **torch 2.13.0+cu130** — `sm_120` in the arch list, RTX 5090
   detected, CUDA available. The Blackwell risk from the roadmap did not materialize.
 - Headless launch: [`scripts/launch-comfyui.ps1`](../scripts/launch-comfyui.ps1) (deployed copy
-  lives at `D:\Workbench\LOCAL\LocalAI\launch-comfyui.ps1`) — API mode on `127.0.0.1:8188`,
-  `--disable-auto-launch`, outputs to `D:\Workbench\LOCAL\LocalAI\output`.
+  lives at `<local-ai>\launch-comfyui.ps1`) — API mode on `127.0.0.1:8188`,
+  `--disable-auto-launch`, outputs to `<local-ai>\output`.
 
 ## Models (all owner-approved 2026-08-26, byte-verified against HF manifests)
 
