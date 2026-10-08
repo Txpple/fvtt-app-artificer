@@ -5,8 +5,8 @@ import numpy as np
 from PIL import Image
 
 S = 140
-TC2 = "C:/Users/sippelmc/Desktop/tomcartos-itw-caves-02/maps/"
-TC4 = "C:/Users/sippelmc/Desktop/tom-cartos-itw-caves-04/maps/"
+TC2 = "<path to>/tomcartos-itw-caves-02/maps/"
+TC4 = "<path to>/tom-cartos-itw-caves-04/maps/"
 OUT = sys.argv[1]
 
 
