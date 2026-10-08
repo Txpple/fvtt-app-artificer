@@ -21,6 +21,15 @@ is wrong, and the finished file lands on disk ready to upload into Foundry.
 - **Token refreshes.** Point it at an old, low-res token and it repaints it at higher quality
   while keeping the pose, silhouette, design, and colours your players know. It can also turn
   one creature into another in the same pose (a rat's token into a squirrel).
+- **Token redresses.** Start from a token you already have as the prototype and change who it
+  is: "make this a Sharran cleric, black armour, a morningstar instead of the club". The pose,
+  camera angle, and cut stay; the costume, gear, and figure change to match the actor it is now
+  for. One stock token becomes the specific NPC in your world without a word of prompt about
+  framing.
+- **Token restyles.** The same trick as battlemaps, for a whole bestiary. Tokens gathered from
+  different packs (Immortal Nights, Forgotten Adventures, a few you drew yourself) do not match
+  on one map. Hand it one token as the style reference and run the rest through, and they come
+  back in one consistent look, each still recognisably the creature it was.
 - **Props.** Map dressing placed as tiles: furniture, barrels, trees, anvils. Seen straight
   down, object only, cut to transparency at the tile size (300 px per grid cell, from a
   `footprint` like `"2x1"`). Refreshing an existing prop returns it at the file's exact pixel
@@ -32,10 +41,24 @@ is wrong, and the finished file lands on disk ready to upload into Foundry.
   1125×1500 map at 3375×4500). Every render is checked against the original, and one whose
   layout moved is redone once, then refused. Maps ship as WebP, about 4 MB where a PNG would
   be 40 to 70. About 15 cents a map.
+- **Overland maps.** A regional or world map from a sourcebook or a sketch, repainted in the
+  house style with the geography locked and every label, marker, road, compass rose, and scale
+  bar painted out. Names go back on afterwards by script, spelled right and movable, instead of
+  being left to the model. A busy map takes two or three passes to come clean; each is about 15
+  cents.
 - **Portraits.** Actor sheet art at 3:4. Hand it a previous portrait or two as style
   references and the new one matches your table's look.
 - **Illustrations.** Player handouts and scene splashes at 2560×1600. Hand it your party's
   portraits as character references and they keep their faces in group scenes.
+- **Illustrated session records.** With
+  [`fvtt-mcp-sessionscribe`](https://github.com/Txpple/fvtt-mcp-sessionscribe) alongside, the
+  recap and GM notes it writes after a session come back illustrated: Claude picks the moments
+  from the record, checks where each one happened against the transcript, attaches the
+  portraits and tokens of everyone in the scene so the same faces recur from one week to the
+  next, and drops the finished plates into the journal and the recap. The worked example is the
+  concluded [Greenrest campaign](https://github.com/Txpple/fvtt-campaign-greenrest): every
+  recap carries eight or nine plates, and the same shelf of references went on to illustrate
+  the campaign's book.
 - **Edits.** Change one thing about an existing image and keep the rest: swap a weapon, recolor
   a cloak, add a scar, fix an extra limb.
 - **Cutouts.** Knock the background off any token image you already have.
@@ -45,7 +68,7 @@ is wrong, and the finished file lands on disk ready to upload into Foundry.
 | tool | what it does |
 | --- | --- |
 | `generate-image` | Render one asset from a prompt. `kind` is `icon`, `token`, `prop`, `portrait`, or `illustration`; it picks the model, aspect, size, framing, and post-processing for you. Optional `references` (character, style, or pose) and, for tokens, `creatureSize` (`medium` or `large`); for props, `footprint` (`"2x1"`). |
-| `edit-image` | Apply one instruction to an existing image and keep everything else. Token edits are prompted the way you would type in the Gemini app and re-cut automatically. Takes `creatureSize` too. `kind: "battlemap"` restyles a bought map with its layout locked (edit only; `generate-image` refuses it, since a map painted from words has no walls). |
+| `edit-image` | Apply one instruction to an existing image and keep everything else. Token edits are prompted the way you would type in the Gemini app and re-cut automatically. Takes `creatureSize` too. `kind: "battlemap"` restyles a bought map with its layout locked (edit only; `generate-image` refuses it, since a map painted from words has no walls). `kind: "overland"` does the same for a regional map and paints the lettering out. |
 | `cutout-image` | Cut a token's background to alpha and deliver it on a square canvas. |
 | `artificer-status` | Key present, models reachable, estimated spend this session. |
 
@@ -106,6 +129,9 @@ Ask Claude for what you want in table terms:
 - "Illustrate the party arriving at the ruined mill at dusk; here are their portraits."
 - "Change this token's cloak to forest green."
 - "This old token looks rough; give it an updated painterly pass."
+- "Make this bandit token a Sharran cleric: black armour, morningstar, keep the pose."
+- "These twelve tokens come from three different packs; restyle them all to match this one."
+- "Illustrate last night's recap; the party's portraits are in this folder."
 - "Cut the background off this token."
 
 Claude reads every render before showing it to you and fixes obvious flaws (an extra limb, a
@@ -137,6 +163,23 @@ like:
 The handoff is files on disk: this server writes them, the Foundry server uploads them
 (`upload-asset`, `set-actor-art`, `add-journal-image`). Nothing here talks to Foundry directly,
 so either half works on its own.
+
+## With a campaign repo: the same faces every week
+
+Consistency across a campaign comes from a small file, not from luck. A campaign repo keeps an
+art shelf (`art/SHELF.md`): one approved portrait per player character with the short phrase
+that binds it in a prompt ("a bone-white orc in battered steel plate"), two or three finished
+pieces that carry the house look, the finish words that keep portraits matte and the palette
+muted, and a note of which older files are superseded and must never be attached again. The
+`illustration-builder` skill reads the shelf before every piece, attaches the anchors as
+character references and the shelf as style references, and proposes a shelf if the repo has
+none yet.
+
+That is how Session Scribe's records stay illustrated by the same people session after session,
+how a token redress lands as the actor your world already knows, and how a book assembled at
+the end of a campaign reads as one artist's work. Greenrest's shelf, its approved art, and the
+chronicle built from them are public in
+[`fvtt-campaign-greenrest`](https://github.com/Txpple/fvtt-campaign-greenrest).
 
 ## How it works
 
