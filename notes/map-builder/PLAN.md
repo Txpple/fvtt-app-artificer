@@ -64,7 +64,7 @@ Other details worth keeping:
 ## Inventory at home (2026-10-07)
 
 - **Walled map modules** (LevelDB, `module.json` + `packs/<name>/`), as zips in
-  `C:\Users\sippelmc\Downloads`: Into the Wilds Dungeons 01, 03, 04; Green Hag Lair; Temple of
+  the Downloads folder: Into the Wilds Dungeons 01, 03, 04; Green Hag Lair; Temple of
   Night; Woodland Temple; Axziga's Lair. None installed in Foundry. These are the test maps.
 - **The ItW Caves packs** used on the laptop are not on this machine yet; the owner will bring
   them over (2026-10-07). They are the Hearth's source material and the first catalogue target

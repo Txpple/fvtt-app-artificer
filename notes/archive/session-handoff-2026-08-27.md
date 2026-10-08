@@ -56,7 +56,7 @@ and per-run findings. Summary:
 
 A bench harness at `scratchpad\suite.py` injects a `LoraLoaderModelOnly` into the real
 `final.json` and submits directly to ComfyUI — **no MCP change, no restart needed**. 21 renders
-(4 PCs + 3 empty scenes × base/0.5/0.8) are in `C:\Users\sippelmc\Desktop\lora-test-suite\`,
+(4 PCs + 3 empty scenes × base/0.5/0.8) are in a `lora-test-suite\` folder on the desktop,
 named `<subject>__<strength>.png`.
 
 **Findings so far (only ~6 of 21 examined closely — the rest need the owner's eye):**
