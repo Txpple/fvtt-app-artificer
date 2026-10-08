@@ -1,14 +1,12 @@
 # fvtt-mcp-imagegen
 
-An app that lets Claude make art for your Foundry VTT table using Google's Gemini image models
-(Nano Banana). Four tools, one API key, no GPU.
+An [MCP](https://modelcontextprotocol.io) server that lets Claude make art for your Foundry VTT
+table using Google's Gemini image models (Nano Banana). Four tools, one API key, no GPU.
 
-[Claude Code](https://claude.com/claude-code) drives it. The app runs as an
-[MCP](https://modelcontextprotocol.io) server named `artificer`, and its `illustration-builder`
-skill grounds every piece in what your world already says and shows.
-
-Claude writes the prompt, the server renders it, Claude looks at the result and fixes what is
-wrong, and the finished file lands on disk ready to upload into Foundry.
+[Claude Code](https://claude.com/claude-code) drives it. The server is registered as `artificer`,
+and its `illustration-builder` skill grounds every piece in what your world already says and
+shows. Claude writes the prompt, the server renders it, Claude looks at the result and fixes what
+is wrong, and the finished file lands on disk ready to upload into Foundry.
 
 ## What you can make
 
@@ -177,6 +175,30 @@ npm run typecheck
 npm run check     # biome
 npm run knip
 ```
+
+<!-- openroll5e:family -->
+## Part of Open Roll 5e
+
+fvtt-mcp-imagegen is one of the three MCP servers in Open Roll 5e, a suite of Foundry VTT modules and Claude
+Code tooling built for one D&D 5e table and shared. The other servers:
+
+- [fvtt-mcp-dnd5e](https://github.com/Txpple/fvtt-mcp-dnd5e): builds D&D 5e content in a live Foundry world from Claude Code: a stat block becomes a complete NPC, a map image a walled and lit scene, an adventure its journals, tables and handouts.
+- [fvtt-mcp-sessionscribe](https://github.com/Txpple/fvtt-mcp-sessionscribe): turns a session's Discord recording and Foundry chat log into its record: a speaker-labelled transcript, a player recap, a combat report and GM notes.
+
+The modules, each of which installs and works on its own and none of which needs another:
+
+- [Open Roll 5e: Autoexplore](https://github.com/Txpple/fvtt-mod-autoexplore): lets a scene start fully explored, so the whole map shows through the fog of war while tokens still need line of sight.
+- [Open Roll 5e: Battle Flow](https://github.com/Txpple/fvtt-mod-battleflow): combat automation for dnd5e 2024 rules: a hit rolls and applies its own damage, saves resolve themselves, reactions hold, and concentration is tracked. Every rule that touches a fight in the 2024 core books, Heroes of Faerûn, Arcana Unleashed and Ravenloft: The Horrors Within.
+- [Open Roll 5e: Combat Plus](https://github.com/Txpple/fvtt-mod-combatplus): automates the chores of running a fight: combat music, an initiative gate, an out-of-turn movement block, defeated marking at 0 HP and turn alerts.
+- [Open Roll 5e: Errata](https://github.com/Txpple/fvtt-mod-errata5e): corrects, in memory, bugs in the premium D&D 2024 books, the dnd5e system and Foundry itself, each fix held until the vendor ships its own.
+- [Open Roll 5e: FX Studio](https://github.com/Txpple/fvtt-mod-fxstudio): visual and sound effects for dnd5e, played from what actually happened at the table, with about a thousand stock FX and a window for authoring your own.
+- [Open Roll 5e: Loot Shelf](https://github.com/Txpple/fvtt-mod-lootshelf): loot chests and merchant shelves that players can take from, buy from and sell to without owning them, with a receipt for every trade.
+- [Open Roll 5e: Open Server](https://github.com/Txpple/fvtt-mod-openserver): for hosted worlds: clears the startup pause so players can play before the GM arrives, and gives any user a landing scene of their own.
+- [Open Roll 5e: Party Stash](https://github.com/Txpple/fvtt-mod-partystash): makes a dnd5e Group actor's inventory a working party stash: drags move instead of copying, coin moves through a dialog, and every transfer posts a receipt.
+- [Open Roll 5e: Soundscape](https://github.com/Txpple/fvtt-mod-soundscape): background sound for scenes: random one-shots with silence between them, seamless crossfaded loops, day and night gating, and quiet during combat.
+
+How they fit together is mapped in [fvtt-suite-openroll5e](https://github.com/Txpple/fvtt-suite-openroll5e).
+<!-- /openroll5e:family -->
 
 ## License
 
