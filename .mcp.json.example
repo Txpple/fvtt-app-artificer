@@ -2,8 +2,8 @@
   "_comment": "Copy this to a .mcp.json that Claude Code reads (project root, or merge into ~/.claude.json mcpServers), then set ABSOLUTE paths. House convention registers this server at USER scope: claude mcp add -s user artificer -- node <abs path>/dist/index.js",
   "mcpServers": {
     "artificer": {
-      "command": "C:/Program Files/nodejs/node.exe",
-      "args": ["D:/Workbench/FVTT/Repos/fvtt-suite-openroll5e/fvtt-mcp-imagegen/dist/index.js"]
+      "command": "node",
+      "args": ["<abs path>/fvtt-mcp-imagegen/dist/index.js"]
     }
   }
 }

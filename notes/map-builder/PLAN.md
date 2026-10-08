@@ -69,13 +69,13 @@ Other details worth keeping:
 - **The ItW Caves packs** used on the laptop are not on this machine yet; the owner will bring
   them over (2026-10-07). They are the Hearth's source material and the first catalogue target
   once here.
-- `D:\Workshelf\Assets\FVTT\` holds Props, Tokens and jb2a today, no map modules. It is the
-  natural home for the unzipped walled packs (proposed `D:\Workshelf\Assets\FVTT\Maps\<module-id>\`)
-  and for the catalogue cache beside them, rather than Downloads or `LOCAL`.
+- The owner's asset library holds Props, Tokens and jb2a today, no map modules. It is the
+  natural home for the unzipped walled packs (proposed `<assets>\Maps\<module-id>\`)
+  and for the catalogue cache beside them, rather than Downloads.
 - **Image-only maps**: `Ostenwold Town Map_VTT.zip`, `05. Free Map Images Pack.zip` (Downloads);
   the maps already copied into the Greenrest world's `assets/tom-cartos/` (webp/jpg/png, no walls).
 - **Props**: ~70 Tom Cartos asset packs, Forgotten Adventures and Alaythea tiles under
-  `D:\Workshelf\Assets\FVTT\Props\`.
+  `<assets>\Props\`.
 - **Tooling**: system Python 3.13 with OpenCV 5.0, numpy 2.4, Pillow 12.2. Node 22.
 - Pack art is licensed: **the catalogue cache lives outside git**, in Workshelf beside the
   packs; only scripts and tests are committed.

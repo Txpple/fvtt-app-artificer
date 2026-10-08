@@ -190,7 +190,7 @@ and `screenshot-scene` afterwards. Before the swap, draw the scene's walls over 
 the map. About 15
 cents a map, 30 with a drift retry.
 
-**Props** (owner's library: `D:\Workshelf\Assets\FVTT\Props`, mostly Tom Cartos at 300 px per
+**Props** (the owner's prop library, mostly Tom Cartos at 300 px per
 grid cell). Refreshing one is `edit-image` `kind: "prop"` with the repaint wording (`repaint this
 prop at much higher quality in a painterly style, with fine painted detail on its materials`);
 the result comes back at the source's exact pixel size with the new art in the original's box,
@@ -435,7 +435,7 @@ dropped on 2026-09-19; re-earn phrasing lessons on the new backend before writin
    off the magenta plate; a see-through glow still mixes in some plate colour, so a gold sigil
    can come back a touch yellower. Name its colour in the instruction.
    **Read the file name first; it is prompt material.** The owner's token library
-   (`D:\Workshelf\Assets\FVTT\Tokens\Token Library`) names files `Category - Subject`:
+   names files `Category - Subject`:
    the category is the creature type ("Fiend -", "Undead -", "Giant -"), `M_` / `F_` is the
    gender, and the words after it are the role or variant ("archer", "Ripper", "Pale_brute",
    "armored", "flying") that a 400 px image may not show clearly. `_hi` and trailing numbers
