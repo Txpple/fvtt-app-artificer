@@ -4,8 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # fvtt-mcp-imagegen
 
-Image-generation app for D&D table art, backed by the **Gemini image API** (the Nano Banana
-models). Claude Code drives it through its MCP server (registered as `artificer`), which exposes
+An MCP server that makes D&D table art with the **Gemini image API** (the Nano Banana
+models). Claude Code drives it (the server is registered as `artificer`); it exposes
 a small set of **Foundry-specific** tools so Claude can author prompts, generate art, edit existing art, cut tokens to alpha, curate the results by actually looking at
 them, and hand the winners to the Foundry pipeline (`upload-asset` → `set-actor-art` /
 `add-journal-image` in `fvtt-mcp-dnd5e`).

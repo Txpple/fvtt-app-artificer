@@ -3,6 +3,7 @@
 // touches process.env.
 
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
@@ -20,14 +21,19 @@ function readPackageVersion(): string {
   }
 }
 
+/** IMAGEGEN_* is the name; the ARTIFICER_* spelling (before 2026-10-08) is still read as a fallback. */
+function env(name: string): string | undefined {
+  return process.env[name] ?? process.env[name.replace(/^IMAGEGEN_/, 'ARTIFICER_')];
+}
+
 export const config = {
   server: { name: 'fvtt-mcp-imagegen', version: readPackageVersion() },
   /** Gemini API key. Empty string when unset; tools report that instead of crashing at startup. */
   geminiApiKey: process.env.GEMINI_API_KEY ?? '',
   /** Where finished renders land before curation and staging. Outside any git repo. */
-  outputDir: process.env.ARTIFICER_OUTPUT_DIR ?? 'D:\\Workbench\\LOCAL\\artificer-output',
+  outputDir: env('IMAGEGEN_OUTPUT_DIR') ?? path.join(os.homedir(), 'Documents', 'imagegen-output'),
   /** Python interpreter for the cutout script (needs Pillow + numpy; rembg optional). */
-  pythonBin: process.env.ARTIFICER_PYTHON ?? 'python',
+  pythonBin: env('IMAGEGEN_PYTHON') ?? 'python',
   /** Max wait for a single API call. */
-  timeoutMs: Number(process.env.ARTIFICER_TIMEOUT_MS ?? 120_000),
+  timeoutMs: Number(env('IMAGEGEN_TIMEOUT_MS') ?? 120_000),
 };

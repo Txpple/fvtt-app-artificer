@@ -108,7 +108,7 @@ Put your key in `.env`:
 
 ```
 GEMINI_API_KEY=your-key
-ARTIFICER_OUTPUT_DIR=C:\path\where\renders\should\land
+IMAGEGEN_OUTPUT_DIR=C:\path\where\renders\should\land
 ```
 
 Register the server with Claude Code (user scope, so it is available in every project), then

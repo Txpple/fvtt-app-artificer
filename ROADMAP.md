@@ -56,7 +56,7 @@ style-ref pass or a Flash prefix is enough.
   Native instruction editing; the token kind re-runs cutout after.
 - Delete: `workflows/`, `src/workflows.ts`, `src/comfy.ts`, `src/tools/upscale.ts`,
   `tests/integration/`, `vitest.integration.config.ts`. `.env.example` carries `GEMINI_API_KEY`
-  and `ARTIFICER_OUTPUT_DIR`.
+  and `IMAGEGEN_OUTPUT_DIR`.
 - Tests: offline unit suite on recorded API fixtures (request shaping, preset mapping, post-
   processing dimensions, filename convention, registry surface guard). No test hits the live API.
 - Exit gate: build green, tests green, one icon and one illustration rendered through the tool.
@@ -117,8 +117,8 @@ style-ref pass or a Flash prefix is enough.
 
 ## Decisions settled (owner, 2026-09-23)
 
-- **Output directory** for raw renders before staging: `D:\Workbench\LOCAL\artificer-output`,
-  outside the repo. The `config.ts` default; `ARTIFICER_OUTPUT_DIR` overrides.
+- **Output directory** for raw renders before staging: outside the repo. The `config.ts`
+  default is `<home>/Documents/imagegen-output`; `IMAGEGEN_OUTPUT_DIR` overrides.
 - **Icon format**: PNG, like every other kind, matching the campaign repos' `art/` shelf. No webp.
 - **Flash for portraits and illustrations**: the default, no confirm. Pro stays opt-in behind
   `confirmPro`, offered once for a bit extra.
