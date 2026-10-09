@@ -291,9 +291,9 @@ describe('generate-image', () => {
       tier: 'flash',
       width: 512,
       height: 512,
-      estimatedUsd: 0.067,
+      estimatedUsd: 0.0336,
     });
-    expect(spend.totalUsd).toBe(0.067);
+    expect(spend.totalUsd).toBe(0.034);
     const text = sent[0].body.contents[0].parts.at(-1).text;
     expect(text).toMatch(/^a rusted iron key Inventory icon/);
     expect(sent[0].url).toContain('gemini-nano-banana-2.1');
@@ -382,8 +382,8 @@ describe('generate-image', () => {
     });
     expect(sent).toHaveLength(2);
     expect(r.edgeRetried).toBe(true);
-    expect(r.estimatedUsd).toBeCloseTo(0.134);
-    expect(spend.totalUsd).toBeCloseTo(0.134);
+    expect(r.estimatedUsd).toBeCloseTo(0.0672);
+    expect(spend.totalUsd).toBeCloseTo(0.0672);
     expect(cuts).toHaveLength(1);
     expect(fs.readdirSync(tmp).some(f => /^token-k-[0-9a-f]{8}-clipped1\.png$/.test(f))).toBe(true);
   });
@@ -674,7 +674,7 @@ describe('battlemaps', () => {
     expect(r.driftRetried).toBeUndefined();
     expect(fs.existsSync(r.check)).toBe(true);
     expect(spend.calls).toBe(1);
-    expect(r.estimatedUsd).toBe(0.151);
+    expect(r.estimatedUsd).toBe(0.113);
   });
 
   it('edit: a drifted render is redone once, both billed, and the clean one delivered', async () => {
@@ -689,7 +689,7 @@ describe('battlemaps', () => {
     expect(r.driftRetried).toBe(true);
     expect(r.drift.failed).toBe(false);
     expect(spend.calls).toBe(2);
-    expect(r.estimatedUsd).toBeCloseTo(0.302);
+    expect(r.estimatedUsd).toBeCloseTo(0.226);
     expect(
       fs.readdirSync(tmp).some(f => /^battlemap-tavern2-[0-9a-f]{8}-drifted1\.webp$/.test(f))
     ).toBe(true);

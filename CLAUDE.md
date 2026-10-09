@@ -52,7 +52,7 @@ Claude ──MCP──> fvtt-mcp-imagegen ──HTTPS──> Gemini image API
 
 | tier | model | role | rough cost |
 |---|---|---|---|
-| `flash` (default for every kind) | Nano Banana 2.1 (`gemini-nano-banana-2.1`) | everything unless the owner opts up | ~7¢ at 1K, ~10¢ at 2K, ~15¢ at 4K |
+| `flash` (default for every kind) | Nano Banana 2.1 (`gemini-nano-banana-2.1`) | everything unless the owner opts up | ~3¢ at 1K, ~5¢ at 2K, ~11¢ at 4K |
 | `pro` (opt-in) | Nano Banana Pro (Gemini 3 Pro Image) | offered for portraits and illustrations "for a bit extra"; crowded scenes, text-heavy handouts | ~13¢ at 1K/2K, ~24¢ at 4K |
 
 Facts that shape the design (verified against Google's docs 2026-09-19):

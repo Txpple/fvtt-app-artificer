@@ -17,9 +17,9 @@ export const MODELS: Record<Tier, string> = {
   pro: 'gemini-3-pro-image',
 };
 
-/** USD per generated image, from the published price table (2026-09-19). Estimates only. */
+/** USD per generated image, from Google's published price table (pro 2026-09-19; flash = Nano Banana 2.1, 2026-10-08). Estimates only. */
 export const PRICE: Record<Tier, Record<ImageSize, number>> = {
-  flash: { '1K': 0.067, '2K': 0.101, '4K': 0.151 },
+  flash: { '1K': 0.0336, '2K': 0.0504, '4K': 0.113 },
   pro: { '1K': 0.134, '2K': 0.134, '4K': 0.24 },
 };
 

@@ -76,10 +76,10 @@ Every call returns the file path, the pixel size, and an estimated cost.
 
 ## Models and cost
 
-Everything runs on **Nano Banana 2.1** (`gemini-nano-banana-2.1`) by default: roughly 7 cents for
-an icon or token, 10 cents for a portrait, 15 cents for an illustration.
+Everything runs on **Nano Banana 2.1** (`gemini-nano-banana-2.1`) by default: roughly 3 cents for
+an icon or token, 5 cents for a portrait, 11 cents for an illustration.
 
-**Nano Banana Pro** (Gemini 3 Pro Image) is available for about double. It is stronger on
+**Nano Banana Pro** (Gemini 3 Pro Image) is available for about double at 4K and four times at 1K. It is stronger on
 crowded multi-figure scenes and images with legible text. Claude will not use it unless you
 say so: a Pro call refuses without an explicit confirm and tells you the price first.
 
