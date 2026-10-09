@@ -11,9 +11,9 @@ export type ImageSize = (typeof SIZES)[number];
 export const ASPECTS = ['1:1', '3:4', '4:3', '16:9', '9:16', '3:2', '2:3'] as const;
 export type Aspect = (typeof ASPECTS)[number];
 
-/** Model ids exactly as the API lists them (verified 2026-09-19). */
+/** Model ids exactly as the API lists them (verified 2026-09-19; flash moved to Nano Banana 2.1 on 2026-10-08). */
 export const MODELS: Record<Tier, string> = {
-  flash: 'gemini-3.1-flash-image',
+  flash: 'gemini-nano-banana-2.1',
   pro: 'gemini-3-pro-image',
 };
 

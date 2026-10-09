@@ -296,7 +296,7 @@ describe('generate-image', () => {
     expect(spend.totalUsd).toBe(0.067);
     const text = sent[0].body.contents[0].parts.at(-1).text;
     expect(text).toMatch(/^a rusted iron key Inventory icon/);
-    expect(sent[0].url).toContain('gemini-3.1-flash-image');
+    expect(sent[0].url).toContain('gemini-nano-banana-2.1');
     expect(cuts).toHaveLength(0);
   });
 
@@ -798,7 +798,7 @@ describe('cutout-image', () => {
 describe('imagegen-status', () => {
   it('reports key presence, model reachability, output dir, and spend', async () => {
     const fakeFetch = (async () =>
-      new Response(JSON.stringify({ models: [{ name: 'models/gemini-3.1-flash-image' }] }), {
+      new Response(JSON.stringify({ models: [{ name: 'models/gemini-nano-banana-2.1' }] }), {
         status: 200,
       })) as typeof fetch;
     const gemini = new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });

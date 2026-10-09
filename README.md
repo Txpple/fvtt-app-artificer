@@ -76,7 +76,7 @@ Every call returns the file path, the pixel size, and an estimated cost.
 
 ## Models and cost
 
-Everything runs on **Nano Banana 2** (Gemini 3.1 Flash Image) by default: roughly 7 cents for
+Everything runs on **Nano Banana 2.1** (`gemini-nano-banana-2.1`) by default: roughly 7 cents for
 an icon or token, 10 cents for a portrait, 15 cents for an illustration.
 
 **Nano Banana Pro** (Gemini 3 Pro Image) is available for about double. It is stronger on

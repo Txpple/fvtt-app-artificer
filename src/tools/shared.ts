@@ -52,7 +52,7 @@ export const tierSchema = z
   .enum(TIERS)
   .optional()
   .describe(
-    'Default flash (Nano Banana 2, ~7-15¢), never needs a confirm. "pro" (Nano Banana Pro, ' +
+    'Default flash (Nano Banana 2.1, ~7-15¢), never needs a confirm. "pro" (Nano Banana Pro, ' +
       '~13-24¢, style-reference slots, stronger multi-figure scenes) needs confirmPro.'
   );
 
