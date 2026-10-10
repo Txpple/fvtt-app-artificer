@@ -1,8 +1,8 @@
 {
-  "_comment": "Copy this to a .mcp.json that Claude Code reads (project root, or merge into ~/.claude.json mcpServers), then set ABSOLUTE paths. House convention registers this server at USER scope: claude mcp add -s user imagegen -- node <abs path>/dist/index.js",
+  "_comment": "Copy this to a .mcp.json that Claude Code reads (project root), or put the imagegen entry under mcpServers in ~/.claude.json for user scope (the house convention). Use ABSOLUTE paths, including node itself: an app launched from the desktop may not see node on PATH. On macOS or Linux use the output of `which node`.",
   "mcpServers": {
     "imagegen": {
-      "command": "node",
+      "command": "C:/Program Files/nodejs/node.exe",
       "args": ["<abs path>/fvtt-mcp-imagegen/dist/index.js"]
     }
   }

@@ -44,6 +44,9 @@ Claude ──MCP──> fvtt-mcp-imagegen ──HTTPS──> Gemini image API
 ```
 
 - Tools return absolute file paths; Claude reads the PNGs directly to curate.
+- `imagegen-status` is the setup doctor (`src/doctor.ts`, issue #2): key present and accepted
+  (a free models list, never a render), output dir writable and outside git, `IMAGEGEN_PYTHON`
+  imports Pillow + numpy (rembg reported), one actionable line each. It must never spend credit.
 - Small server: `generate-image`, `edit-image`, `cutout-image`, `imagegen-status`. Resist tool
   sprawl. New work arrives as a `kind`, not a tool (props 2026-09-24, battlemaps 2026-10-02, overland
   maps 2026-10-03).

@@ -70,7 +70,7 @@ is wrong, and the finished file lands on disk ready to upload into Foundry.
 | `generate-image` | Render one asset from a prompt. `kind` is `icon`, `token`, `prop`, `portrait`, or `illustration`; it picks the model, aspect, size, framing, and post-processing for you. Optional `references` (character, style, or pose) and, for tokens, `creatureSize` (`medium` or `large`); for props, `footprint` (`"2x1"`). |
 | `edit-image` | Apply one instruction to an existing image and keep everything else. Token edits are prompted the way you would type in the Gemini app and re-cut automatically. Takes `creatureSize` too. `kind: "battlemap"` restyles a bought map with its layout locked (edit only; `generate-image` refuses it, since a map painted from words has no walls). `kind: "overland"` does the same for a regional map and paints the lettering out. |
 | `cutout-image` | Cut a token's background to alpha and deliver it on a square canvas. |
-| `imagegen-status` | Key present, models reachable, estimated spend this session. |
+| `imagegen-status` | Setup doctor: key present and accepted, models reachable, output folder writable and outside git, cutout Python ready; estimated spend this session. |
 
 Every call returns the file path, the pixel size, and an estimated cost.
 
@@ -90,9 +90,13 @@ estimate; your actual bill is in the Google Cloud console.
 
 - Node.js 22 or newer.
 - A Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey) with billing
-  enabled. Prepaid credit with auto-reload off is a sensible ceiling.
-- Python 3 with Pillow and numpy for the token cutout. `rembg` is optional and adds an AI
-  matte fallback for busy backgrounds (first use downloads a ~176 MB model).
+  enabled: the image models have no free tier. Prepaid credit with auto-reload off is a sensible
+  ceiling.
+- Python 3 with Pillow and numpy for the token cutout:
+  `<python> -m pip install -r requirements.txt`. `rembg` is optional and adds an AI matte
+  fallback for busy backgrounds (`pip install "rembg[cpu]"`; first use downloads a ~176 MB
+  model). On Windows, bare `python` may be the Microsoft Store placeholder; set
+  `IMAGEGEN_PYTHON` in `.env` to the full path of a real `python.exe`.
 
 ## Install
 
@@ -111,14 +115,36 @@ GEMINI_API_KEY=your-key
 IMAGEGEN_OUTPUT_DIR=C:\path\where\renders\should\land
 ```
 
+The output folder is created on the first render and must sit outside any git repo. Set
+`IMAGEGEN_PYTHON` too if bare `python` is not the interpreter you installed the requirements into.
+
 Register the server with Claude Code (user scope, so it is available in every project), then
 restart Claude Code:
 
 ```bash
-claude mcp add -s user imagegen -- node /absolute/path/to/fvtt-mcp-imagegen/dist/index.js
+claude mcp add -s user imagegen -- "C:/Program Files/nodejs/node.exe" /absolute/path/to/fvtt-mcp-imagegen/dist/index.js
 ```
 
-Or copy [`.mcp.json.example`](.mcp.json.example) and set absolute paths.
+Give `node` as a full path (`which node` on macOS or Linux): Claude Code launched from the
+desktop app may not see it on PATH. A desktop-app install may not put the `claude` CLI on PATH
+either; then add the same entry by hand under `mcpServers` in `~/.claude.json` (user scope) and
+restart:
+
+```json
+"mcpServers": {
+  "imagegen": {
+    "command": "C:/Program Files/nodejs/node.exe",
+    "args": ["/absolute/path/to/fvtt-mcp-imagegen/dist/index.js"]
+  }
+}
+```
+
+[`.mcp.json.example`](.mcp.json.example) has the same entry for a project-scoped `.mcp.json`.
+
+Then ask Claude to run `imagegen-status`. It is the setup doctor: one line each for the key
+(present, and accepted by Google, checked with a free model listing), the output folder
+(writable, outside any git repo), and the cutout Python (Pillow, numpy, rembg), each with the
+fix when something is wrong. The server also warns at startup when the key is missing.
 
 ## Using it
 

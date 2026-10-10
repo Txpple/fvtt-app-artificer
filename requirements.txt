@@ -1,0 +1,8 @@
+# Python packages for scripts/token_cutout.py (cutout-image, and token/prop renders).
+# Install into the interpreter IMAGEGEN_PYTHON points at:
+#   <python> -m pip install -r requirements.txt
+Pillow
+numpy
+# Optional: the AI matte fallback for busy backgrounds (first use downloads a ~176 MB model).
+#   <python> -m pip install "rembg[cpu]"
+# rembg[cpu]
