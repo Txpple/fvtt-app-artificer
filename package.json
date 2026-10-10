@@ -18,7 +18,8 @@
     "format": "biome format --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "knip": "knip"
+    "knip": "knip",
+    "doctor": "node scripts/doctor.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -33,6 +34,10 @@
     "knip": "^5.64.0",
     "typescript": "^6.0.3",
     "vitest": "~3.2.6"
+  },
+  "allowScripts": {
+    "classic-level": true,
+    "esbuild": true
   },
   "engines": {
     "node": ">=22.0.0",

@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { checkOutputDir, findGitRoot, judgePython, makePythonCheck } from './doctor.js';
+import { checkOutputDir, findGitRoot, judgePython, makePythonCheck, runDoctor } from './doctor.js';
 
 let tmp: string;
 
@@ -104,5 +104,50 @@ describe('python check', () => {
 
   it('fails garbage output', () => {
     expect(judgePython('python', { code: 0, stdout: 'hello', stderr: '' }).status).toBe('fail');
+  });
+});
+
+describe('runDoctor (imagegen-status and npm run doctor)', () => {
+  const both = ['gemini-nano-banana-2.1', 'gemini-3-pro-image'];
+
+  it('runs key, output dir and Python in order and is ready with no failure', async () => {
+    let listed = 0;
+    const r = await runDoctor({
+      gemini: {
+        hasKey: true,
+        availableModels: async () => {
+          listed++;
+          return both;
+        },
+      },
+      outputDir: tmp,
+      checkPython: async () => ({ check: 'python', status: 'warn', message: 'rembg absent' }),
+    });
+    expect(listed).toBe(1);
+    expect(r.checks.map(c => [c.check, c.status])).toEqual([
+      ['key', 'ok'],
+      ['output-dir', 'ok'],
+      ['python', 'warn'],
+    ]);
+    expect(r.models).toEqual({ flash: true, pro: true });
+    expect(r.ready).toBe(true);
+  });
+
+  it('is not ready when any check fails, and never lists models without a key', async () => {
+    let listed = 0;
+    const r = await runDoctor({
+      gemini: {
+        hasKey: false,
+        availableModels: async () => {
+          listed++;
+          return both;
+        },
+      },
+      outputDir: tmp,
+    });
+    expect(listed).toBe(0);
+    expect(r.checks.map(c => c.check)).toEqual(['key', 'output-dir']);
+    expect(r.checks[0].status).toBe('fail');
+    expect(r.ready).toBe(false);
   });
 });

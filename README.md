@@ -118,6 +118,17 @@ IMAGEGEN_OUTPUT_DIR=C:\path\where\renders\should\land
 The output folder is created on the first render and must sit outside any git repo. Set
 `IMAGEGEN_PYTHON` too if bare `python` is not the interpreter you installed the requirements into.
 
+Check the setup from the terminal before registering anything:
+
+```bash
+npm run doctor
+```
+
+It loads `.env` the way the server does and runs the same checks as `imagegen-status` below,
+one line each (`✓` fine, `!` works but worth a look, `✗` broken) with the fix, and exits non-zero
+until nothing is broken. The key check is a free model listing; it never renders, so it spends
+no credit. Rerun it after each fix.
+
 Register the server with Claude Code (user scope, so it is available in every project), then
 restart Claude Code:
 
@@ -144,7 +155,8 @@ restart:
 Then ask Claude to run `imagegen-status`. It is the setup doctor: one line each for the key
 (present, and accepted by Google, checked with a free model listing), the output folder
 (writable, outside any git repo), and the cutout Python (Pillow, numpy, rembg), each with the
-fix when something is wrong. The server also warns at startup when the key is missing.
+fix when something is wrong (the same checks `npm run doctor` runs, plus this session's
+estimated spend). The server also warns at startup when the key is missing.
 
 ## Using it
 
@@ -243,7 +255,13 @@ npm test          # offline unit suite; nothing hits the live API
 npm run typecheck
 npm run check     # biome
 npm run knip
+npm run doctor    # the setup checks against your .env (needs a build)
 ```
+
+`npm ci` runs two install scripts, both allowed in `package.json` under `allowScripts`:
+esbuild's (it checks its platform binary; vitest's bundler) and classic-level's (it picks the
+prebuilt LevelDB binding; the Foundry CLI behind `scripts/unpack_leveldb.mjs`). Neither is used
+by the server at runtime.
 
 <!-- openroll5e:family -->
 ## Part of Open Roll 5e

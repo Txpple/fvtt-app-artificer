@@ -47,6 +47,11 @@ Claude ──MCP──> fvtt-mcp-imagegen ──HTTPS──> Gemini image API
 - `imagegen-status` is the setup doctor (`src/doctor.ts`, issue #2): key present and accepted
   (a free models list, never a render), output dir writable and outside git, `IMAGEGEN_PYTHON`
   imports Pillow + numpy (rembg reported), one actionable line each. It must never spend credit.
+  `npm run doctor` (`scripts/doctor.mjs`) is the same checks from a terminal: it imports
+  `runDoctor` from `dist/`, so the logic stays in `src/doctor.ts` and a build comes first.
+- `package.json` `allowScripts` names the two install scripts `npm ci` runs (esbuild, via vitest;
+  classic-level, via the Foundry CLI). A new dependency with an install script shows as an npm
+  `allow-scripts` warning; judge it and add it there.
 - Small server: `generate-image`, `edit-image`, `cutout-image`, `imagegen-status`. Resist tool
   sprawl. New work arrives as a `kind`, not a tool (props 2026-09-24, battlemaps 2026-10-02, overland
   maps 2026-10-03).
