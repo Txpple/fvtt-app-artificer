@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { Gemini, MODELS, PRICE, buildRequestBody, parseResponse } from './gemini.js';
+import {
+  Gemini,
+  GeminiHttpError,
+  isKeyRejection,
+  MODELS,
+  PRICE,
+  buildRequestBody,
+  parseResponse,
+} from './gemini.js';
 
 const tinyJpegB64 = Buffer.from('not-really-a-jpeg').toString('base64');
 
@@ -145,6 +153,22 @@ describe('Gemini client', () => {
       })) as typeof fetch;
     const g = new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
     expect(await g.availableModels()).toEqual([MODELS.flash]);
+  });
+  it('keeps the HTTP status of a failed models list so a bad key can be told apart', async () => {
+    const fakeFetch = (async () =>
+      okResponse(
+        { error: { message: 'API key not valid. Please pass a valid API key.' } },
+        400
+      )) as typeof fetch;
+    const g = new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
+    const err = await g.availableModels().catch(e => e);
+    expect(err).toBeInstanceOf(GeminiHttpError);
+    expect(err.message).toMatch(/HTTP 400 listing models: API key not valid/);
+    expect(isKeyRejection(err)).toBe(true);
+    expect(isKeyRejection(new GeminiHttpError(403, 'Gemini HTTP 403'))).toBe(true);
+    expect(isKeyRejection(new GeminiHttpError(400, 'Gemini HTTP 400: bad page size'))).toBe(false);
+    expect(isKeyRejection(new GeminiHttpError(503, 'Gemini HTTP 503'))).toBe(false);
+    expect(isKeyRejection(new Error('API key'))).toBe(false);
   });
 });
 

@@ -9,11 +9,19 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 
 import { config } from './config.js';
 import { makeCutout } from './cutout.js';
+import { makePythonCheck } from './doctor.js';
 import { Gemini } from './gemini.js';
 import { buildToolRegistry } from './registry.js';
 import { SpendMeter } from './spend.js';
 
 async function main(): Promise<void> {
+  if (!config.geminiApiKey) {
+    console.error(
+      '[imagegen] warning: GEMINI_API_KEY is not set in .env; every render will fail. ' +
+        'Get a key at https://aistudio.google.com/apikey (billing on), then restart. ' +
+        'imagegen-status checks the whole setup.'
+    );
+  }
   const gemini = new Gemini({ apiKey: config.geminiApiKey, timeoutMs: config.timeoutMs });
   const spend = new SpendMeter();
   const cutout = makeCutout(config.pythonBin);
@@ -22,6 +30,7 @@ async function main(): Promise<void> {
     spend,
     outputDir: config.outputDir,
     cutout,
+    checkPython: makePythonCheck(config.pythonBin),
   });
 
   const mcp = new Server(

@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { encodeMap, mapBack, mapFormat, type PadPlan } from '../battlemap.js';
 import { type ChromaKey, chromaSuffix, pickChromaKey } from '../chroma.js';
 import type { CutoutFn, CutoutResult } from '../cutout.js';
+import type { PythonCheckFn } from '../doctor.js';
 import { type Aspect, Gemini, type InlineImage, PRICE, TIERS, type Tier } from '../gemini.js';
 import { type DriftReport, measureDrift, overlandDrifted } from '../drift.js';
 import { EDGE_BAND, EDGE_LIMIT, edgeContact } from '../edge.js';
@@ -30,6 +31,8 @@ export interface ToolDeps {
   spend: SpendMeter;
   outputDir: string;
   cutout: CutoutFn;
+  /** imagegen-status's Python probe (Pillow, numpy, rembg). Omitted = that check is skipped. */
+  checkPython?: PythonCheckFn;
 }
 
 export const kindSchema = z

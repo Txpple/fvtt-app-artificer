@@ -142,16 +142,43 @@ export class Gemini {
     return parseResponse(json, model);
   }
 
-  /** Which of our two models this key can see. Empty when unreachable. */
+  /**
+   * Which of our two models this key can see. Empty when no key is set. A models list is free
+   * (no generation credit spent), so imagegen-status uses it to prove the key is accepted.
+   */
   async availableModels(): Promise<string[]> {
     if (!this.hasKey) return [];
     const res = await this.fetchFn(`${this.baseUrl}/models?pageSize=200`, {
       headers: { 'x-goog-api-key': this.opts.apiKey },
       signal: AbortSignal.timeout(this.opts.timeoutMs),
     });
-    if (!res.ok) throw new Error(`Gemini HTTP ${res.status} listing models`);
-    const json: any = await res.json();
+    const json: any = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = json?.error?.message ?? '';
+      throw new GeminiHttpError(
+        res.status,
+        `Gemini HTTP ${res.status} listing models${msg ? `: ${msg}` : ''}`
+      );
+    }
     const names: string[] = (json?.models ?? []).map((m: any) => String(m.name ?? ''));
     return Object.values(MODELS).filter(id => names.includes(`models/${id}`));
   }
+}
+
+/** An HTTP failure from the API, with its status kept so callers can tell a bad key from an outage. */
+export class GeminiHttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string
+  ) {
+    super(message);
+    this.name = 'GeminiHttpError';
+  }
+}
+
+/** True when the API refused the key itself (invalid, revoked, restricted), not the request. */
+export function isKeyRejection(e: unknown): boolean {
+  if (!(e instanceof GeminiHttpError)) return false;
+  if (e.status === 401 || e.status === 403) return true;
+  return e.status === 400 && /api key/i.test(e.message);
 }

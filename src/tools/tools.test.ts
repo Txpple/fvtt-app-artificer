@@ -796,12 +796,18 @@ describe('cutout-image', () => {
 });
 
 describe('imagegen-status', () => {
-  it('reports key presence, model reachability, output dir, and spend', async () => {
-    const fakeFetch = (async () =>
-      new Response(JSON.stringify({ models: [{ name: 'models/gemini-nano-banana-2.1' }] }), {
+  const modelsFetch = (names: string[]) =>
+    (async () =>
+      new Response(JSON.stringify({ models: names.map(n => ({ name: `models/${n}` })) }), {
         status: 200,
       })) as typeof fetch;
-    const gemini = new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: fakeFetch });
+
+  it('reports key presence, model reachability, output dir, and spend', async () => {
+    const gemini = new Gemini({
+      apiKey: 'k',
+      timeoutMs: 1000,
+      fetch: modelsFetch(['gemini-nano-banana-2.1']),
+    });
     const { dispatch } = build(gemini);
     const s: any = await dispatch('imagegen-status', {});
     expect(s).toMatchObject({
@@ -809,14 +815,78 @@ describe('imagegen-status', () => {
       models: { flash: true, pro: false },
       outputDir: tmp,
     });
+    expect(s.checks[0]).toMatchObject({ check: 'key', status: 'warn' });
+    expect(s.checks[0].message).toMatch(/cannot see pro \(gemini-3-pro-image\)/);
+    expect(s.checks[1]).toMatchObject({ check: 'output-dir', status: 'ok' });
+    expect(s.ready).toBe(true);
     expect(s.spend).toEqual({ calls: 0, estimatedUsd: 0, byTier: { flash: 0, pro: 0 } });
   });
 
-  it('says so when the key is missing without calling out', async () => {
-    const { dispatch } = build(new Gemini({ apiKey: '', timeoutMs: 1 }));
+  it('is ready when the key sees both tiers', async () => {
+    const gemini = new Gemini({
+      apiKey: 'k',
+      timeoutMs: 1000,
+      fetch: modelsFetch(['gemini-nano-banana-2.1', 'gemini-3-pro-image']),
+    });
+    const s: any = await build(gemini).dispatch('imagegen-status', {});
+    expect(s.checks[0]).toMatchObject({ check: 'key', status: 'ok' });
+    expect(s.ready).toBe(true);
+  });
+
+  it('says so when the key is missing without calling out, with the fix', async () => {
+    let called = 0;
+    const fetchSpy = (async () => {
+      called++;
+      return new Response('{}');
+    }) as typeof fetch;
+    const { dispatch } = build(new Gemini({ apiKey: '', timeoutMs: 1, fetch: fetchSpy }));
     const s: any = await dispatch('imagegen-status', {});
+    expect(called).toBe(0);
     expect(s.keyPresent).toBe(false);
     expect(s.models).toEqual({});
+    expect(s.ready).toBe(false);
+    expect(s.checks[0]).toMatchObject({ check: 'key', status: 'fail' });
+    expect(s.checks[0].message).toMatch(/GEMINI_API_KEY is not set.*aistudio\.google\.com\/apikey/);
+  });
+
+  it('tells a rejected key from an unreachable API', async () => {
+    const rejecting = (async () =>
+      new Response(
+        JSON.stringify({ error: { message: 'API key not valid. Please pass a valid API key.' } }),
+        { status: 400 }
+      )) as typeof fetch;
+    const bad: any = await build(
+      new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: rejecting })
+    ).dispatch('imagegen-status', {});
+    expect(bad.checks[0]).toMatchObject({ check: 'key', status: 'fail' });
+    expect(bad.checks[0].message).toMatch(/rejected GEMINI_API_KEY \(.*API key not valid/);
+    expect(bad.ready).toBe(false);
+
+    const down = (async () => new Response('oops', { status: 503 })) as typeof fetch;
+    const flaky: any = await build(
+      new Gemini({ apiKey: 'k', timeoutMs: 1000, fetch: down })
+    ).dispatch('imagegen-status', {});
+    expect(flaky.checks[0]).toMatchObject({ check: 'key', status: 'warn' });
+    expect(flaky.error).toMatch(/HTTP 503/);
+  });
+
+  it('runs the injected Python check and folds it into ready', async () => {
+    const gemini = new Gemini({
+      apiKey: 'k',
+      timeoutMs: 1000,
+      fetch: modelsFetch(['gemini-nano-banana-2.1', 'gemini-3-pro-image']),
+    });
+    const spend = new SpendMeter();
+    const { dispatch } = buildToolRegistry({
+      gemini,
+      spend,
+      outputDir: tmp,
+      cutout: fakeCutout,
+      checkPython: async () => ({ check: 'python', status: 'fail', message: 'no numpy' }),
+    });
+    const s: any = await dispatch('imagegen-status', {});
+    expect(s.checks.map((c: any) => c.check)).toEqual(['key', 'output-dir', 'python']);
+    expect(s.ready).toBe(false);
   });
 });
 
